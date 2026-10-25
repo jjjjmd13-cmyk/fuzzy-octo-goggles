@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # run_tests.sh 자체 검사. 통과해야 할 프로젝트는 통과하고,
-# 실패해야 할 프로젝트(5가지 실패 유형)는 정확히 5개 실패로 잡히는지 본다.
+# 실패해야 할 프로젝트(6가지 실패 유형)는 정확히 6개 실패로 잡히는지 본다.
 # 사용법: GODOT=<godot 경로> tests/selftest.sh
 set -uo pipefail
 
@@ -26,8 +26,8 @@ out="$("$HERE/run_tests.sh" "$WORK/fail")"
 code=$?
 # 일부러 낸 실패가 GitHub 오류 표시로 뜨지 않게 바꿔 찍는다.
 sed 's/::error::/[예상된 실패] /' <<<"$out"
-if [ "$code" -eq 0 ] || ! grep -q "결과: 통과 0 / 실패 5" <<<"$out"; then
-  echo "::error::자체 검사 실패: 실패 5개를 모두 잡아내지 못함"
+if [ "$code" -eq 0 ] || ! grep -q "결과: 통과 0 / 실패 6" <<<"$out"; then
+  echo "::error::자체 검사 실패: 실패 6개를 모두 잡아내지 못함"
   exit 1
 fi
 

@@ -16,6 +16,7 @@ const FAIL_MARK := "QA_TEST_FAIL"
 const READY_MARK := "QA_TEST_READY"
 
 ## 이 시간(초) 안에 끝나지 않으면 실패로 끝낸다.
+## 씬(.tscn)에서 정하거나, run_test() 의 첫 await 전에 바꾼다.
 @export var time_limit_sec := 30.0
 
 ## 여러 프로세스 테스트(test_x.roles)에서 실행기가 주는 역할과 포트. 한 프로세스 테스트면 "" 와 0.
@@ -32,7 +33,12 @@ func _ready() -> void:
 			role = arg.trim_prefix("--role=")
 		elif arg.begins_with("--port="):
 			port = arg.trim_prefix("--port=").to_int()
+	# run_test() 를 먼저 시작해서, 그 첫 줄에서 time_limit_sec 를 바꿔도 적용되게 한다.
+	_run()
 	get_tree().create_timer(time_limit_sec).timeout.connect(_on_time_limit)
+
+
+func _run() -> void:
 	await run_test()
 	finish()
 
