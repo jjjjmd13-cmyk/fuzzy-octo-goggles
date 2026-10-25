@@ -13,15 +13,25 @@ extends Node
 
 const PASS_MARK := "QA_TEST_PASS"
 const FAIL_MARK := "QA_TEST_FAIL"
+const READY_MARK := "QA_TEST_READY"
 
 ## 이 시간(초) 안에 끝나지 않으면 실패로 끝낸다.
 @export var time_limit_sec := 30.0
+
+## 여러 프로세스 테스트(test_x.roles)에서 실행기가 주는 역할과 포트. 한 프로세스 테스트면 "" 와 0.
+var role := ""
+var port := 0
 
 var _failures: PackedStringArray = []
 var _finished := false
 
 
 func _ready() -> void:
+	for arg in OS.get_cmdline_user_args():
+		if arg.begins_with("--role="):
+			role = arg.trim_prefix("--role=")
+		elif arg.begins_with("--port="):
+			port = arg.trim_prefix("--port=").to_int()
 	get_tree().create_timer(time_limit_sec).timeout.connect(_on_time_limit)
 	await run_test()
 	finish()
@@ -41,6 +51,12 @@ func check(condition: bool, message: String) -> bool:
 
 func check_eq(actual: Variant, expected: Variant, message: String) -> bool:
 	return check(actual == expected, "%s (기대: %s, 실제: %s)" % [message, expected, actual])
+
+
+## 여러 프로세스 테스트의 첫 역할(호스트)이 접속을 받을 준비가 되면 부른다.
+## 실행기는 이 문자열을 본 뒤에 나머지 역할을 띄운다.
+func report_ready() -> void:
+	print(READY_MARK)
 
 
 func fail(message: String) -> void:

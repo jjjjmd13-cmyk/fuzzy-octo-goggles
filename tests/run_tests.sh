@@ -7,13 +7,18 @@
 #   GODOT              Godot 실행 파일 (기본: godot)
 #   QA_TEST_TIMEOUT    테스트 씬 하나의 최대 실행 시간(초) (기본: 120)
 #   QA_IMPORT_TIMEOUT  임포트 최대 시간(초) (기본: 600)
+#   QA_READY_TIMEOUT   여러 프로세스 테스트에서 첫 역할의 준비 대기(초) (기본: 30)
+#   QA_TEST_PORT_BASE  여러 프로세스 테스트에 줄 첫 포트 (기본: 24600, 테스트마다 +10)
 set -uo pipefail
 
 PROJECT="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 GODOT="${GODOT:-godot}"
 TEST_TIMEOUT="${QA_TEST_TIMEOUT:-120}"
 IMPORT_TIMEOUT="${QA_IMPORT_TIMEOUT:-600}"
+READY_TIMEOUT="${QA_READY_TIMEOUT:-30}"
+PORT_BASE="${QA_TEST_PORT_BASE:-24600}"
 PASS_MARK="QA_TEST_PASS"
+READY_MARK="QA_TEST_READY"
 # 이 패턴이 출력에 있으면 종료 코드와 상관없이 실패로 본다.
 ERROR_PATTERN='SCRIPT ERROR|Parse Error|Failed to load script|^ERROR:'
 
@@ -55,29 +60,78 @@ if [ "${#TESTS[@]}" -eq 0 ]; then
   exit 0
 fi
 
+# 로그 하나를 규칙대로 판정해 실패 이유를 찍는다 (통과면 아무것도 안 찍음).
+judge() {
+  local log="$1" code="$2"
+  if [ "$code" -eq 124 ]; then
+    echo "시간 초과 (${TEST_TIMEOUT}초)"
+  elif [ "$code" -ne 0 ]; then
+    echo "종료 코드 $code"
+  elif grep -Eq "$ERROR_PATTERN" "$log"; then
+    echo "오류 출력 있음"
+  elif ! grep -qx "$PASS_MARK" "$log"; then
+    echo "성공 문자열 $PASS_MARK 없음"
+  fi
+}
+
+# 여러 프로세스 테스트: 첫 역할이 준비 문자열을 찍을 때까지 기다린다.
+wait_ready() { # 로그, pid
+  local i
+  for ((i = 0; i < READY_TIMEOUT * 10; i++)); do
+    grep -qx "$READY_MARK" "$1" 2>/dev/null && return 0
+    kill -0 "$2" 2>/dev/null || return 1
+    sleep 0.1
+  done
+  return 1
+}
+
 passed=0
 failed=()
+port="$PORT_BASE"
 for t in "${TESTS[@]}"; do
-  log="$LOG_DIR/$(echo "$t" | tr '/' '_').log"
+  base="$LOG_DIR/$(echo "$t" | tr '/' '_')"
+  roles_file="$PROJECT/${t%.tscn}.roles"
   echo "== 실행: $t"
-  timeout "$TEST_TIMEOUT" "$GODOT" --headless --path "$PROJECT" "res://$t" >"$log" 2>&1
-  code=$?
   reason=""
-  if [ "$code" -eq 124 ]; then
-    reason="시간 초과 (${TEST_TIMEOUT}초)"
-  elif [ "$code" -ne 0 ]; then
-    reason="종료 코드 $code"
-  elif grep -Eq "$ERROR_PATTERN" "$log"; then
-    reason="오류 출력 있음"
-  elif ! grep -qx "$PASS_MARK" "$log"; then
-    reason="성공 문자열 $PASS_MARK 없음"
+  logs=()
+  if [ ! -f "$roles_file" ]; then
+    timeout "$TEST_TIMEOUT" "$GODOT" --headless --path "$PROJECT" "res://$t" >"$base.log" 2>&1
+    reason="$(judge "$base.log" $?)"
+    logs=("$base.log")
+  else
+    mapfile -t roles < <(grep -Ev '^[[:space:]]*(#|$)' "$roles_file" | sed 's/[[:space:]]//g')
+    echo "   역할: ${roles[*]} (포트 $port)"
+    pids=()
+    for i in "${!roles[@]}"; do
+      log="$base.${roles[$i]}.log"
+      logs+=("$log")
+      # 함수가 아니라 timeout 을 바로 띄워야 kill 이 Godot 까지 전달된다.
+      timeout "$TEST_TIMEOUT" "$GODOT" --headless --path "$PROJECT" "res://$t" \
+        -- "--role=${roles[$i]}" "--port=$port" >"$log" 2>&1 &
+      pids+=($!)
+      if [ "$i" -eq 0 ] && [ "${#roles[@]}" -gt 1 ] && ! wait_ready "$log" "${pids[0]}"; then
+        reason="${roles[0]}: 준비 문자열 $READY_MARK 없음 (${READY_TIMEOUT}초)"
+        kill "${pids[0]}" 2>/dev/null
+        break
+      fi
+    done
+    for i in "${!pids[@]}"; do
+      wait "${pids[$i]}"
+      code=$?
+      r="$(judge "${logs[$i]}" "$code")"
+      [ -n "$r" ] && [ -z "$reason" ] && reason="${roles[$i]}: $r"
+    done
+    port=$((port + 10))
   fi
   if [ -z "$reason" ]; then
     echo "   통과"
     passed=$((passed + 1))
   else
     echo "::error::$t 실패: $reason"
-    sed 's/^/   | /' "$log"
+    for log in "${logs[@]}"; do
+      echo "   --- $(basename "$log")"
+      sed 's/^/   | /' "$log"
+    done
     failed+=("$t ($reason)")
   fi
 done
