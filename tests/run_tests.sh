@@ -8,7 +8,7 @@
 #   QA_TEST_TIMEOUT    테스트 씬 하나의 최대 실행 시간(초) (기본: 120)
 #   QA_IMPORT_TIMEOUT  임포트 최대 시간(초) (기본: 600)
 #   QA_READY_TIMEOUT   여러 프로세스 테스트에서 첫 역할의 준비 대기(초) (기본: 30)
-#   QA_TEST_PORT_BASE  여러 프로세스 테스트에 줄 첫 포트 (기본: 24600, 테스트마다 +10)
+#   QA_TEST_PORT_BASE  여러 프로세스 테스트에 줄 첫 포트 (기본: 25000, 테스트마다 +10)
 set -uo pipefail
 
 PROJECT="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
@@ -16,7 +16,7 @@ GODOT="${GODOT:-godot}"
 TEST_TIMEOUT="${QA_TEST_TIMEOUT:-120}"
 IMPORT_TIMEOUT="${QA_IMPORT_TIMEOUT:-600}"
 READY_TIMEOUT="${QA_READY_TIMEOUT:-30}"
-PORT_BASE="${QA_TEST_PORT_BASE:-24600}"
+PORT_BASE="${QA_TEST_PORT_BASE:-25000}"
 PASS_MARK="QA_TEST_PASS"
 READY_MARK="QA_TEST_READY"
 # 이 패턴이 출력에 있으면 종료 코드와 상관없이 실패로 본다.
