@@ -1,11 +1,12 @@
 # QA 상태
 
 **지금 하는 일**:
-- Windows 실행 파일 빌드 CI (`.github/workflows/build.yml`) PR 검토 대기
-- 다음: LANT-13(클라이언트가 기름 직접 변경 → 무시), LANT-40(괴물 AI 호스트 전용) 자동 테스트
+- 호스트 권한 테스트 PR 검토 대기. 그다음 사람 대표 플레이 테스트 결과가 나올 때까지 대기
 
 **끝낸 일**:
-- Windows 실행 파일 빌드 CI: main 푸시·수동 실행 때 `export_presets.cfg` 의 Windows 프리셋으로 내보내 Actions artifact(14일)로 올림. 테스트 작업과 분리, 내보내기 템플릿은 Windows 릴리스용만 캐시. `docs/dev/PROTOTYPE.md` 맨 앞에 받는 법
+- 호스트 권한 자동 테스트 `tests/net/test_host_authority` (LANT-13 위조 요청·로컬 조작 무시, LANT-40 추적자 AI 호스트 전용). 클라이언트 디버그 재시작 허용·클라이언트 추적자 AI 실행으로 일부러 망가뜨리면 실패하는 것 확인
+- Windows 실행 파일 빌드 CI (PR #17 병합)
+- 빌드 CI 상세: main 푸시·수동 실행 때 `export_presets.cfg` 의 Windows 프리셋으로 내보내 Actions artifact(14일)로 올림. 테스트 작업과 분리, 내보내기 템플릿은 Windows 릴리스용만 캐시. `docs/dev/PROTOTYPE.md` 맨 앞에 받는 법
 - 개발팀 시제품 PR #12 리뷰 (병합됨), `qa_test.gd` 시간 제한 수정 (PR #15 병합)
 - 퇴장·접속 실패 자동 테스트: 클라이언트 퇴장(LEAVE-01), 호스트 강제 종료(LEAVE-04, 감지 약 6초), 5번째 거절(NET-03), 서버 없이 접속(NET-08, 약 10초). 일부러 망가뜨린 코드를 잡는지 확인
 - 버그 이슈 #10: 5번째 플레이어가 10초 뒤 "접속 시간 초과"만 봄 ("방이 가득 참" 안내 없음)
