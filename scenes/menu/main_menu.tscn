@@ -1,0 +1,110 @@
+[gd_scene load_steps=2 format=3 uid="uid://b7menu000001"]
+
+[ext_resource type="Script" path="res://scripts/menu/main_menu.gd" id="1_menu"]
+
+[node name="MainMenu" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_menu")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.12, 0.13, 0.17, 1)
+
+[node name="Center" type="CenterContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Box" type="VBoxContainer" parent="Center"]
+custom_minimum_size = Vector2(420, 0)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="Center/Box"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 36
+text = "협동 게임 (가제)"
+horizontal_alignment = 1
+
+[node name="SoloButton" type="Button" parent="Center/Box"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "혼자 하기"
+
+[node name="SteamButton" type="Button" parent="Center/Box"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+text = "친구와 하기 (스팀 로비 만들기)"
+
+[node name="SteamNote" type="Label" parent="Center/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="DevSeparator" type="HSeparator" parent="Center/Box"]
+layout_mode = 2
+
+[node name="DevTitle" type="Label" parent="Center/Box"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "개발용: IP로 접속 (ENet)"
+
+[node name="DevRow" type="HBoxContainer" parent="Center/Box"]
+layout_mode = 2
+
+[node name="AddressEdit" type="LineEdit" parent="Center/Box/DevRow"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "127.0.0.1"
+placeholder_text = "IP 주소"
+
+[node name="PortEdit" type="LineEdit" parent="Center/Box/DevRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(90, 0)
+layout_mode = 2
+placeholder_text = "포트"
+
+[node name="DevButtons" type="HBoxContainer" parent="Center/Box"]
+layout_mode = 2
+
+[node name="HostButton" type="Button" parent="Center/Box/DevButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "호스트 열기"
+
+[node name="JoinButton" type="Button" parent="Center/Box/DevButtons"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+text = "접속"
+
+[node name="QuitButton" type="Button" parent="Center/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+text = "종료"
+
+[node name="MessageLabel" type="Label" parent="Center/Box"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.75, 0.4, 1)
+horizontal_alignment = 1
+autowrap_mode = 3
