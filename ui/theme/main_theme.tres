@@ -1,0 +1,21 @@
+[gd_resource type="Theme" load_steps=5 format=3 uid="uid://b7theme000001"]
+
+[ext_resource type="FontFile" path="res://assets/fonts/pretendard/Pretendard-Medium.otf" id="1_medium"]
+[ext_resource type="FontFile" path="res://assets/fonts/pretendard/Pretendard-Regular.otf" id="2_regular"]
+[ext_resource type="FontFile" path="res://assets/fonts/pretendard/Pretendard-SemiBold.otf" id="3_semibold"]
+[ext_resource type="FontFile" path="res://assets/fonts/pretendard/Pretendard-Bold.otf" id="4_bold"]
+
+[resource]
+default_font = ExtResource("1_medium")
+default_font_size = 22
+Label/colors/font_outline_color = Color(0, 0, 0, 1)
+Label/constants/outline_size = 2
+PromptLabel/base_type = &"Label"
+PromptLabel/font_sizes/font_size = 26
+PromptLabel/fonts/font = ExtResource("3_semibold")
+SmallLabel/base_type = &"Label"
+SmallLabel/font_sizes/font_size = 18
+SmallLabel/fonts/font = ExtResource("2_regular")
+TitleLabel/base_type = &"Label"
+TitleLabel/font_sizes/font_size = 44
+TitleLabel/fonts/font = ExtResource("4_bold")

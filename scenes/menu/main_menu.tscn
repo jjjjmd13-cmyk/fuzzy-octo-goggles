@@ -29,14 +29,14 @@ grow_horizontal = 2
 grow_vertical = 2
 
 [node name="Box" type="VBoxContainer" parent="Center"]
-custom_minimum_size = Vector2(420, 0)
+custom_minimum_size = Vector2(560, 0)
 layout_mode = 2
 theme_override_constants/separation = 10
 
 [node name="Title" type="Label" parent="Center/Box"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
-text = "협동 게임 (가제)"
+theme_type_variation = &"TitleLabel"
+text = "등불 원정대"
 horizontal_alignment = 1
 
 [node name="SoloButton" type="Button" parent="Center/Box"]
@@ -54,7 +54,7 @@ text = "친구와 하기 (스팀 로비 만들기)"
 [node name="SteamNote" type="Label" parent="Center/Box"]
 unique_name_in_owner = true
 layout_mode = 2
-theme_override_font_sizes/font_size = 13
+theme_type_variation = &"SmallLabel"
 horizontal_alignment = 1
 autowrap_mode = 3
 
@@ -63,8 +63,8 @@ layout_mode = 2
 
 [node name="DevTitle" type="Label" parent="Center/Box"]
 layout_mode = 2
-theme_override_font_sizes/font_size = 13
-text = "개발용: IP로 접속 (ENet)"
+theme_type_variation = &"SmallLabel"
+text = "개발용: IP로 접속 (ENet) — 같은 PC 창 두 개로 2인 테스트"
 
 [node name="DevRow" type="HBoxContainer" parent="Center/Box"]
 layout_mode = 2
@@ -78,7 +78,7 @@ placeholder_text = "IP 주소"
 
 [node name="PortEdit" type="LineEdit" parent="Center/Box/DevRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(90, 0)
+custom_minimum_size = Vector2(120, 0)
 layout_mode = 2
 placeholder_text = "포트"
 
@@ -96,6 +96,12 @@ unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 text = "접속"
+
+[node name="Credits" type="Label" parent="Center/Box"]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+text = "글꼴: Pretendard (SIL Open Font License 1.1)"
+horizontal_alignment = 1
 
 [node name="QuitButton" type="Button" parent="Center/Box"]
 unique_name_in_owner = true

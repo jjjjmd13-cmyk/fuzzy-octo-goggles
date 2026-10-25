@@ -1,0 +1,34 @@
+[gd_scene load_steps=6 format=3 uid="uid://b7lanternmdl1"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_frame"]
+albedo_color = Color(0.25, 0.2, 0.12, 1)
+metallic = 0.6
+roughness = 0.5
+
+[sub_resource type="BoxMesh" id="BoxMesh_frame"]
+material = SubResource("StandardMaterial3D_frame")
+size = Vector3(0.22, 0.04, 0.22)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_glass"]
+shading_mode = 0
+albedo_color = Color(1, 0.78, 0.4, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_glass"]
+material = SubResource("StandardMaterial3D_glass")
+top_radius = 0.08
+bottom_radius = 0.08
+height = 0.22
+
+[node name="LanternModel" type="Node3D"]
+
+[node name="Base" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
+mesh = SubResource("BoxMesh_frame")
+
+[node name="Glass" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+mesh = SubResource("CylinderMesh_glass")
+
+[node name="Top" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.28, 0)
+mesh = SubResource("BoxMesh_frame")

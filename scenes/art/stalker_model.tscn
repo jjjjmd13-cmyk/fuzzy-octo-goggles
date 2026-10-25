@@ -1,0 +1,40 @@
+[gd_scene load_steps=5 format=3 uid="uid://b7stalkmdl001"]
+
+[ext_resource type="Script" path="res://scripts/game/stalker_model.gd" id="1_model"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_body"]
+albedo_color = Color(0.03, 0.03, 0.04, 1)
+roughness = 1.0
+
+[sub_resource type="CapsuleMesh" id="CapsuleMesh_body"]
+material = SubResource("StandardMaterial3D_body")
+radius = 0.35
+height = 1.95
+
+[sub_resource type="SphereMesh" id="SphereMesh_eye"]
+radius = 0.05
+height = 0.1
+
+[node name="StalkerModel" type="Node3D" node_paths=PackedStringArray("eyes", "warning_light")]
+script = ExtResource("1_model")
+eyes = [NodePath("EyeLeft"), NodePath("EyeRight")]
+warning_light = NodePath("WarningLight")
+
+[node name="Body" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.975, 0)
+mesh = SubResource("CapsuleMesh_body")
+
+[node name="EyeLeft" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.1, 1.7, -0.3)
+mesh = SubResource("SphereMesh_eye")
+
+[node name="EyeRight" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.1, 1.7, -0.3)
+mesh = SubResource("SphereMesh_eye")
+
+[node name="WarningLight" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.7, -0.5)
+visible = false
+light_color = Color(1, 0.15, 0.1, 1)
+light_energy = 2.0
+omni_range = 3.0

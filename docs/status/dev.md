@@ -1,28 +1,29 @@
 # 개발팀 상태
 
-**지금 하는 일**: 협동 멀티플레이 기반 PR (`dev/foundation`) 검토 대기
+**지금 하는 일**: 첫 시제품 PR (`dev/prototype-lantern`) 검토 대기
 
 **끝낸 일**:
-- Godot 4.4.1 3D 프로젝트 (Mobile 렌더러 + OpenGL 대체, 이유는 `docs/dev/foundation.md`)
-- 네트워크 계층 `Net`: 혼자 하기(오프라인 호스트) / ENet / Steam 을 갈아 끼우는 구조. 스팀 애드온이 없거나 초기화 실패해도 정상 동작
-- 메인 메뉴 (혼자 하기 / 친구와 하기 / 개발용 IP 접속), 일시 메뉴, 스팀 친구 초대 버튼
-- 임시 캡슐 플레이어 3인칭 이동·점프·카메라(마우스·게임패드), 최대 4인 위치 동기화 (자동 테스트는 2인), 접속·퇴장, 호스트가 나가면 메뉴 복귀
-- 그래픽 교체 지점: `scenes/art/player_model.tscn`
-- 헤드리스 자동 테스트 3개 (아래)
-- 시드 기반 결정론적 난수 유틸 `scripts/core/seeded_rng.gd` (등불 원정대 절차 생성 대비)
-- 등불 원정대 조명 비용(등불 4개, Steam Deck) 방침을 `docs/dev/foundation.md` 에 정리
+- 협동 멀티플레이 기반 (PR #4, 병합됨)
+- GDD 13장 첫 시제품 (`docs/dev/PROTOTYPE.md` 에 실행 방법)
+  - 손으로 배치한 방 3개 (2 m 타일, 문 연결), 1인칭 이동·달리기·스태미나
+  - 큰 등불 줍기·내려놓기·건네기·밝기 3단계, 손등, 공용 기름(호스트 권한) + 심지 60초
+  - 어둠 게이지(호스트 계산), 그림자 추적자 상태 기계 전체 (호스트 AI, 길찾기, 20 Hz 동기화)
+  - 쓰러짐 30초 → 등불 빛 안에서 3초 부활, 전원 쓰러짐 → 실패 → 다시 시작
+  - 수치 리소스 하나 `data/balance/balance.tres` (TUNING.md 키 이름 그대로)
+  - 디버그 키: F5 기름 30 으로 다시 시작 (플레이 테스트 2판째), F6 다시 시작, F7 쓰러지기, F3 수치
+  - 글꼴: Pretendard 1.3.9 원본 4종 + OFL 라이선스, 테마 한 곳 (`ui/theme/main_theme.tres`)
+  - Windows·Linux 내보내기 설정 (`export_presets.cfg`), 컨테이너에서 실제 내보내기·실행 확인
 
-**자동 테스트 (QA 규칙 `docs/qa/TESTING.md` 를 따름)**:
-```bash
-GODOT=/path/to/Godot_v4.4.1-stable_linux.x86_64 tests/run_tests.sh
-```
-- `tests/test_offline_session.tscn`, `tests/net/test_enet_two_peers.tscn` (ENet 서버+클라이언트, 클라이언트는 별도 프로세스), `tests/test_seeded_rng.tscn`
-- 네트워크 테스트는 UDP 포트 24611 사용, 약 5초.
+**자동 테스트 (QA 규칙 `docs/qa/TESTING.md`)**: `GODOT=/path/to/Godot_v4.4.1-stable_linux.x86_64 tests/run_tests.sh` → 7개
+- 기반: `test_offline_session`, `net/test_enet_two_peers`, `test_seeded_rng`
+- 시제품: `test_balance`, `game/test_lantern_oil`, `game/test_stalker`, `net/test_lantern_sync`
+- 네트워크 테스트는 클라이언트를 별도 프로세스로 띄움, UDP 포트 24611·24612 사용. 전체 약 40초.
 
 **막힌 것**:
-- 스팀 경로는 이 컨테이너에서 실행 확인 불가 (스팀 클라이언트 없음, codeberg.org 접속 막혀 GodotSteam 을 받을 수 없음). 스팀이 켜진 PC에서 `tools/fetch_godotsteam.sh` 후 확인 필요.
+- 스팀 경로 실기 확인 불가 (컨테이너에 스팀 없음, codeberg.org 막힘). SteamMultiplayerPeer 포함 여부 **미확인** — `tools/fetch_godotsteam.sh` 가 받은 뒤 검사해 출력함.
 
 **다른 부서에 요청**:
-- QA: 네트워크 테스트가 클라이언트를 별도 프로세스로 띄웁니다 (이유는 `docs/dev/foundation.md` "자동 테스트"). 규칙상 문제가 있으면 알려 주세요.
-- 기획팀: Steam Deck 에서도 보이는 한글 글꼴(무료 라이선스, 예: Noto Sans KR) 결정 부탁. 들어오면 개발팀이 테마에 붙입니다.
-- 대표: 스팀 친구 초대 실제 확인은 스팀이 켜진 PC 두 대(계정 두 개)가 필요합니다. 가능할 때 알려 주세요.
+- 기획팀: TUNING.md 에 시제품용 새 키 4개(`proto_interact_range` 2 m, `proto_give_range` 3 m, `proto_fail_restart_delay` 5 s, `proto_debug_oil_start` 30)와, 인원별 표를 `party_` 배열로 같은 파일에 둔 것(GDD 13장 "리소스 파일 하나")을 반영해 주세요.
+- 기획팀: `docs/dev/PROTOTYPE.md` 9장 "시제품에서 정한 것"(심지 빛 취급, 기름 5 미만 부활, 혼자일 때 쓰러짐 = 실패 등) 확인 부탁.
+- 기획팀: 소리(기름 부족 경고음, 추적자 공격 준비 소리) 에셋/방향이 정해지면 붙이겠습니다. 지금은 눈 빛·붉은 빛으로만 알림.
+- QA: TEST_PLAN LANT-10·11·12·20·21 을 자동 테스트로 넣었습니다 (`tests/net/test_lantern_sync`). LANT-22(두 명이 동시에 부활)는 3인 테스트가 필요해 아직.
