@@ -1,0 +1,9 @@
+# Godot 4
+.godot/
+/android/
+*.translation
+export/
+build/
+*.tmp
+# Steam
+steam_appid.txt
