@@ -8,6 +8,7 @@
 - 테스트 규칙 `docs/qa/TESTING.md` (파일 이름 `tests/**/test_*.tscn`, 성공 문자열 `QA_TEST_PASS`, 종료 코드 0)
 - 테스트 계획 `docs/qa/TEST_PLAN.md` (혼자/접속/늦게 들어오기/나가기/지연·손실/스팀 초대 수동 체크리스트/저사양·Steam Deck)
 - 버그 이슈 템플릿 `.github/ISSUE_TEMPLATE/bug.md`
+- 라벨 `기획`·`개발`·`QA`·`버그`: 도구로 직접 만들 수 없어 `.github/workflows/labels.yml` 로 만듦 (이 PR 이 `main` 에 병합되면 자동 실행)
 
 **막힌 것**: 없음
 
