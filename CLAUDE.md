@@ -36,9 +36,10 @@
 
 ## Godot 설치 (클라우드 세션)
 
-세션 컨테이너에는 Godot가 없다. 필요하면 공식 릴리스를 받아 쓴다. 버전은 개발팀이 정해 `docs/status/dev.md` 와 이 파일에 적는다.
+세션 컨테이너에는 Godot가 없다. 공식 릴리스를 받아 쓴다. **버전은 4.4.1 로 고정** (GodotSteam GDExtension 대응).
+바꿔야 하면 개발팀이 이유를 적어 대표에게 요청한다. 모든 부서와 CI가 같은 버전을 쓴다.
 
 ```bash
-curl -sSL -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/<버전>-stable/Godot_v<버전>-stable_linux.x86_64.zip
-unzip -o /tmp/godot.zip -d /tmp/godot && /tmp/godot/Godot_v<버전>-stable_linux.x86_64 --version
+curl -sSL -o /tmp/godot.zip https://github.com/godotengine/godot/releases/download/4.4.1-stable/Godot_v4.4.1-stable_linux.x86_64.zip
+unzip -o /tmp/godot.zip -d /tmp/godot && /tmp/godot/Godot_v4.4.1-stable_linux.x86_64 --version
 ```
