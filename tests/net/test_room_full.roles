@@ -1,0 +1,6 @@
+# NET-03. 호스트 + 클라이언트 4 → 그중 하나(5번째)는 거절되어야 함
+server
+client
+client
+client
+client
