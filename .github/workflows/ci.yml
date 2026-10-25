@@ -1,0 +1,48 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: 4.4.1 # CLAUDE.md 에서 고정. 바꾸면 거기도 같이 바꾼다.
+
+jobs:
+  godot:
+    name: Godot 임포트·테스트
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Godot 캐시
+        id: cache
+        uses: actions/cache@v4
+        with:
+          path: ~/godot
+          key: godot-${{ env.GODOT_VERSION }}-linux-x86_64
+
+      - name: Godot 받기
+        if: steps.cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/godot
+          curl -sSL --retry 3 -o /tmp/godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -o /tmp/godot.zip -d ~/godot
+
+      - name: Godot 버전 확인
+        run: |
+          echo "GODOT=$HOME/godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64" >> "$GITHUB_ENV"
+          "$HOME/godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64" --version
+
+      - name: 테스트 실행기 자체 검사
+        run: tests/selftest.sh
+
+      - name: 프로젝트 임포트·테스트
+        run: tests/run_tests.sh

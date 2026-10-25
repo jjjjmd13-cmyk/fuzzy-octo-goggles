@@ -1,0 +1,7 @@
+; QA 자체 검사용 최소 프로젝트 (tests/selftest.sh 가 임시 폴더에 복사해 씀)
+config_version=5
+
+[application]
+
+config/name="qa-selftest-pass"
+config/features=PackedStringArray("4.4")

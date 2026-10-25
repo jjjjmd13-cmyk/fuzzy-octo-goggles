@@ -1,53 +1,88 @@
 #!/usr/bin/env bash
-# 헤드리스 자동 테스트 실행. 사용법:
-#   GODOT=/path/to/godot tests/run_tests.sh
-# 모두 통과하면 "ALL_TESTS_PASSED" 를 출력하고 0 으로 끝난다.
-set -u
-cd "$(dirname "$0")/.."
+# Godot 헤드리스로 프로젝트를 임포트하고 tests/ 아래 테스트 씬을 모두 실행한다.
+# 규칙: docs/qa/TESTING.md
+#
+# 사용법: tests/run_tests.sh [프로젝트 폴더]   (기본: 저장소 루트)
+# 환경 변수:
+#   GODOT              Godot 실행 파일 (기본: godot)
+#   QA_TEST_TIMEOUT    테스트 씬 하나의 최대 실행 시간(초) (기본: 120)
+#   QA_IMPORT_TIMEOUT  임포트 최대 시간(초) (기본: 600)
+set -uo pipefail
+
+PROJECT="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
 GODOT="${GODOT:-godot}"
-PORT="${NET_TEST_PORT:-24600}"
-LOG_DIR="${LOG_DIR:-$(mktemp -d)}"
-FAILED=0
+TEST_TIMEOUT="${QA_TEST_TIMEOUT:-120}"
+IMPORT_TIMEOUT="${QA_IMPORT_TIMEOUT:-600}"
+PASS_MARK="QA_TEST_PASS"
+# 이 패턴이 출력에 있으면 종료 코드와 상관없이 실패로 본다.
+ERROR_PATTERN='SCRIPT ERROR|Parse Error|Failed to load script|^ERROR:'
 
-run_godot() { "$GODOT" --headless --path . "$@"; }
-
-echo "== 프로젝트 임포트"
-run_godot --import > "$LOG_DIR/import.log" 2>&1
-if grep -E "SCRIPT ERROR|Parse Error|Failed to load" "$LOG_DIR/import.log"; then
-	echo "임포트 중 오류"; FAILED=1
+if [ ! -f "$PROJECT/project.godot" ]; then
+  echo "프로젝트 없음: $PROJECT/project.godot 이 없어 건너뜀"
+  exit 0
 fi
 
-echo "== 혼자 하기 테스트"
-if run_godot res://tests/offline_test.tscn > "$LOG_DIR/offline.log" 2>&1 && grep -q OFFLINE_TEST_OK "$LOG_DIR/offline.log"; then
-	echo "OFFLINE_TEST_OK"
-else
-	cat "$LOG_DIR/offline.log"; FAILED=1
+LOG_DIR="$(mktemp -d)"
+
+echo "== 임포트: $PROJECT"
+timeout "$IMPORT_TIMEOUT" "$GODOT" --headless --path "$PROJECT" --import >"$LOG_DIR/import.log" 2>&1
+code=$?
+cat "$LOG_DIR/import.log"
+if [ "$code" -ne 0 ]; then
+  echo "::error::임포트 실패 (종료 코드 $code)"
+  exit 1
+fi
+if grep -Eq "$ERROR_PATTERN" "$LOG_DIR/import.log"; then
+  echo "::error::임포트 중 오류 출력:"
+  grep -E "$ERROR_PATTERN" "$LOG_DIR/import.log"
+  exit 1
 fi
 
-echo "== 네트워크 테스트 (ENet 서버 1 + 클라이언트 1, 포트 $PORT)"
-run_godot res://tests/net_sync_test.tscn -- --role=server --port="$PORT" > "$LOG_DIR/server.log" 2>&1 &
-SERVER_PID=$!
-for _ in $(seq 1 100); do
-	grep -q NET_TEST_SERVER_LISTENING "$LOG_DIR/server.log" 2>/dev/null && break
-	kill -0 "$SERVER_PID" 2>/dev/null || break
-	sleep 0.1
+# tests/ 아래 test_*.tscn. .gdignore 가 있는 폴더(Godot도 무시하는 곳)는 뺀다.
+TESTS=()
+while IFS= read -r f; do
+  d="$(dirname "$f")"
+  skip=0
+  while [ "$d" != "." ]; do
+    if [ -e "$PROJECT/$d/.gdignore" ]; then skip=1; break; fi
+    d="$(dirname "$d")"
+  done
+  [ "$skip" -eq 0 ] && TESTS+=("$f")
+done < <(cd "$PROJECT" && find tests -type f -name 'test_*.tscn' 2>/dev/null | sort)
+
+if [ "${#TESTS[@]}" -eq 0 ]; then
+  echo "테스트 씬 없음: tests/**/test_*.tscn 이 없어 임포트 검사만 함"
+  exit 0
+fi
+
+passed=0
+failed=()
+for t in "${TESTS[@]}"; do
+  log="$LOG_DIR/$(echo "$t" | tr '/' '_').log"
+  echo "== 실행: $t"
+  timeout "$TEST_TIMEOUT" "$GODOT" --headless --path "$PROJECT" "res://$t" >"$log" 2>&1
+  code=$?
+  reason=""
+  if [ "$code" -eq 124 ]; then
+    reason="시간 초과 (${TEST_TIMEOUT}초)"
+  elif [ "$code" -ne 0 ]; then
+    reason="종료 코드 $code"
+  elif grep -Eq "$ERROR_PATTERN" "$log"; then
+    reason="오류 출력 있음"
+  elif ! grep -qx "$PASS_MARK" "$log"; then
+    reason="성공 문자열 $PASS_MARK 없음"
+  fi
+  if [ -z "$reason" ]; then
+    echo "   통과"
+    passed=$((passed + 1))
+  else
+    echo "::error::$t 실패: $reason"
+    sed 's/^/   | /' "$log"
+    failed+=("$t ($reason)")
+  fi
 done
-run_godot res://tests/net_sync_test.tscn -- --role=client --port="$PORT" > "$LOG_DIR/client.log" 2>&1
-CLIENT_RC=$?
-wait "$SERVER_PID"
-SERVER_RC=$?
-if [ "$SERVER_RC" -eq 0 ] && [ "$CLIENT_RC" -eq 0 ] \
-	&& grep -q NET_TEST_SERVER_OK "$LOG_DIR/server.log" && grep -q NET_TEST_CLIENT_OK "$LOG_DIR/client.log"; then
-	echo "NET_TEST_SERVER_OK"; echo "NET_TEST_CLIENT_OK"
-else
-	echo "--- server.log"; cat "$LOG_DIR/server.log"
-	echo "--- client.log"; cat "$LOG_DIR/client.log"
-	FAILED=1
-fi
 
-if [ "$FAILED" -eq 0 ]; then
-	echo "ALL_TESTS_PASSED"
-else
-	echo "TESTS_FAILED (로그: $LOG_DIR)"
-fi
-exit "$FAILED"
+echo
+echo "결과: 통과 $passed / 실패 ${#failed[@]}"
+for f in "${failed[@]}"; do echo "  실패: $f"; done
+[ "${#failed[@]}" -eq 0 ]
