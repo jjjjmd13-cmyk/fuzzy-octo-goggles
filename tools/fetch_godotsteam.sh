@@ -48,3 +48,11 @@ mkdir -p addons
 cp -R "$SRC" addons/godotsteam
 echo "$URL" > addons/godotsteam/.source_url
 echo "완료: addons/godotsteam ($(du -sh addons/godotsteam | cut -f1))"
+
+# 친구와 하기(SteamTransport)는 SteamMultiplayerPeer 클래스가 있어야 한다. 배포판에 따라 빠져 있을 수 있다.
+if grep -rqa "SteamMultiplayerPeer" addons/godotsteam; then
+	echo "확인: 받은 빌드에 SteamMultiplayerPeer 가 들어 있음"
+else
+	echo "주의: 받은 빌드에서 SteamMultiplayerPeer 를 찾지 못함 → 친구와 하기가 동작하지 않는다." >&2
+	echo "      GodotSteam MultiplayerPeer 가 포함된 빌드가 필요하다 (docs/dev/foundation.md 스팀 절)." >&2
+fi

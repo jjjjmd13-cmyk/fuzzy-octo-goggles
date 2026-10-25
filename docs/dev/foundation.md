@@ -9,8 +9,10 @@
 | `project.godot` | 프로젝트 설정, 입력 맵, autoload (`SteamService`, `Net`) |
 | `scenes/menu/` | 메인 메뉴 |
 | `scenes/game/world.tscn` | 게임 월드 (지면, 스폰 지점, `Players`, `PlayerSpawner`, HUD) |
-| `scenes/player/player.tscn` | 플레이어 (충돌, 카메라, 동기화). 겉모습은 없음 |
-| `scenes/art/` | **그래픽 교체 지점**. 외부 그래픽은 여기만 바꾼다 |
+| `scenes/player/player.tscn` | 플레이어 (1인칭, 충돌, 카메라, 동기화). 겉모습은 없음 |
+| `scenes/art/` | **그래픽 교체 지점**. 외부 그래픽은 여기만 바꾼다 (아래 표) |
+| `data/balance/balance.tres` | **밸런스 수치 한 곳** (GDD 10장, TUNING.md 키 이름 그대로) |
+| `ui/theme/main_theme.tres` | **글꼴·글자 크기 한 곳** (Pretendard, `assets/fonts/`) |
 | `scripts/net/` | 네트워크 계층 (`network_manager.gd`, `steam_service.gd`, `transports/`) |
 | `addons/` | 애드온 (GodotSteam 은 받는 스크립트로) |
 | `scripts/core/` | 공용 유틸 (시드 난수) |
@@ -75,22 +77,30 @@
 - 버전은 스크립트의 `GODOTSTEAM_TAG` / `GODOTSTEAM_URL` 로 고정할 수 있다. 첫 실제 스팀 테스트 때 쓴 태그를 이 문서에 적어 고정할 것.
 - 출시 빌드(내보내기)를 만드는 사람/CI 만 받으면 된다.
 
+**SteamMultiplayerPeer 포함 여부: 미확인.** GodotSteam GDExtension 배포판에 따라 `SteamMultiplayerPeer` 가 빠져 있을 수 있다 (대표 전달). 코드는 `ClassDB.class_exists("SteamMultiplayerPeer")` 로 검사해서, 없으면 "이 GodotSteam 빌드에는 SteamMultiplayerPeer 가 없습니다" 로 실패하고 메뉴로 돌아간다. `tools/fetch_godotsteam.sh` 가 받은 뒤 바이너리 안에 이 클래스 이름이 있는지 검사해서 결과를 출력한다. 없으면 MultiplayerPeer 가 포함된 GodotSteam 빌드를 찾거나, Steam 네트워킹을 직접 감싼 전송 방식을 개발팀이 만든다 (그때 대표와 상의).
+
 **아직 확인 못 한 것**: 이 클라우드 컨테이너에서는 codeberg.org 와 godotengine.org 접속이 막혀 있어서 받는 스크립트를 실제로 돌려 보지 못했다. 스팀 경로(`SteamTransport`)도 스팀 클라이언트가 없어 실행해 보지 못했다. GodotSteam 버전에 따라 `steamInitEx` 인자나 `SteamMultiplayerPeer` 함수 이름이 다를 수 있어서 기본 인자만 쓰도록 짰다. 스팀이 켜진 PC에서 첫 확인이 필요하다.
 
 ## 그래픽 교체 지점
 
-- 플레이어 겉모습: **`scenes/art/player_model.tscn` 하나만** 바꾸면 된다. `player.tscn` 은 이 씬을 `ModelPivot/Model` 로 넣어 쓴다.
-- 약속: 루트는 `Node3D`, 발바닥이 원점, 앞이 -Z, 키 약 1.8m. 플레이어 색을 받으려면 루트 스크립트에 `set_player_color(color: Color)` 를 둔다 (지금은 `scripts/player/player_model.gd` 가 `tint_meshes` 에 색을 입힘). 충돌 모양은 `player.tscn` 쪽이라 그래픽과 상관없다.
-- 월드의 지면·상자는 아직 임시. 레벨 그래픽이 정해지면 같은 방식(`scenes/art/` 씬)으로 뺀다.
+외부 그래픽은 아래 씬만 바꾸면 된다. 충돌·판정은 전부 게임 씬 쪽이라 그래픽과 상관없다.
+공통 약속: 루트는 `Node3D`, 바닥이 원점, 앞이 -Z.
+
+| 씬 | 무엇 | 약속 |
+|---|---|---|
+| `scenes/art/player_model.tscn` | 동료 몸 (내 화면에서는 숨김) | 키 약 1.8 m. 색을 받으려면 루트에 `set_player_color(color)` |
+| `scenes/art/lantern_model.tscn` | 큰 등불 | 높이 약 0.3 m. 빛(OmniLight3D)은 게임 쪽이 0.4 m 높이에 둠. 모형 그림자는 자동으로 끔 |
+| `scenes/art/oil_bottle_model.tscn` | 기름병 | 높이 약 0.35 m. 어둠에서 보이게 살짝 빛나는 재질 권장 |
+| `scenes/art/stalker_model.tscn` | 그림자 추적자 | 키 약 2 m (문 높이 2 m). 루트에 `set_state(이름)`: idle/wander/stalk/attack/flee. **attack 때 눈이 빛나야 함** (반응할 틈) |
+| `scenes/art/tiles/floor_tile.tscn` | 바닥 타일 2×2 m | 윗면이 y=0 |
+| `scenes/art/tiles/wall_tile.tscn` | 벽 타일 2×2 m, 두께 0.3 m | 아랫변 가운데가 원점, 두께 방향이 +Z(방 안쪽). 2단으로 쌓아 4 m |
+| `scenes/art/tiles/ceiling_tile.tscn` | 천장 타일 2×2 m | 아랫면이 y=0 (4 m 높이에 놓임) |
+
+방은 `scripts/level/room_builder.gd` 가 타일을 늘어놓아 만든다 (크기·문 방향만 지정).
 
 ## 조작
 
-| 동작 | 키보드·마우스 | 게임패드 |
-|---|---|---|
-| 이동 | WASD | 왼쪽 스틱 |
-| 카메라 | 마우스 | 오른쪽 스틱 |
-| 점프 | Space | A |
-| 일시 메뉴(계속/메뉴로 나가기) | Esc | Back/View |
+시제품부터 1인칭(GDD 2장). 조작표는 [PROTOTYPE.md](PROTOTYPE.md) 4장.
 
 ## 같은 PC에서 창 두 개로 테스트
 
@@ -110,12 +120,16 @@ godot --path . -- --join=127.0.0.1  # 창 2: 접속
 | `tests/test_offline_session.tscn` | 혼자 하기 → 월드·플레이어 1 생성, 나가기 → 메뉴 |
 | `tests/net/test_enet_two_peers.tscn` | ENet 서버 1 + 클라이언트 1: 스폰 위치, 양방향 이동 동기화, 호스트 퇴장 시 클라이언트 메뉴 복귀 |
 | `tests/test_seeded_rng.tscn` | 시드 난수 결정론, 흐름 분리, 고정값 |
+| `tests/test_balance.tscn` | balance.tres 가 TUNING.md 시제품 값과 같음 |
+| `tests/game/test_lantern_oil.tscn` | 등불 줍기·밝기·내려놓기, 손등, 기름 소모 속도, 기름병, 기름 0 → 심지 → 어둠, F5 |
+| `tests/game/test_stalker.tscn` | 어둠 게이지, 추적 → 준비 → 잡기 → 실패·다시 시작, 빛 경계에서 멈춤, 빛에 덮이면 후퇴 |
+| `tests/net/test_lantern_sync.tscn` | 2인: 기름 일치, 등불 든 사람, 쓰러짐·부활 동기화, 같은 기름병 동시 줍기 (QA LANT-10·11·12·20·21) |
 
 네트워크 테스트는 TESTING.md 의 "한 프로세스에 피어 여러 개" 대신 **클라이언트를 별도 Godot 프로세스**(`tests/net/enet_client_peer.tscn`, `OS.create_process`)로 띄운다.
-`Net` 은 루트 MultiplayerAPI 와 씬 전환을 그대로 쓰기 때문에, 실제 게임과 같은 경로로 시험하려는 것이다. 클라이언트 출력은 같은 로그에 찍히고, 클라이언트 실패는 `QA_TEST_FAIL` 줄과 종료 코드로 서버 쪽 테스트 실패가 된다. 포트 24611 고정.
+`Net` 은 루트 MultiplayerAPI 와 씬 전환을 그대로 쓰기 때문에, 실제 게임과 같은 경로로 시험하려는 것이다. 클라이언트 출력은 같은 로그에 찍히고, 클라이언트 실패는 `QA_TEST_FAIL` 줄과 종료 코드로 서버 쪽 테스트 실패가 된다. 포트는 테스트마다 다름 (24611, 24612).
 
 ## 알려진 한계 / 다음 할 일
 
-- 다른 플레이어 위치는 받은 값을 그대로 쓴다 (보간 없음). 실제 네트워크 지연에서는 끊겨 보일 수 있어 다음 단계에 보간을 넣는다.
-- 한글 글꼴을 넣지 않았다. Windows 는 시스템 글꼴(맑은 고딕)로 대체되지만 Steam Deck/Linux 에는 한글 글꼴이 없을 수 있다 → 무료 글꼴(예: Noto Sans KR, OFL) 번들 필요.
+- 다른 플레이어·추적자 위치는 받은 값 쪽으로 부드럽게 따라가는 단순 보간만 한다 (지연 보정 없음).
+- 글꼴은 Pretendard 원본(OFL)만 넣었다. FONT.md 의 Noto Sans CJK 대체 글꼴은 아직 없다 (파일이 커서 스팀 닉네임을 표시할 때 같이 넣음).
 - 메뉴 문자열은 아직 한국어 하드코딩. 영어 지원 때 번역 키로 옮긴다.
