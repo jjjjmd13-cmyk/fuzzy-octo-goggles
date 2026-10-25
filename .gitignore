@@ -7,3 +7,5 @@ build/
 *.tmp
 # Steam
 steam_appid.txt
+# GodotSteam 바이너리는 tools/fetch_godotsteam.sh 로 받는다
+addons/godotsteam/
