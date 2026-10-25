@@ -1,0 +1,87 @@
+name: Windows 빌드
+
+# 사람이 Godot 없이 바로 플레이할 수 있는 Windows 실행 파일을 만든다.
+# 실행 시간을 아끼려고 테스트(ci.yml)와 분리해서 main 푸시·수동 실행 때만 돈다.
+# 빌드 설정이 바뀌는 PR 에서는 깨지지 않았는지 확인하려고 같이 돈다.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - .github/workflows/build.yml
+      - export_presets.cfg
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: 4.4.1 # CLAUDE.md 에서 고정. ci.yml 과 같이 바꾼다.
+  PRESET: Windows Desktop # export_presets.cfg 의 이름
+
+jobs:
+  windows:
+    name: Windows 실행 파일
+    runs-on: ubuntu-24.04
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Godot 캐시
+        id: godot-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/godot
+          key: godot-${{ env.GODOT_VERSION }}-linux-x86_64
+
+      - name: Godot 받기
+        if: steps.godot-cache.outputs.cache-hit != 'true'
+        run: |
+          mkdir -p ~/godot
+          curl -sSL --retry 3 -o /tmp/godot.zip \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_linux.x86_64.zip"
+          unzip -o /tmp/godot.zip -d ~/godot
+
+      # 전체 템플릿 묶음은 1.2GB 라서, 받은 뒤 Windows 릴리스용 파일만 꺼내 캐시한다 (약 90MB).
+      - name: 내보내기 템플릿 캐시
+        id: templates-cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.local/share/godot/export_templates/${{ env.GODOT_VERSION }}.stable
+          key: godot-templates-${{ env.GODOT_VERSION }}-windows-release
+
+      - name: 내보내기 템플릿 받기
+        if: steps.templates-cache.outputs.cache-hit != 'true'
+        run: |
+          dir="$HOME/.local/share/godot/export_templates/${GODOT_VERSION}.stable"
+          mkdir -p "$dir"
+          curl -sSL --retry 3 -o /tmp/templates.tpz \
+            "https://github.com/godotengine/godot/releases/download/${GODOT_VERSION}-stable/Godot_v${GODOT_VERSION}-stable_export_templates.tpz"
+          unzip -j -o /tmp/templates.tpz templates/version.txt templates/windows_release_x86_64.exe -d "$dir"
+          rm /tmp/templates.tpz
+          ls -la "$dir"
+
+      - name: 임포트
+        run: |
+          GODOT="$HOME/godot/Godot_v${GODOT_VERSION}-stable_linux.x86_64"
+          echo "GODOT=$GODOT" >> "$GITHUB_ENV"
+          timeout 600 "$GODOT" --headless --path . --import
+
+      - name: 내보내기
+        run: |
+          echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
+          mkdir -p build/windows
+          timeout 600 "$GODOT" --headless --path . --export-release "$PRESET" build/windows/Lanternfall.exe
+          # 실패해도 종료 코드가 0 인 경우가 있어 결과 파일로 확인한다.
+          size=$(stat -c %s build/windows/Lanternfall.exe)
+          echo "Lanternfall.exe: $((size / 1024 / 1024)) MB"
+          [ "$size" -gt 10000000 ] || { echo "::error::실행 파일이 없거나 너무 작음"; exit 1; }
+
+      - name: 업로드
+        uses: actions/upload-artifact@v4
+        with:
+          name: Lanternfall-windows-${{ env.SHORT_SHA }}
+          path: build/windows/
+          retention-days: 14
+          if-no-files-found: error
