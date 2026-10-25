@@ -1,0 +1,4 @@
+# NET-02 3인 접속. 첫 줄이 호스트 (docs/qa/TESTING.md "여러 프로세스 테스트" A 방법)
+server
+client
+client
