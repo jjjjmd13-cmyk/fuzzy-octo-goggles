@@ -1,6 +1,6 @@
 # 기획팀 상태
 
-**지금 하는 일**: 시제품 지원 문서 PR 검토 대기 (`planning/prototype-support`)
+**지금 하는 일**: 시제품(PR #12) 검토 반영 — TUNING.md 를 시제품 구현에 맞춤 (`planning/tuning-proto`). 다음: 소리 방향 문서
 
 **끝낸 일**:
 - 게임 콘셉트 3개 제안 → **B. 등불 원정대 선택됨 (2026-10-25)**
@@ -9,6 +9,7 @@
 - 글꼴 결정 `docs/design/FONT.md` — Pretendard (OFL 1.1) + Noto Sans CJK fallback
 - 시제품 플레이 테스트지 `docs/design/PLAYTEST_PROTOTYPE.md` (질문 10개 + 답별 분기, 실패 패널티 결정표)
 - 수치표 `docs/design/TUNING.md` (GDD 수치를 리소스 키·단위·초기값으로 정리, 시제품용 표시)
+- 시제품 PR #12 의 '기획 문서에 없어서 정한 것' 검토 → 모두 동의 (PR 코멘트). TUNING 에 `party_*` 배열·`proto_*` 4개 반영, GDD 5.5 부활 조건 문장 명확히
 
 **막힌 것**: 없음
 
