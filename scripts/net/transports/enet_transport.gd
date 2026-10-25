@@ -17,7 +17,9 @@ func get_display_name() -> String:
 
 func open_host() -> MultiplayerPeer:
 	_peer = ENetMultiplayerPeer.new()
-	var err := _peer.create_server(_port, _max_players - 1)
+	# ENet 단계에서는 인원을 넉넉히 받는다. 여기서 막으면 서버가 응답하지 않아 5번째는
+	# "접속 시간 초과"만 보게 된다. 실제 인원 제한은 Net 의 입장 확인이 하고 이유를 보낸다.
+	var err := _peer.create_server(_port, _max_players * 2)
 	if err != OK:
 		error_message = "포트 %d 를 열 수 없습니다 (%s)" % [_port, error_string(err)]
 		_peer = null
