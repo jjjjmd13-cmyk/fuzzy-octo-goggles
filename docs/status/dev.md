@@ -1,10 +1,11 @@
 # 개발팀 상태
 
-**지금 하는 일**: 첫 시제품 PR (`dev/prototype-lantern`) 검토 대기
+**지금 하는 일**: 이슈 #10 수정 PR (`dev/fix-full-lobby`) 검토 대기. 그다음 사람 대표 플레이 테스트 결과 대기
 
 **끝낸 일**:
+- 이슈 #10: 방이 가득 차면 5번째가 곧바로 "방이 가득 찼습니다 (4/4)" 로 거절됨 (ENet·스팀 모두)
 - 협동 멀티플레이 기반 (PR #4, 병합됨)
-- GDD 13장 첫 시제품 (`docs/dev/PROTOTYPE.md` 에 실행 방법)
+- GDD 13장 첫 시제품 (PR #12, 병합됨. `docs/dev/PROTOTYPE.md` 에 실행 방법)
   - 손으로 배치한 방 3개 (2 m 타일, 문 연결), 1인칭 이동·달리기·스태미나
   - 큰 등불 줍기·내려놓기·건네기·밝기 3단계, 손등, 공용 기름(호스트 권한) + 심지 60초
   - 어둠 게이지(호스트 계산), 그림자 추적자 상태 기계 전체 (호스트 AI, 길찾기, 20 Hz 동기화)
@@ -23,7 +24,6 @@
 - 스팀 경로 실기 확인 불가 (컨테이너에 스팀 없음, codeberg.org 막힘). SteamMultiplayerPeer 포함 여부 **미확인** — `tools/fetch_godotsteam.sh` 가 받은 뒤 검사해 출력함.
 
 **다른 부서에 요청**:
-- 기획팀: TUNING.md 에 시제품용 새 키 4개(`proto_interact_range` 2 m, `proto_give_range` 3 m, `proto_fail_restart_delay` 5 s, `proto_debug_oil_start` 30)와, 인원별 표를 `party_` 배열로 같은 파일에 둔 것(GDD 13장 "리소스 파일 하나")을 반영해 주세요.
 - 기획팀: `docs/dev/PROTOTYPE.md` 9장 "시제품에서 정한 것"(심지 빛 취급, 기름 5 미만 부활, 혼자일 때 쓰러짐 = 실패 등) 확인 부탁.
 - 기획팀: 소리(기름 부족 경고음, 추적자 공격 준비 소리) 에셋/방향이 정해지면 붙이겠습니다. 지금은 눈 빛·붉은 빛으로만 알림.
 - QA: TEST_PLAN LANT-10·11·12·20·21 을 자동 테스트로 넣었습니다 (`tests/net/test_lantern_sync`). LANT-22(두 명이 동시에 부활)는 3인 테스트가 필요해 아직.

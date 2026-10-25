@@ -8,6 +8,7 @@ extends "res://scripts/net/transports/transport.gd"
 const LOBBY_TYPE_FRIENDS_ONLY := 1
 const RESULT_OK := 1
 const CHAT_ROOM_ENTER_RESPONSE_SUCCESS := 1
+const CHAT_ROOM_ENTER_RESPONSE_FULL := 4
 const STEP_TIMEOUT_SEC := 15.0
 const VIRTUAL_PORT := 0
 
@@ -65,6 +66,10 @@ func open_client(address: String) -> MultiplayerPeer:
 	steam.disconnect("lobby_joined", _on_lobby_joined)
 	if _step_result.is_empty():
 		error_message = "스팀 로비 참가 시간 초과"
+		lobby_id = 0
+		return null
+	if _step_result[3] == CHAT_ROOM_ENTER_RESPONSE_FULL:
+		error_message = "방이 가득 찼습니다 (%d/%d)" % [_max_players, _max_players]
 		lobby_id = 0
 		return null
 	if _step_result[3] != CHAT_ROOM_ENTER_RESPONSE_SUCCESS:
