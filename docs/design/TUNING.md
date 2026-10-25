@@ -8,7 +8,7 @@ GDD 의 수치는 장마다 흩어져 있어서, 개발팀이 리소스(`.tres`)
 - 키 이름은 제안입니다 (`snake_case`). 개발팀이 바꿔도 되지만 바꾸면 이 표도 같이 고쳐 주세요.
 - 단위: 거리 m, 시간 초(s), 속도 m/s, 기름 '단위'(최대 100).
 - **시제품** 열 ✅ = GDD 13장 시제품에서 바로 쓰는 값. 나머지는 단계 2 이후.
-- 리소스 위치 제안: `res://data/balance/balance.tres` (스크립트 `BalanceData extends Resource`) 하나. 인원별 표만 따로 `party_scaling.tres`.
+- 리소스 위치 제안: `res://data/balance/balance.tres` (스크립트 `BalanceData extends Resource`) **하나** (시제품에서 실제로 이렇게 만듦). 인원별 표도 같은 파일에 `party_` 배열로 (7장).
 
 ---
 
@@ -49,7 +49,7 @@ GDD 의 수치는 장마다 흩어져 있어서, 개발팀이 리소스(`.tres`)
 |---|---|---|---|---|
 | `oil_max` | 100.0 | 기름 | ✅ | 캠프 강화 시 `oil_max_upgraded` |
 | `oil_max_upgraded` | 130.0 | 기름 | | 큰 기름통 |
-| `oil_start` | 100.0 | 기름 | ✅ | 인원별 표가 있으면 그 값 우선 (6장) |
+| `oil_start` | 100.0 | 기름 | ✅ | `party_oil_start`(7장)가 있으면 그 값 우선 |
 | `oil_bottle_amount` | 15.0 | 기름 | ✅ | 줍는 기름병 (시제품: 방에 1~2개 둠) |
 | `oil_well_amount` | 25.0 | 기름 | | 샘당 1회 |
 | `oil_shop_bottle_limit` | 3 | 병 | | 원정당 |
@@ -126,23 +126,26 @@ GDD 의 수치는 장마다 흩어져 있어서, 개발팀이 리소스(`.tres`)
 | `leech_swarm_size_min` | 3 | 마리 | 모형 수 (연출) |
 | `leech_swarm_size_max` | 5 | 마리 | |
 
-## 7. 인원별 조절 (`party_scaling.tres`)
+## 7. 인원별 조절 (`party_*`)
 
-인원 수(1~4)를 열쇠로 하는 표. 시제품은 **2인 열만** 사용.
+같은 `balance.tres` 안에 **`party_` 로 시작하는 배열**로 둔다. 순서는 `[1인, 2인, 3인, 4인]` (`PackedFloat32Array`, 개수 값도 실수로 넣고 쓸 때 정수로 바꿈).
+**시제품** 열 ✅ = 시제품 `balance.tres` 에 이미 있는 키. 나머지는 생성기·기름 도둑을 만들 때 이 이름으로 추가.
 
-| 키 | 1인 | 2인 | 3인 | 4인 |
-|---|---|---|---|---|
-| `oil_start` | 90 | 100 | 100 | 100 |
-| `oil_drain_mult` (모든 빛) | 0.7 | 1.0 | 1.0 | 1.0 |
-| `rooms_per_floor` | 8 | 10 | 11 | 12 |
-| `oil_bottles_per_floor` | 2 | 2 | 3 | 3 |
-| `stalkers_floor1` | 1 | 1 | 2 | 2 |
-| `stalkers_floor2` | 1 | 2 | 2 | 3 |
-| `leech_swarms_floor1` | 1 | 2 | 2 | 3 |
-| `leech_swarms_floor2` | 2 | 2 | 3 | 4 |
-| `stalker_speed_mult` | 0.85 | 1.0 | 1.0 | 1.05 |
-| `relics_light_per_floor` | 3 | 3 | 4 | 5 |
-| `relics_heavy_per_floor` | 1 | 1 | 2 | 2 |
+| 키 | 1인 | 2인 | 3인 | 4인 | 시제품 |
+|---|---|---|---|---|---|
+| `party_oil_start` | 90 | 100 | 100 | 100 | ✅ |
+| `party_oil_drain_mult` (모든 빛) | 0.7 | 1.0 | 1.0 | 1.0 | ✅ |
+| `party_stalker_speed_mult` | 0.85 | 1.0 | 1.0 | 1.05 | ✅ |
+| `party_rooms_per_floor` | 8 | 10 | 11 | 12 | |
+| `party_oil_bottles_per_floor` | 2 | 2 | 3 | 3 | |
+| `party_stalkers_floor1` | 1 | 1 | 2 | 2 | |
+| `party_stalkers_floor2` | 1 | 2 | 2 | 3 | |
+| `party_leech_swarms_floor1` | 1 | 2 | 2 | 3 | |
+| `party_leech_swarms_floor2` | 2 | 2 | 3 | 4 | |
+| `party_relics_light_per_floor` | 3 | 3 | 4 | 5 | |
+| `party_relics_heavy_per_floor` | 1 | 1 | 2 | 2 | |
+
+> `party_oil_start` 가 있으면 2장 `oil_start` 보다 우선한다.
 
 ## 8. 실패 패널티 (`penalty_*`)
 
@@ -153,15 +156,28 @@ GDD 의 수치는 장마다 흩어져 있어서, 개발팀이 리소스(`.tres`)
 
 > 시제품에는 정산이 없으므로 '전원 쓰러짐 → 실패 화면 + 다시 시작'만 있으면 됩니다.
 
+## 9. 시제품 전용 (`proto_*`)
+
+시제품에서 개발팀이 추가한 키 (PR #12). 단계 2에서 정식 키로 옮기거나 없앤다.
+
+| 키 | 값 | 단위 | 설명 | 단계 2 |
+|---|---|---|---|---|
+| `proto_interact_range` | 2.0 | m | 줍기·부활 상호작용 거리 | 정식 키 `player_interact_range` 로 |
+| `proto_give_range` | 3.0 | m | 등불 건네기 거리 | 정식 키 `player_give_range` 로 |
+| `proto_fail_restart_delay` | 5.0 | s | 원정 실패 뒤 다시 시작까지 | 없앰 (정산·캠프 화면으로 바뀜) |
+| `proto_debug_oil_start` | 30.0 | 기름 | F5 디버그 키의 시작 기름 (플레이 테스트 2판째) | 디버그 전용으로 유지 |
+
 ---
 
 ## 시제품 기준 계산 (확인용)
 
 2인, 큰 등불 보통(4/분) + 손등 1개 계속 켬(0.5/분) = **4.5/분** → 100으로 **약 22분**.
-시제품은 방 3개라 한 판이 짧으므로, 테스트 때 긴장감을 보려면 개발팀이 디버그 키로 `oil_start` 를 30~40 으로 낮춰 시작할 수 있게 해 주세요 (PLAYTEST_PROTOTYPE.md 진행 방법 참고).
+시제품은 방 3개라 한 판이 짧아서, 긴장감을 보려면 F5 디버그 키로 기름 30(`proto_debug_oil_start`)에서 시작합니다 (PLAYTEST_PROTOTYPE.md 진행 방법 2판째).
 
 ## 바꾼 기록
 
 | 날짜 | 키 | 전 → 후 | 이유 |
 |---|---|---|---|
 | 2026-10-25 | (최초 작성) | — | GDD 0.1 값 정리 |
+| 2026-10-25 | 7장 인원별 키 | `oil_start` 등 → `party_oil_start` 등, 별도 파일 → `balance.tres` 안 배열 | 시제품 구현(PR #12)에 맞춤 |
+| 2026-10-25 | 9장 `proto_*` 4개 | (새로) | 시제품 구현(PR #12) |

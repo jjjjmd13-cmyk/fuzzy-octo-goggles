@@ -1,0 +1,149 @@
+[gd_scene load_steps=5 format=3 uid="uid://b7hud00000001"]
+
+[ext_resource type="Script" path="res://scripts/game/hud.gd" id="1_hud"]
+[ext_resource type="Shader" path="res://ui/dark_vignette.gdshader" id="2_vignette"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_vignette"]
+shader = ExtResource("2_vignette")
+shader_parameter/amount = 0.0
+
+[node name="HUD" type="CanvasLayer"]
+script = ExtResource("1_hud")
+
+[node name="Vignette" type="ColorRect" parent="."]
+material = SubResource("ShaderMaterial_vignette")
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Status" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 760.0
+offset_bottom = 40.0
+theme_type_variation = &"SmallLabel"
+
+[node name="InviteButton" type="Button" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -216.0
+offset_top = 12.0
+offset_right = -16.0
+offset_bottom = 56.0
+grow_horizontal = 0
+text = "친구 초대"
+
+[node name="Help" type="Label" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -520.0
+offset_top = 68.0
+offset_right = -16.0
+offset_bottom = 400.0
+grow_horizontal = 0
+theme_type_variation = &"SmallLabel"
+horizontal_alignment = 2
+
+[node name="Debug" type="Label" parent="."]
+offset_left = 16.0
+offset_top = 52.0
+offset_right = 640.0
+offset_bottom = 300.0
+theme_type_variation = &"SmallLabel"
+
+[node name="CenterLabel" type="Label" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -460.0
+offset_top = -120.0
+offset_right = 460.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_type_variation = &"PromptLabel"
+horizontal_alignment = 1
+
+[node name="Bottom" type="VBoxContainer" parent="."]
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -320.0
+offset_top = -190.0
+offset_right = 320.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+alignment = 2
+
+[node name="Prompt" type="Label" parent="Bottom"]
+layout_mode = 2
+theme_type_variation = &"PromptLabel"
+horizontal_alignment = 1
+
+[node name="ReviveBar" type="ProgressBar" parent="Bottom"]
+visible = false
+custom_minimum_size = Vector2(0, 14)
+layout_mode = 2
+max_value = 3.0
+show_percentage = false
+
+[node name="OilRow" type="HBoxContainer" parent="Bottom"]
+layout_mode = 2
+
+[node name="OilBar" type="ProgressBar" parent="Bottom/OilRow"]
+custom_minimum_size = Vector2(300, 24)
+layout_mode = 2
+size_flags_vertical = 4
+value = 100.0
+show_percentage = false
+
+[node name="OilLabel" type="Label" parent="Bottom/OilRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="LightLabel" type="Label" parent="Bottom"]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+horizontal_alignment = 1
+
+[node name="StaminaBar" type="ProgressBar" parent="Bottom"]
+visible = false
+custom_minimum_size = Vector2(0, 6)
+layout_mode = 2
+max_value = 5.0
+show_percentage = false
+
+[node name="PauseMenu" type="PanelContainer" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -160.0
+offset_top = -80.0
+offset_right = 160.0
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Box" type="VBoxContainer" parent="PauseMenu"]
+layout_mode = 2
+alignment = 1
+
+[node name="Resume" type="Button" parent="PauseMenu/Box"]
+layout_mode = 2
+text = "계속하기"
+
+[node name="Leave" type="Button" parent="PauseMenu/Box"]
+layout_mode = 2
+text = "메뉴로 나가기"
