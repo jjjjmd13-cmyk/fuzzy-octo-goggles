@@ -1,9 +1,12 @@
 # QA 상태
 
 **지금 하는 일**:
-- 호스트 권한 테스트 PR 검토 대기. 그다음 사람 대표 플레이 테스트 결과가 나올 때까지 대기
+- 게임 변경(멍냥 목욕탕) 정리: 빌드 이름 PawsAndBubbles, 등불 원정대 항목 '접은 게임' 표시 PR 검토 대기
+- 다음: GDD_V2 병합 뒤 새 게임 테스트 항목. 사람 대표 플레이 테스트 결과 대기
 
 **끝낸 일**:
+- 개발팀 PR #22 리뷰: 지운 `test_host_authority` 를 `net/test_carry_sync` 위조 요청 단계가 충분히 대신함 확인
+- 빌드 CI 이름 `Lanternfall` → `PawsAndBubbles`, 받는 법을 `docs/qa/BUILD.md` 로 옮김 (`PROTOTYPE.md` 는 #22 에서 삭제), TEST_PLAN 9장 '접은 게임' 표시
 - 호스트 권한 자동 테스트 `tests/net/test_host_authority` (LANT-13 위조 요청·로컬 조작 무시, LANT-40 추적자 AI 호스트 전용). 클라이언트 디버그 재시작 허용·클라이언트 추적자 AI 실행으로 일부러 망가뜨리면 실패하는 것 확인
 - Windows 실행 파일 빌드 CI (PR #17 병합)
 - 빌드 CI 상세: main 푸시·수동 실행 때 `export_presets.cfg` 의 Windows 프리셋으로 내보내 Actions artifact(14일)로 올림. 테스트 작업과 분리, 내보내기 템플릿은 Windows 릴리스용만 캐시. `docs/dev/PROTOTYPE.md` 맨 앞에 받는 법
