@@ -21,6 +21,8 @@ const FOAM_PINK := Color(1, 0.62, 0.78)
 var mask: PaintMask
 var model: Node3D
 var material: ShaderMaterial
+## 털 재질 전부 (모형 메시마다 albedo 텍스처가 다르면 여러 개). 값은 모두에 같이 넣는다.
+var materials: Array[ShaderMaterial] = []
 ## 0 = 젖음/보통, 1 = 다 말라 뽀송
 var fluff := 0.0
 var foam_color := FOAM_WHITE
@@ -109,8 +111,9 @@ func setup(resolution: int, pattern: int, seed_value: int) -> void:
 	material.set_shader_parameter("mud", mask.mud_texture)
 	material.set_shader_parameter("center", _body_center())
 	material.set_shader_parameter("wet_amount", Tuning.data.wet_shader_amount)
+	materials = [material]
 	if model.has_method("apply_fur_material"):
-		model.apply_fur_material(material)
+		materials = model.apply_fur_material(material)
 	fluff = 0.0
 	foam_color = FOAM_WHITE
 	_foam_pos.clear()
@@ -379,18 +382,18 @@ func show_ratios(ratios: Dictionary) -> void:
 	for channel in ratios:
 		if GLOBAL_COMPONENT.has(channel):
 			value[GLOBAL_COMPONENT[channel]] = ratios[channel]
-	material.set_shader_parameter("use_global", true)
-	material.set_shader_parameter("global_mask", value)
+	_set_param("use_global", true)
+	_set_param("global_mask", value)
 
 
 func show_mask() -> void:
-	material.set_shader_parameter("use_global", false)
+	_set_param("use_global", false)
 
 
 ## 남은 곳 반짝임 (0~1). channel 이 텍스처에 없으면 (수건) 반짝이지 않음.
 func set_blink(value: float, channel: String) -> void:
-	material.set_shader_parameter("blink", value if GLOBAL_COMPONENT.has(channel) else 0.0)
-	material.set_shader_parameter("blink_channel", GLOBAL_COMPONENT.get(channel, 0))
+	_set_param("blink", value if GLOBAL_COMPONENT.has(channel) else 0.0)
+	_set_param("blink_channel", GLOBAL_COMPONENT.get(channel, 0))
 
 
 func _process(_delta: float) -> void:
@@ -398,8 +401,13 @@ func _process(_delta: float) -> void:
 		return
 	var grow: float = (Tuning.data.tool_dryer_fluff_scale - 1.0) * FLUFF_VISUAL_SHARE * Tuning.data.fluff_shader_amount
 	model.scale = Vector3.ONE * (1.0 + grow * fluff)
-	material.set_shader_parameter("world_to_dog", Projection(model.global_transform.affine_inverse()))
+	_set_param("world_to_dog", Projection(model.global_transform.affine_inverse()))
 	mask.flush()
+
+
+func _set_param(param: String, value: Variant) -> void:
+	for fur in materials:
+		fur.set_shader_parameter(param, value)
 
 
 func _body_center() -> Vector3:

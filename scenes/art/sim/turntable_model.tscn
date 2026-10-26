@@ -1,0 +1,16 @@
+[gd_scene load_steps=3 format=3 uid="uid://b7simturnmdl1"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_plate"]
+albedo_color = Color(0.45, 0.7, 0.85, 1)
+roughness = 0.5
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_plate"]
+material = SubResource("StandardMaterial3D_plate")
+top_radius = 0.48
+bottom_radius = 0.5
+height = 0.04
+
+[node name="TurntableModel" type="Node3D"]
+
+[node name="Plate" type="MeshInstance3D" parent="."]
+mesh = SubResource("CylinderMesh_plate")

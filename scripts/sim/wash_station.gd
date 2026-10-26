@@ -150,6 +150,13 @@ func _ready() -> void:
 	# 처음엔 비스듬히 (옆모습이 조금 보이게)
 	_local_yaw = 0.6
 	yaw = 0.6
+	# 목욕대 뒤 배경 그림이 있으면 타일 벽 대신 쓴다 (assets/ui/bath_backdrop.png)
+	var backdrop := UiArt.texture("bath_backdrop")
+	if backdrop != null:
+		var wall_material := StandardMaterial3D.new()
+		wall_material.albedo_texture = backdrop
+		$Wall.material_override = wall_material
+		$Wall/Window.visible = false
 	# 가게 간판 그림이 있으면 뒤 벽에 건다 (assets/ui/sign.png)
 	var sign_picture := UiArt.texture("sign")
 	if sign_picture != null:
@@ -158,6 +165,17 @@ func _ready() -> void:
 		sign_material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
 		$Sign.material_override = sign_material
 		$Sign.visible = true
+		# 간판 가운데 빈칸에 가게 이름을 글자로 (그림에는 글자가 없음)
+		var shop_name := Label3D.new()
+		shop_name.text = "멍냥 목욕탕"
+		shop_name.font = COIN_FONT
+		shop_name.font_size = 96
+		shop_name.pixel_size = 0.0016
+		shop_name.outline_size = 18
+		shop_name.modulate = Color(1, 1, 1)
+		shop_name.outline_modulate = Color(0.85, 0.35, 0.5)
+		shop_name.position = Vector3(0.08, 0, 0.01)
+		$Sign.add_child(shop_name)
 	# 보이는 쪽 판정용 몸 방향 표본 (피보나치 구, 배 밑 제외)
 	var golden := PI * (3.0 - sqrt(5.0))
 	for i in VISIBLE_SAMPLES:
@@ -775,6 +793,8 @@ func _visible_done(channel: String) -> float:
 
 func _on_stage_changed() -> void:
 	_seen_stage = stage
+	# 단계가 바뀌면 새 단계 안내가 먼저 보이게 눈에 물 경고를 지운다 (이슈 #39)
+	eye_warning_left = 0.0
 	_blink_left = 0.0
 	_blink_wait = 0.0
 	_dose_pending = false
