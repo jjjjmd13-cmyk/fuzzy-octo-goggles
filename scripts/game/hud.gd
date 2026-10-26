@@ -103,6 +103,10 @@ func _process(_delta: float) -> void:
 	var hint: String = station.next_hint() if at_bath else ""
 	if at_bath and not station.is_operator() and station.stage < WashStation.Stage.PAY:
 		hint = "다른 사람이 씻기는 중이에요 (구경 중)"
+	var warning: bool = at_bath and station.eye_warning_left > 0.0
+	if warning:
+		hint = "앗, 눈에 물이 들어갔어요! 얼굴(눈)은 피해서 씻어 주세요"
+	hint_label.add_theme_color_override("font_color", Color(1, 0.5, 0.45) if warning else Color(1, 0.92, 0.55))
 	hint_label.text = hint
 	hint_label.visible = not hint.is_empty()
 

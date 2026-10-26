@@ -81,7 +81,7 @@
 | 씬 | 무엇 | 약속 |
 |---|---|---|
 | `scenes/art/player_model.tscn` | 동료 몸 (내 화면에서는 숨김) | 키 약 1.8 m. 색을 받으려면 루트에 `set_player_color(color)` |
-| `scenes/art/sim/dog_model.tscn` | 목욕대 강아지 | **얼굴이 +Z(카메라 쪽)**, 바닥이 원점. ChatGPT GLB(정면 −Z)는 이 씬 안에서 Y 로 180° 돌려 넣는다. 루트 스크립트 `sim_dog_model.gd` 의 `body_center`·`face_center`·`fur_meshes` 를 맞추고, 마우스 판정 모양 `HitBody`(충돌 층 16)를 모형에 맞게 고친다. UV 는 상관없음 (마스크가 방향으로 칠함) |
+| `scenes/art/sim/dog_model.tscn` | 목욕대 강아지 | **얼굴이 +Z(카메라 쪽)**, 바닥이 원점. ChatGPT GLB(정면 −Z)는 이 씬 안에서 Y 로 180° 돌려 넣는다. 루트 스크립트 `sim_dog_model.gd` 의 `body_center`·`face_center`·`fur_meshes` 를 맞춘다. 마우스 판정 모양(`HitBody`, 충돌 층 16)은 시작할 때 `fur_meshes` 의 볼록 껍질로 자동으로 만든다. UV 는 상관없음 (마스크가 방향으로 칠함) |
 | `scripts/sim/sim_fur.gdshader` | 털 (더러움·젖음·뽀송) | 텍스처를 쓰려면 `fur_color` 대신 albedo 텍스처 uniform 을 추가 |
 | `scenes/sim/wash_station.tscn` | 목욕대·회전판·도구걸이 (임시 상자) | 회전판은 `Turntable` 노드, 강아지는 `Turntable/Dog` |
 | `assets/sfx/*.wav` | 효과음 11개 + 반복 소리 3개 (`scripts/game/sfx.gd`) | 같은 파일 이름으로 교체 |
@@ -131,6 +131,7 @@ godot --path . -- --join=127.0.0.1  # 창 2: 접속
 | `tests/test_balance.tscn` | sim_balance.tres 가 TUNING_V3.md 의 ✅ 줄과 같음 (표를 직접 읽음) |
 | `tests/test_paint_mask.tscn` | 칠하기 마스크: 붓 넓이·넘치지 않음·극·90% 채우기·텍스처·더러움 무늬 3종·속도 |
 | `tests/game/test_wash_flow.tscn` | 혼자: 화면 좌표로 실제 칠하기 → 5단계 → 동전 → 컴퓨터 자리에서 복숭아 샴푸 → 분홍 거품·향 팁 → 샴푸가 떨어지면 거품 없음. 차가운 물·간지럼·몸 털기·소리 |
+| `tests/game/test_wash_pace.tscn` | 사람 흉내 손(800 px/s 지그재그, 2초마다 60° 돌림)으로 다섯 단계 시간: 단계 25초·한 마리 80초 안, 30초보다 길게 |
 | `tests/net/test_station_sync.tscn` | 2인(.roles): 작업자만 칠함, 구경 쪽은 비율만, 클라이언트 샴푸 구매, 작업자 바뀜 → 이어서 칠하기 |
 
 네트워크 테스트는 TESTING.md 의 "한 프로세스에 피어 여러 개" 대신 **클라이언트를 별도 Godot 프로세스**(`tests/net/enet_client_peer.tscn`, `OS.create_process`)로 띄운다.

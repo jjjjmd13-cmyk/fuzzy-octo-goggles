@@ -83,11 +83,15 @@ var _cheek_cooldown := 0.0
 var _towel_sound := 0.0
 var _foam_carry := 0.0
 var _blink_left := 0.0
-var _blinked_stage := -1
+## 다음 반짝까지 (거의 다 된 뒤 proto_blink_interval 마다 되풀이)
+var _blink_wait := 0.0
+## 눈에 물 안내를 보여 줄 남은 시간 (작업자 화면)
+var eye_warning_left := 0.0
 var _dose_pending := false
 var _pending_squirt := Vector3.ZERO
 var _dose_kind := ""
 var _rng := RandomNumberGenerator.new()
+var _drops_scattered := false
 # 호스트만
 var _dose_paid := false
 var _host_dose_kind := ""
@@ -338,6 +342,7 @@ func _eye_hit() -> void:
 	if _eye_cooldown > 0.0:
 		return
 	_eye_cooldown = Tuning.data.proto_eye_cooldown
+	eye_warning_left = 3.0
 	_report_event.rpc_id(1, dog_info.x, "eye")
 
 
@@ -398,6 +403,7 @@ func _process(delta: float) -> void:
 		dog.show_ratios(ratios)
 		dog.set_blink(0.0, "wet")
 		dog.fluff = clampf(stage_ratio(Stage.DRY) / Tuning.data.stage_complete_ratio, 0.0, 1.0)
+	_update_drops()
 	_update_coins()
 	if Net.is_host():
 		_host_process(delta)
@@ -409,11 +415,13 @@ func _update_operator_progress(delta: float) -> void:
 	if stage < Stage.PAY:
 		current = dog.mask.ratio(STAGE_CHANNEL[stage])
 	dog.fluff = clampf(dog.mask.ratio("dry") / data.stage_complete_ratio, 0.0, 1.0) if stage >= Stage.DRY else 0.0
-	# 거의 다 됐으면 남은 곳을 한 번 반짝
-	if stage < Stage.PAY and _blinked_stage != stage and current >= data.stage_complete_ratio - BLINK_BEFORE:
-		_blinked_stage = stage
+	# 거의 다 됐으면 남은 곳을 반짝 (proto_blink_interval 마다 되풀이)
+	_blink_wait -= delta
+	if stage < Stage.PAY and current >= data.stage_complete_ratio - BLINK_BEFORE and _blink_wait <= 0.0:
+		_blink_wait = data.proto_blink_interval
 		_blink_left = data.stage_remaining_blink
 	_blink_left = maxf(_blink_left - delta, 0.0)
+	eye_warning_left = maxf(eye_warning_left - delta, 0.0)
 	var blink := 0.0
 	if _blink_left > 0.0:
 		blink = sin(_blink_left / data.stage_remaining_blink * PI)
@@ -428,6 +436,7 @@ func _update_operator_progress(delta: float) -> void:
 func _on_stage_changed() -> void:
 	_seen_stage = stage
 	_blink_left = 0.0
+	_blink_wait = 0.0
 	# 호스트가 다른 단계라 답하지 않은 샴푸 요청이 있으면 풀어 준다
 	_dose_pending = false
 	_tickle_anchor = null
@@ -439,12 +448,32 @@ func _on_stage_changed() -> void:
 		_stop_loops()
 
 
+## 헹구기가 끝나면 몸에 물방울이 맺히고, 수건·드라이어로 닦은 곳부터 사라진다 (물방울 수 = 남은 물기).
+func _update_drops() -> void:
+	if stage < Stage.TOWEL:
+		return
+	if dog.drop_total() == 0 and stage < Stage.PAY and not _drops_scattered:
+		_drops_scattered = true
+		dog.scatter_drops(Tuning.data.proto_water_drops, dog_info.z)
+	if stage == Stage.PAY:
+		dog.show_drop_count(0)
+	elif is_operator():
+		var mask = dog.mask
+		dog.show_drops_where(func(dir: Vector3) -> bool:
+			return mask.value_at("towel", dir) < 0.5 and mask.value_at("dry", dir) < 0.5)
+	else:
+		var left := (1.0 - stage_ratio(Stage.TOWEL)) * 0.6 + (1.0 - stage_ratio(Stage.DRY)) * 0.4
+		dog.show_drop_count(roundi(dog.drop_total() * left))
+
+
 func _build_dog() -> void:
 	_built_serial = dog_info.x
+	_drops_scattered = false
 	dog.setup(Tuning.data.mask_resolution, dog_info.y, dog_info.z)
 	_seen_stage = -1
-	_blinked_stage = -1
 	_blink_left = 0.0
+	_blink_wait = 0.0
+	eye_warning_left = 0.0
 	dose = 0.0
 	_dose_pending = false
 	out_of_shampoo = false

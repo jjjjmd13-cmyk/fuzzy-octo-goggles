@@ -21,7 +21,7 @@
 |---|---|---|---|---|
 | `mask_resolution` | 256 | px | ✅ | 동물 한 마리 마스크 크기 (256×256) — 개발팀이 성능 보고 조정 |
 | `mask_patterns` | 3 | 종 | ✅ | 시제품 더러움 무늬 수 (정식판 8) |
-| `stage_complete_ratio` | 0.9 | 비율 | ✅ | 칠한 비율이 이만큼이면 단계 끝 |
+| `stage_complete_ratio` | 0.85 | 비율 | ✅ | 칠한 비율이 이만큼이면 단계 끝 |
 | `stage_remaining_blink` | 0.5 | s | ✅ | 마지막 10% 구역 반짝임 (단계가 90% 에 가까우면 한 번) |
 | `foam_ball_max` | 60 | 개 | ✅ | 몸에 붙는 거품 공 최대 |
 | `foam_ball_per_scrub` | 3 | 개/s | ✅ | 문지르는 동안 늘어나는 속도 (마우스 속도 배율 곱함) |
@@ -32,12 +32,12 @@
 
 | 키 | 값 | 단위 | 시제품 | 설명 |
 |---|---|---|---|---|
-| `tool_shower_radius` | 0.12 | m | ✅ | 물줄기가 닿는 반경 (마스크 붓 크기로 바꿔 씀) |
+| `tool_shower_radius` | 0.18 | m | ✅ | 물줄기가 닿는 반경 (마스크 붓 크기로 바꿔 씀) |
 | `tool_shower_rate` | 1.2 | /s | ✅ | 붓이 한 자리에 머물 때 칠해지는 속도 (약 0.8초면 꽉 참) |
 | `tool_shower_temp_good` | [0.35, 0.7] | 0~1 | ✅ | 다이얼에서 '좋음' 범위 |
 | `tool_shampoo_dose` | 1 | 덩이 | ✅ | 병 클릭 한 번 = 거품 덩이 1 (몸의 약 1/4 을 문지를 수 있는 양) |
 | `tool_shampoo_uses_per_bottle` | 8 | 마리 | ✅ | 한 병으로 씻는 손님 수 |
-| `tool_scrub_radius` | 0.10 | m | ✅ | 손으로 문지르는 반경 |
+| `tool_scrub_radius` | 0.15 | m | ✅ | 손으로 문지르는 반경 |
 | `tool_scrub_rate_per_speed` | 0.9 | /(m/s) | ✅ | 마우스를 빨리 움직일수록 거품이 빨리 (초당 진행 = 이 값 × 손 속도) |
 | `tool_scrub_rate_max` | 1.5 | /s | ✅ | 진행 최대 |
 | `tool_rinse_rate` | 1.0 | /s | ✅ | 헹구기 (샤워기 같은 판정) |
@@ -92,3 +92,4 @@
 |---|---|---|---|
 | 2026-10-26 | (최초 작성) | — | GDD_V3 0.1 |
 | 2026-10-26 | 1·2장 | 1인칭·부위 12개 → 작업대 시점 `seat_*`·더러움 마스크 `mask_*`·`stage_complete_ratio` 0.9 | 개발팀 제안 + 대표 의견 (GDD_V3 0.2) |
+| 2026-10-26 | 2·3장 | `stage_complete_ratio` 0.9 → 0.85, `tool_shower_radius` 0.12 → 0.18, `tool_scrub_radius` 0.10 → 0.15 (한 단계 약 20초. QA #29 측정: 적시기 90초에 86%) | 대표 요청, 개발팀 측정 (`tests/game/test_wash_pace`) |

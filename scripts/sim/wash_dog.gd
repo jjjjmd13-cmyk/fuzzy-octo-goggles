@@ -29,6 +29,10 @@ var foam_color := FOAM_WHITE
 var _foam_pos := PackedVector3Array()
 var _foam_size := PackedFloat32Array()
 var _foam_mesh: MultiMeshInstance3D
+## 물방울 (헹군 뒤): 모형 기준 위치와 몸 중심에서 본 방향. 수건·드라이어로 닦은 곳부터 사라진다.
+var _drop_pos := PackedVector3Array()
+var _drop_dir := PackedVector3Array()
+var _drop_mesh: MultiMeshInstance3D
 var _drips: CPUParticles3D
 var _splash: CPUParticles3D
 
@@ -76,6 +80,23 @@ func setup(resolution: int, pattern: int, seed_value: int) -> void:
 	_foam_mesh.multimesh.mesh = ball
 	model.add_child(_foam_mesh)
 	_update_foam_mesh()
+	_drop_pos.clear()
+	_drop_dir.clear()
+	_drop_mesh = MultiMeshInstance3D.new()
+	_drop_mesh.multimesh = MultiMesh.new()
+	_drop_mesh.multimesh.transform_format = MultiMesh.TRANSFORM_3D
+	var drop := SphereMesh.new()
+	drop.radius = 0.016
+	drop.height = 0.04
+	drop.radial_segments = 6
+	drop.rings = 3
+	var water := StandardMaterial3D.new()
+	water.albedo_color = Color(0.36, 0.75, 0.92)
+	water.roughness = 0.1
+	water.metallic_specular = 0.9
+	drop.material = water
+	_drop_mesh.multimesh.mesh = drop
+	model.add_child(_drop_mesh)
 
 
 ## 화면 좌표 → 몸에 닿은 곳 (월드 좌표). 안 닿으면 null.
@@ -148,6 +169,58 @@ func rinse_foam(world_point: Vector3, radius: float, amount: float) -> int:
 				removed += 1
 	_update_foam_mesh()
 	return removed
+
+
+## 몸 겉면에 물방울을 뿌린다 (모든 피어에서 같은 시드로 같은 자리). 배 밑에는 안 붙인다.
+func scatter_drops(count: int, seed_value: int) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	_drop_pos.clear()
+	_drop_dir.clear()
+	var center := _body_center()
+	var space := get_world_3d().direct_space_state
+	for i in count * 3:
+		if _drop_pos.size() >= count:
+			break
+		var dir := Vector3(rng.randf_range(-1, 1), rng.randf_range(-0.4, 1), rng.randf_range(-1, 1)).normalized()
+		var query := PhysicsRayQueryParameters3D.create(model.to_global(center + dir * 1.5), model.to_global(center), HIT_LAYER)
+		var hit := space.intersect_ray(query)
+		if hit.is_empty():
+			continue
+		var local := to_model(hit.position)
+		_drop_pos.append(local + (local - center).normalized() * 0.008)
+		_drop_dir.append(local - center)
+	show_drops_where(func(_dir: Vector3) -> bool: return true)
+
+
+func drop_total() -> int:
+	return _drop_pos.size()
+
+
+func visible_drops() -> int:
+	return _drop_mesh.multimesh.visible_instance_count if _drop_mesh != null else 0
+
+
+## 작업자 화면: 조건(방향 → 보임)에 맞는 물방울만 보인다.
+func show_drops_where(visible: Callable) -> void:
+	if _drop_mesh == null:
+		return
+	var multimesh := _drop_mesh.multimesh
+	var shown := 0
+	multimesh.instance_count = _drop_pos.size()
+	for i in _drop_pos.size():
+		if visible.call(_drop_dir[i]):
+			multimesh.set_instance_transform(shown, Transform3D(Basis(), _drop_pos[i]))
+			shown += 1
+	multimesh.visible_instance_count = shown
+
+
+## 구경하는 화면: 앞에서부터 n 개만 보인다.
+func show_drop_count(count: int) -> void:
+	var left := [count]
+	show_drops_where(func(_dir: Vector3) -> bool:
+		left[0] -= 1
+		return left[0] >= 0)
 
 
 func foam_count() -> int:

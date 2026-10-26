@@ -37,11 +37,11 @@ void fragment() {
 	float dirt = texture(mud, uv).r * (1.0 - m.g);
 	float wet = clamp(m.r - m.a, 0.0, 1.0) * wet_amount;
 	vec3 color = mix(fur_color.rgb, mud_color.rgb, dirt);
-	color *= mix(1.0, 0.5, wet);            // 젖으면 진하게
-	color = mix(color, vec3(1.0), m.a * 0.25); // 말리면 밝게
+	color *= mix(vec3(1.0), vec3(0.42, 0.40, 0.40), wet); // 젖으면 진하게
+	color = mix(color, vec3(1.0), m.a * 0.35); // 말리면 밝게
 	ALBEDO = color;
-	ROUGHNESS = mix(0.9, 0.4, wet);         // 젖으면 반짝 (너무 매끈하면 하늘이 비쳐 오히려 밝아 보임)
-	SPECULAR = mix(0.3, 0.6, wet);
+	ROUGHNESS = mix(0.9, 0.55, wet);        // 젖으면 살짝 반짝 (너무 매끈하면 금속처럼 보임)
+	SPECULAR = mix(0.3, 0.45, wet);
 	float remaining = 1.0 - m[blink_channel];
 	EMISSION = vec3(1.0, 0.85, 0.2) * blink * step(0.5, remaining) * 0.8;
 }

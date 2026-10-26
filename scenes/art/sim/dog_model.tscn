@@ -23,22 +23,12 @@ albedo_color = Color(0.08, 0.06, 0.06, 1)
 
 [sub_resource type="SphereMesh" id="SphereMesh_eye"]
 material = SubResource("StandardMaterial3D_face")
-radius = 0.025
-height = 0.05
+radius = 0.032
+height = 0.064
 
 [sub_resource type="BoxMesh" id="BoxMesh_mouth"]
 material = SubResource("StandardMaterial3D_face")
 size = Vector3(0.07, 0.015, 0.02)
-
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_body"]
-radius = 0.22
-height = 0.75
-
-[sub_resource type="SphereShape3D" id="SphereShape3D_head"]
-radius = 0.18
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_legs"]
-size = Vector3(0.36, 0.22, 0.54)
 
 [node name="DogModel" type="Node3D" node_paths=PackedStringArray("fur_meshes", "legs", "cheeks", "mouth", "ears", "tail")]
 script = ExtResource("1_model")
@@ -66,15 +56,15 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.12, 0.12, -0.02)
 mesh = SubResource("BoxMesh_ear")
 
 [node name="EyeL" type="MeshInstance3D" parent="Head"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.06, 0.04, 0.15)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.065, 0.045, 0.15)
 mesh = SubResource("SphereMesh_eye")
 
 [node name="EyeR" type="MeshInstance3D" parent="Head"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.06, 0.04, 0.15)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.065, 0.045, 0.15)
 mesh = SubResource("SphereMesh_eye")
 
 [node name="Mouth" type="MeshInstance3D" parent="Head"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.045, 0.16)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.05, 0.165)
 mesh = SubResource("BoxMesh_mouth")
 
 [node name="CheekL" type="MeshInstance3D" parent="Head"]
@@ -108,15 +98,3 @@ mesh = SubResource("CylinderMesh_leg")
 [node name="HitBody" type="StaticBody3D" parent="."]
 collision_layer = 16
 collision_mask = 0
-
-[node name="BodyShape" type="CollisionShape3D" parent="HitBody"]
-transform = Transform3D(1, 0, 0, 0, -4.37114e-08, -1, 0, 1, -4.37114e-08, 0, 0.32, 0)
-shape = SubResource("CapsuleShape3D_body")
-
-[node name="HeadShape" type="CollisionShape3D" parent="HitBody"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.5, 0.36)
-shape = SubResource("SphereShape3D_head")
-
-[node name="LegsShape" type="CollisionShape3D" parent="HitBody"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.11, -0.01)
-shape = SubResource("BoxShape3D_legs")

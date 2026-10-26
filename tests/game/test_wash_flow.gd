@@ -44,7 +44,19 @@ func run_test() -> void:
 	check(is_equal_approx(station.mood, mood_before + Tuning.data.mood_cold_water), "차가운 물 → 기분 %.2f (전 %.2f)" % [station.mood, mood_before])
 	check("yelp" in sfx.played, "차가운 물 → 펄쩍 소리")
 	station.temperature = 0.5
-	check(await _wash_stage(WashStation.Stage.WET), "적시기 끝 (90%)")
+	# 눈에 물: 기분이 깎이고 안내 띠에 경고
+	var model: Node3D = station.dog.model
+	var eye_screen: Vector2 = world.camera.unproject_position(model.to_global(model.face_center))
+	station.turn(-rad_to_deg(station.turntable.rotation.y))
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	eye_screen = world.camera.unproject_position(model.to_global(model.face_center))
+	mood_before = station.mood
+	station.operate(eye_screen, true, false, STEP)
+	await _frames(2)
+	check(station.mood < mood_before, "눈에 물 → 기분 내려감")
+	check(world.hud.hint_label.text.contains("눈에 물"), "눈에 물 안내")
+	check(await _wash_stage(WashStation.Stage.WET), "적시기 끝")
 	check("ding" in sfx.played, "단계 끝 → 딩")
 
 	# --- 2. 거품: 병 클릭 = 한 덩이, 같은 곳 문지르기 → 다리 찰랑(3초) → 몸 털기(6초) + 화면 거품
@@ -74,8 +86,13 @@ func run_test() -> void:
 	check(station.dog.foam_count() < foam_before, "헹구면 거품 공이 줄어듦 (%d → %d)" % [foam_before, station.dog.foam_count()])
 
 	# --- 4·5. 수건 → 드라이어 (뽀송 = 커짐)
+	await _frames(2)
+	var drops_before: int = station.dog.visible_drops()
+	check(drops_before > 0, "헹군 뒤 물방울이 맺힘 (%d)" % drops_before)
 	station.tool = WashStation.Tool.TOWEL
 	check(await _wash_stage(WashStation.Stage.TOWEL), "수건 끝")
+	await _frames(2)
+	check(station.dog.visible_drops() < drops_before / 2, "수건으로 닦은 곳 물방울이 사라짐 (%d → %d)" % [drops_before, station.dog.visible_drops()])
 	station.tool = WashStation.Tool.DRYER
 	var scale_before: float = station.dog.model.scale.x
 	check(await _wash_stage(WashStation.Stage.DRY), "드라이어 끝")
@@ -128,6 +145,7 @@ func run_test() -> void:
 	await _wash_stage(WashStation.Stage.TOWEL)
 	station.tool = WashStation.Tool.DRYER
 	await _wash_stage(WashStation.Stage.DRY)
+	check_eq(station.dog.visible_drops(), 0, "다 말리면 물방울 없음")
 	check(Tuning.data.money_scent_tip in station.coins, "향 팁 동전 %s" % [station.coins])
 	await _collect_all_coins()
 	await _wait(func() -> bool: return station.dog_number() == 3, 3.0)

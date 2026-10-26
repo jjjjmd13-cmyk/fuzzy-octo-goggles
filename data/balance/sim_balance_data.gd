@@ -13,7 +13,7 @@ extends Resource
 @export_group("더러움 마스크")
 @export var mask_resolution := 256
 @export var mask_patterns := 3
-@export var stage_complete_ratio := 0.9
+@export var stage_complete_ratio := 0.85
 @export var stage_remaining_blink := 0.5
 @export var foam_ball_max := 60
 ## 문지르는 동안 늘어나는 거품 공 (개/s, 손 속도 배율 곱함)
@@ -22,13 +22,13 @@ extends Resource
 @export var fluff_shader_amount := 1.0
 
 @export_group("도구")
-@export var tool_shower_radius := 0.12
+@export var tool_shower_radius := 0.18
 @export var tool_shower_rate := 1.2
 ## 온도 다이얼 '좋음' 범위 [최소, 최대] (0~1)
 @export var tool_shower_temp_good := PackedFloat32Array([0.35, 0.7])
 @export var tool_shampoo_dose := 1
 @export var tool_shampoo_uses_per_bottle := 8
-@export var tool_scrub_radius := 0.10
+@export var tool_scrub_radius := 0.15
 ## 초당 진행 = 이 값 × 손 속도 (m/s)
 @export var tool_scrub_rate_per_speed := 0.9
 @export var tool_scrub_rate_max := 1.5
@@ -64,7 +64,7 @@ extends Resource
 ## 차가운 물 펄쩍 쿨타임 (s) — TUNING_V3 mood_cold_water 설명의 "쿨타임 2초"
 @export var proto_cold_cooldown := 2.0
 ## 눈에 물·거품 쿨타임 (s)
-@export var proto_eye_cooldown := 1.0
+@export var proto_eye_cooldown := 3.0
 ## 같은 곳으로 보는 반경 (m) — TUNING_V3 tickle_time 설명의 "반경 0.15 m"
 @export var proto_tickle_radius := 0.15
 ## 드라이어 '너무 가까움' 거리 (m) — TUNING_V3 tool_dryer_rate_near 설명의 "0.15 m"
@@ -75,6 +75,10 @@ extends Resource
 @export var proto_peach_request_chance := 0.34
 ## 끝난 뒤 다음 강아지가 오기까지 (s, 동전을 다 주운 뒤)
 @export var proto_next_dog_delay := 1.0
+## 거의 다 됐을 때(완료 비율 − 0.1 이상) 남은 곳 반짝임을 이 간격으로 되풀이 (s)
+@export var proto_blink_interval := 1.5
+## 헹구기가 끝나면 몸에 붙는 물방울 수 (수건·드라이어로 닦은 곳부터 사라짐)
+@export var proto_water_drops := 70
 
 
 ## 기분 0~1 → 얼굴 단계 0(😣) / 1(😐) / 2(😊)
