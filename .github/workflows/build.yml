@@ -133,7 +133,10 @@ jobs:
         if: always()
         run: |
           $userdir = Join-Path $env:APPDATA "Godot\app_userdata\PawsAndBubbles"
-          if (Test-Path $userdir) { Get-ChildItem -Recurse $userdir | Select-Object FullName, Length } else { Write-Output "저장 폴더 없음" }
+          # 셰이더 캐시는 빼고 저장 파일만 보여 준다.
+          if (Test-Path $userdir) {
+            Get-ChildItem -Recurse -File $userdir | Where-Object { $_.FullName -notmatch '\\(shader_cache|vulkan)\\' } | Select-Object FullName, Length
+          } else { Write-Output "저장 폴더 없음" }
 
       - name: 로그 올리기
         if: always()
