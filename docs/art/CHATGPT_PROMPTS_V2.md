@@ -128,8 +128,10 @@ Pet rules: cute round toy animal, big head, short legs, two black dot eyes with 
 | PET-05 | 대형견 | 3D | P2 |
 | PET-06 | 꽃게 | 3D | P2 |
 | MAC-05 | 털기 기계 (모래) | 3D | P2 |
+| PET-07 | 펭귄 | 3D | P2 |
+| MAC-06 | 담요 데우기대 (눈 마을) | 3D | P2 |
 | ENV-10 | 바닷가 지점 세트 | 3D | P2 |
-| ENV-20 | 목욕 버스 내부 세트 | 3D | P2 |
+| ENV-20 | 목욕 버스 내부 세트 (지역 3, 눈 마을·쇼장 정류장 창밖 배경 포함) | 3D | P2 |
 | ART-01 | 스팀 캡슐 이미지 | 2D | P2 |
 
 ---
