@@ -36,7 +36,7 @@ theme_override_constants/separation = 10
 [node name="Title" type="Label" parent="Center/Box"]
 layout_mode = 2
 theme_type_variation = &"TitleLabel"
-text = "등불 원정대"
+text = "멍냥 목욕탕"
 horizontal_alignment = 1
 
 [node name="SoloButton" type="Button" parent="Center/Box"]

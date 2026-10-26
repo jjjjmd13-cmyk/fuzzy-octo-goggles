@@ -41,6 +41,11 @@ const CEILING_TILE := preload("res://scenes/art/tiles/ceiling_tile.tscn")
 	set(value):
 		build_ceiling = value
 		_queue_rebuild()
+## false 면 남쪽(+Z, 카메라 쪽) 벽 타일을 그리지 않는다. 충돌은 남는다 (위에서 비스듬히 보는 카메라용).
+@export var south_wall_visible := true:
+	set(value):
+		south_wall_visible = value
+		_queue_rebuild()
 
 var _generated: Node3D
 var _rebuild_queued := false
@@ -80,14 +85,14 @@ func _rebuild() -> void:
 
 	# 벽: 각 변의 바깥선(방 경계)에 바깥 면을 맞추고 안쪽으로 두께만큼 들어온다.
 	_build_side(body, Vector3(-half.x, 0, -half.y), Vector3.RIGHT, Vector3.BACK, size_tiles.x, door_north)
-	_build_side(body, Vector3(half.x, 0, half.y), Vector3.LEFT, Vector3.FORWARD, size_tiles.x, door_south)
+	_build_side(body, Vector3(half.x, 0, half.y), Vector3.LEFT, Vector3.FORWARD, size_tiles.x, door_south, south_wall_visible)
 	_build_side(body, Vector3(half.x, 0, -half.y), Vector3.BACK, Vector3.LEFT, size_tiles.y, door_east)
 	_build_side(body, Vector3(-half.x, 0, half.y), Vector3.FORWARD, Vector3.RIGHT, size_tiles.y, door_west)
 
 
 ## start: 그 변의 시작 모서리, along: 타일이 늘어서는 방향, inward: 방 안쪽 방향.
 ## 문 번호는 늘어서는 방향과 상관없이 북→남, 서→동 기준으로 센다 (이웃 방과 맞물리게).
-func _build_side(body: StaticBody3D, start: Vector3, along: Vector3, inward: Vector3, count: int, has_door: bool) -> void:
+func _build_side(body: StaticBody3D, start: Vector3, along: Vector3, inward: Vector3, count: int, has_door: bool, visible_tiles := true) -> void:
 	var door_index := -1
 	if has_door:
 		var reversed := along == Vector3.LEFT or along == Vector3.FORWARD
@@ -99,9 +104,10 @@ func _build_side(body: StaticBody3D, start: Vector3, along: Vector3, inward: Vec
 		var is_door := i == door_index
 		if i < count:
 			var center := start + along * ((i + 0.5) * TILE) + inset
-			_add_tile(WALL_TILE, center + Vector3(0, TILE, 0), yaw)
-			if not is_door:
-				_add_tile(WALL_TILE, center, yaw)
+			if visible_tiles:
+				_add_tile(WALL_TILE, center + Vector3(0, TILE, 0), yaw)
+				if not is_door:
+					_add_tile(WALL_TILE, center, yaw)
 			else:
 				# 문 위 가로대 충돌
 				_add_box(body, center + Vector3(0, TILE * 1.5, 0), _box_size(along, TILE))
