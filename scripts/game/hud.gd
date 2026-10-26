@@ -35,6 +35,7 @@ Tab(패드 LB·RB) 자리 바꾸기 · Esc 메뉴 · F1 이 도움말"""
 
 var _tool_buttons: Array[Button] = []
 var _step_labels: Array[Label] = []
+var _step_checks: Array[TextureRect] = []
 
 
 func _ready() -> void:
@@ -66,13 +67,44 @@ func _ready() -> void:
 		button.pressed.connect(func() -> void: world.select_tool(i))
 		tool_bar.add_child(button)
 		_tool_buttons.append(button)
+	# 요청 카드 한 줄 = [단계 도구 그림] 단계 이름 [✓ 도장]. 그림이 없으면 글자 기호(▶ · ✓)
+	var check_picture := UiArt.texture("check")
+	var any_tool_art := TOOL_ART.any(func(art: String) -> bool: return UiArt.texture(art) != null)
 	for i in WashStation.STAGE_NAMES.size():
+		var row := HBoxContainer.new()
+		card_steps.add_child(row)
+		# 도구 그림 칸 (그림이 없는 도구는 빈칸으로 줄을 맞춤)
+		if any_tool_art:
+			var icon := TextureRect.new()
+			icon.texture = UiArt.texture(TOOL_ART[WashStation.STAGE_TOOL[i]])
+			icon.custom_minimum_size = Vector2(30, 30)
+			icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+			icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+			row.add_child(icon)
 		var label := Label.new()
 		label.theme_type_variation = &"PromptLabel"
-		card_steps.add_child(label)
+		label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		row.add_child(label)
 		_step_labels.append(label)
-	# 요청 카드 바탕 그림 (assets/ui/card.png)
-	var card_picture := UiArt.texture("card")
+		var check := TextureRect.new()
+		check.texture = check_picture
+		check.custom_minimum_size = Vector2(30, 30) if check_picture != null else Vector2.ZERO
+		check.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		check.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		row.add_child(check)
+		_step_checks.append(check)
+	# 동전 그림 (assets/ui/coin.png) 을 돈 글자 왼쪽에
+	var coin_picture := UiArt.texture("coin")
+	if coin_picture != null:
+		var coin := TextureRect.new()
+		coin.texture = coin_picture
+		coin.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		coin.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		coin.position = Vector2(14, 6)
+		coin.size = Vector2(36, 36)
+		money_label.add_child(coin)
+	# 세로 요청 카드 바탕 그림 (assets/ui/card_vertical.png)
+	var card_picture := UiArt.texture("card_vertical")
 	if card_picture != null:
 		var style := StyleBoxTexture.new()
 		style.texture = card_picture
@@ -108,14 +140,17 @@ func _process(_delta: float) -> void:
 	status_label.text = "%s · 플레이어 %d / %d · F1 조작" % [Net.status_text, world.get_players().size(), Net.MAX_PLAYERS]
 	invite_button.visible = Net.can_invite_friends()
 	seat_button.text = "Tab: 컴퓨터 자리 →" if at_bath else "Tab: ← 목욕대"
-	money_label.text = "돈 %d" % store.money
+	# 동전 그림이 있으면 그림 + 숫자, 없으면 "돈 N"
+	money_label.text = ("      %d" if money_label.get_child_count() > 0 else "돈 %d") % store.money
 
 	card_title.text = "%d번째 손님" % maxi(station.dog_number(), 1)
 	card_request.visible = station.wants_peach()
 	for i in _step_labels.size():
 		var done: bool = i < station.stage
 		var current: bool = i == station.stage
-		_step_labels[i].text = "%s %s" % ["✓" if done else ("▶" if current else "·"), WashStation.STAGE_NAMES[i]]
+		var has_check_picture: bool = _step_checks[i].texture != null
+		_step_labels[i].text = "%s %s" % [("" if has_check_picture else "✓") if done else ("▶" if current else "·"), WashStation.STAGE_NAMES[i]]
+		_step_checks[i].visible = done and has_check_picture
 		_step_labels[i].modulate = Color(0.55, 1, 0.6) if done else (Color(1, 1, 1) if current else Color(0.7, 0.7, 0.7))
 
 	tool_bar.visible = at_bath and station.is_washing()

@@ -76,16 +76,16 @@
 ## 그래픽 교체 지점
 
 외부 그래픽은 아래 씬만 바꾸면 된다. 충돌·판정은 전부 게임 씬 쪽이라 그래픽과 상관없다.
+외부 작업자용 명세(크기·피벗·노드 이름·재질 규칙)는 **`docs/art/ART_SLOTS.md`**.
 공통 약속: 루트는 `Node3D`, 바닥이 원점, 앞이 -Z.
 
 | 씬 | 무엇 | 약속 |
 |---|---|---|
 | `scenes/art/player_model.tscn` | 동료 몸 (내 화면에서는 숨김) | 키 약 1.8 m. 색을 받으려면 루트에 `set_player_color(color)` |
-| `scenes/art/sim/dog_model.tscn` | 목욕대 강아지 | **얼굴이 +Z(카메라 쪽)**, 바닥이 원점. 지금은 `scripts/sim/toy_dog_model.gd` 가 구·캡슐로 조립한 임시 강아지(숨쉬기·깜빡임·꼬리·머리 따라보기). ChatGPT GLB(정면 −Z)가 오면 이 씬을 GLB 를 Y 로 180° 돌려 넣은 씬으로 바꾸고 루트에 `sim_dog_model.gd` 를 붙여 `body_center`·`face_center`·`fur_meshes` 를 맞춘다. 마우스 판정 모양(`HitBody`, 충돌 층 16)은 `fur_meshes` 의 볼록 껍질로 자동. 반응 함수 `set_mood`·`wiggle_legs`·`flap_cheeks`·`jump`·`shake`, 있으면 `watch(점, 뿌리는 중)`. 부위 색은 `set_instance_shader_parameter("tint", 색)`. UV 는 상관없음 |
-| `scripts/sim/sim_fur.gdshader` | 털 (더러움·젖음·뽀송) | 텍스처를 쓰려면 `fur_color` 대신 albedo 텍스처 uniform 을 추가 |
-| `scenes/sim/wash_station.tscn` | 목욕통·회전판·도구걸이·대기 의자·타일 벽 (임시 도형) | 회전판은 `Turntable` 노드, 강아지는 `Turntable/Dog`, 주인은 `Owner` |
-| `scenes/art/sim/owner_model.tscn` | 주인 (2등신 장난감, `toy_owner_model.gd`) | 바닥이 원점, 정면 +Z. 함수 `set_variant`·`enter`·`go_sit`·`come_react`·`leave`, `height` |
-| `assets/ui/*.png` | 2D 그림 (도구 아이콘·카드·✓·기분 얼굴·말풍선·간판·주인 판자 그림) | 이름표는 `assets/ui/README.md`. 파일이 있으면 쓰고 없으면 임시 도형 (`scripts/game/ui_art.gd`) |
+| `scenes/art/sim/dog_model.tscn` | 목욕대 강아지 | 루트 스크립트 `sim_dog_model.gd` 가 **노드 이름**(`Head`, `Eye_L`, `Ear_L`, `Tail_1`… )으로 부위를 찾아 움직이고, 털 셰이더(원래 albedo 텍스처 유지)·마우스 판정을 자동으로 붙인다. 지금은 `toy_dog_model.gd` 가 같은 이름으로 구·캡슐을 조립. 얼굴 +Z |
+| `scenes/art/sim/owner_model.tscn` | 주인 | `sim_owner_model.gd` 가 `Body`·`Head`·`Arm_L/R`·`Leg_L/R` 로 움직이고 재질 `Shirt`·`Hat` 색을 6종으로 바꿈. 지금은 `toy_owner_model.gd` |
+| `scenes/art/sim/tub_model.tscn`, `turntable_model.tscn`, `chair_model.tscn` | 목욕통·받침·도구걸이 / 회전판 / 대기 의자 | 작업대 씬(`scenes/sim/wash_station.tscn`)이 인스턴스로 넣음 |
+| `assets/ui/*.png` | 2D 그림 | 이름표 `assets/ui/README.md`, 받은 원본에서 `tools/cut_ui_art.py` 로 자름. 파일이 있으면 쓰고 없으면 임시 도형 (`scripts/game/ui_art.gd`) |
 | `assets/sfx/*.wav` | 효과음 11개 + 반복 소리 3개 (`scripts/game/sfx.gd`) | 같은 파일 이름으로 교체 |
 | `scenes/art/tiles/floor_tile.tscn` | 바닥 타일 2×2 m | 윗면이 y=0 |
 | `scenes/art/tiles/wall_tile.tscn` | 벽 타일 2×2 m, 두께 0.3 m | 아랫변 가운데가 원점, 두께 방향이 +Z(방 안쪽). 2단으로 쌓아 4 m |

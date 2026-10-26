@@ -1,0 +1,56 @@
+[gd_scene load_steps=11 format=3 uid="uid://b7simtubmdl1"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_table"]
+albedo_color = Color(0.91, 0.79, 0.63, 1)
+roughness = 0.7
+
+[sub_resource type="BoxMesh" id="BoxMesh_table"]
+material = SubResource("StandardMaterial3D_table")
+size = Vector3(1.6, 0.9, 1.1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tub"]
+cull_mode = 2
+albedo_color = Color(0.56, 0.83, 0.96, 1)
+roughness = 0.3
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_tub"]
+material = SubResource("StandardMaterial3D_tub")
+top_radius = 0.62
+bottom_radius = 0.56
+height = 0.16
+cap_top = false
+radial_segments = 48
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_plug"]
+albedo_color = Color(1, 0.42, 0.42, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_plug"]
+material = SubResource("StandardMaterial3D_plug")
+top_radius = 0.04
+bottom_radius = 0.04
+height = 0.04
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rack"]
+albedo_color = Color(0.85, 0.68, 0.5, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_rack"]
+material = SubResource("StandardMaterial3D_rack")
+size = Vector3(0.05, 0.4, 0.5)
+
+[node name="TubModel" type="Node3D"]
+
+[node name="Stand" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+mesh = SubResource("BoxMesh_table")
+
+[node name="Tub" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.98, 0)
+mesh = SubResource("CylinderMesh_tub")
+
+[node name="Plug" type="MeshInstance3D" parent="Tub"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, -0.06, 0.3)
+mesh = SubResource("CylinderMesh_plug")
+
+[node name="ToolRack" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 1.12, -0.35)
+mesh = SubResource("BoxMesh_rack")
