@@ -103,7 +103,9 @@ for t in "${TESTS[@]}"; do
     echo "   역할: ${roles[*]} (포트 $port)"
     pids=()
     for i in "${!roles[@]}"; do
-      log="$base.${roles[$i]}.log"
+      # 같은 역할이 여럿(client 2개 등)이어도 로그 파일이 겹치지 않게 순번을 넣는다.
+      # (겹치면 두 프로세스가 한 파일에 동시에 써서 QA_TEST_PASS 줄이 다른 줄에 붙어 버림)
+      log="$base.$i.${roles[$i]}.log"
       logs+=("$log")
       # 함수가 아니라 timeout 을 바로 띄워야 kill 이 Godot 까지 전달된다.
       timeout "$TEST_TIMEOUT" "$GODOT" --headless --path "$PROJECT" "res://$t" \

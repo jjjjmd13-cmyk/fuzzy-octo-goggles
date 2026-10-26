@@ -79,7 +79,10 @@
 | 씬 | 무엇 | 약속 |
 |---|---|---|
 | `scenes/art/player_model.tscn` | 동료 몸 (내 화면에서는 숨김) | 키 약 1.8 m. 색을 받으려면 루트에 `set_player_color(color)` |
-| `scenes/art/props/crate_model.tscn` | 임시 상자 (들기 시험용) | 바닥이 원점. 들 수 있는 물건 모형은 모두 같은 약속 |
+| `scenes/art/guests/dog_model.tscn` | 강아지 | 높이 약 0.7 m. 루트에 `set_guest_state(이름)`: muddy/foam/wet/dry |
+| `scenes/art/machines/bath_model.tscn`, `dryer_model.tscn` | 욕조·드라이어 | 1.6 × 1.1 m 안. 손님은 `Slot`(0.45 m 높이)에 놓임 |
+| `scenes/art/exit_door_model.tscn` | 출구 문 | 문 앞(+Z) 0.6 m 에 매트 |
+| `assets/sfx/*.wav` | 효과음 7개 | 같은 파일 이름으로 교체 |
 | `scenes/art/tiles/floor_tile.tscn` | 바닥 타일 2×2 m | 윗면이 y=0 |
 | `scenes/art/tiles/wall_tile.tscn` | 벽 타일 2×2 m, 두께 0.3 m | 아랫변 가운데가 원점, 두께 방향이 +Z(방 안쪽). 2단으로 쌓아 4 m |
 | `scenes/art/tiles/ceiling_tile.tscn` | 천장 타일 2×2 m | 아랫면이 y=0 (4 m 높이에 놓임) |
@@ -90,19 +93,20 @@
 
 위에서 비스듬히 보는 3인칭(오버쿡드식). 카메라는 월드의 고정 카메라 하나(`ShopCamera`)이고, 이동은 카메라 기준(화면 위 = 앞)이다.
 
-| 동작 | 키보드 | 게임패드 |
-|---|---|---|
-| 이동 / 달리기 | WASD / Shift | 왼쪽 스틱 / 왼쪽 스틱 누르기 |
-| 들기 / 내려놓기 | E (한 버튼) 또는 Q 로 내려놓기 | A / B |
-| 건네기 (가까운 빈손 동료에게) | R | Y |
-| 메뉴 / 도움말 | Esc / F1 | Back |
+조작표는 [PROTOTYPE.md](PROTOTYPE.md) 2장 (Space 한 버튼 + Shift 대시).
 
 ## 들 수 있는 물건 (`Carryable`)
 
-- 물건 씬 루트에 `scripts/game/carryable.gd` 를 붙이고, 자식에 `Model`(겉모습)과 `Sync`(holder_peer·ground_position·ground_yaw, 권한 호스트)를 둔다. 예: `scenes/props/crate.tscn`.
-- 판정은 `scripts/game/carry_rules.gd` (월드의 `CarryRules`): 들기(가까운 물건, 빈손), 내려놓기(몸 앞), 건네기(가까운 빈손 동료). 동시에 집으면 먼저 온 요청만.
-- 나간 사람이 든 물건은 그 자리에 떨어진다.
-- 둘이 같이 드는 물건(대형견)은 다음 작업에서 이 부품에 넣는다.
+- 물건 씬 루트에 `scripts/game/carryable.gd` 를 붙이고, 자식에 `Model`(겉모습)과 `Sync`(holder_peer·ground_position·ground_yaw, 권한 호스트)를 둔다. 예: `scenes/guests/dog.tscn`.
+- `CarryRules` 는 들기·내려놓기 기본 판정(앞쪽 부채꼴, 거리)만 한다. Space 를 눌렀을 때 무엇을 할지(들기·기계에 넣기·꺼내기·보내기·내려놓기)는 `Shop.use_action()` 이 정하고, 호스트 판정과 화면 안내가 같은 함수를 쓴다.
+- 손님(`scripts/game/guest.gd`)도 Carryable 이다. 호스트가 `ground_position` 을 계속 바꿔서 걷기·도망을 보낸다.
+- 나간 사람이 든 물건은 그 자리에 떨어진다. 둘이 같이 드는 물건(대형견)은 다음 작업.
+
+## 가게 (`Shop`)
+
+- `scripts/game/shop.gd`: 손님 등장·자리·줄, 기계, 보내기, 화남, 웅덩이, 영업 시간, 별 (모두 호스트). 효과음은 호스트가 `play_sfx.rpc()` 로 모두에게.
+- 기계 `scripts/game/machine.gd` (욕조·드라이어), 웅덩이 `scripts/game/puddle.gd` (미끄러짐은 각자 자기 캐릭터에서 판정), 머리 위 말풍선 `scripts/game/guest_overlay.gd`.
+- 수치는 `data/balance/bath_balance.tres` (TUNING_V2).
 
 ## 같은 PC에서 창 두 개로 테스트
 
@@ -122,9 +126,11 @@ godot --path . -- --join=127.0.0.1  # 창 2: 접속
 | `tests/test_offline_session.tscn` | 혼자 하기 → 월드·플레이어 1 생성, 나가기 → 메뉴 |
 | `tests/net/test_enet_two_peers.tscn` | ENet 서버 1 + 클라이언트 1: 스폰 위치, 양방향 이동 동기화, 호스트 퇴장 시 클라이언트 메뉴 복귀 |
 | `tests/test_seeded_rng.tscn` | 시드 난수 결정론, 흐름 분리, 고정값 |
-| `tests/test_balance.tscn` | balance.tres 를 한 파일에서 읽고 수치가 다 있음 |
-| `tests/game/test_carry.tscn` | 혼자: E 로 들기·내려놓기, 거리, 한 번에 하나, 들면 느려짐, 화면 기준 이동 |
-| `tests/net/test_carry_sync.tscn` | 2인(.roles): 든 사람 동기화, 동시 줍기는 한 사람만, 건네기, 위조 요청 무시, 나가면 떨어짐 |
+| `tests/test_balance.tscn` | bath_balance.tres 가 TUNING_V2 시제품 값과 같음 |
+| `tests/game/test_bath_flow.tscn` | 혼자: 손님 한 마리 흐름 전체 (등장·자리·욕조·도망·웅덩이·드라이어·보내기·화남·결과·다시 시작, 소리) |
+| `tests/game/test_seats_queue.tscn` | 대기석 3 + 줄 3, 자리가 비면 줄 맨 앞이 앉음 |
+| `tests/game/test_slip_dash.tscn` | 웅덩이 미끄러짐 2.5 m·0.6초 조작 불가, 대시 2.5 m·쿨타임 |
+| `tests/net/test_bath_sync.tscn` | 2인(.roles): 손님·기계·웅덩이·결과 동기화, 클라이언트 화면 조작 무시, 클라이언트가 다시 시작 |
 
 네트워크 테스트는 TESTING.md 의 "한 프로세스에 피어 여러 개" 대신 **클라이언트를 별도 Godot 프로세스**(`tests/net/enet_client_peer.tscn`, `OS.create_process`)로 띄운다.
 `Net` 은 루트 MultiplayerAPI 와 씬 전환을 그대로 쓰기 때문에, 실제 게임과 같은 경로로 시험하려는 것이다. 클라이언트 출력은 같은 로그에 찍히고, 클라이언트 실패는 `QA_TEST_FAIL` 줄과 종료 코드로 서버 쪽 테스트 실패가 된다. 포트는 테스트마다 다름 (24611, 24612).
