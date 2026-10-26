@@ -1,0 +1,7 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://tests/net/test_station_sync.gd" id="1_test"]
+
+[node name="StationSyncTest" type="Node"]
+script = ExtResource("1_test")
+time_limit_sec = 100.0

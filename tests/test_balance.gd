@@ -1,30 +1,59 @@
 extends "res://tests/qa_test.gd"
-## 수치 리소스가 TUNING_V2.md 시제품(✅) 값과 같은지 (GDD_V2 4.2 완료 조건 9).
+## 수치 리소스가 TUNING_V3.md 시제품(✅) 값과 같은지 (V3 시제품 1 완료 조건 12).
+## 표를 직접 읽어서 비교하므로, 기획팀이 표를 바꾸면 리소스도 같이 바꿔야 통과한다.
+
+const TUNING_DOC := "res://docs/design/TUNING_V3.md"
+const BALANCE := "res://data/balance/sim_balance.tres"
 
 
 func run_test() -> void:
-	var data: Resource = load("res://data/balance/bath_balance.tres")
-	if not check(data != null, "bath_balance.tres 를 읽음"):
+	var data: Resource = load(BALANCE)
+	if not check(data != null, "sim_balance.tres 를 읽음"):
 		return
 	check_eq(Tuning.data.resource_path, data.resource_path, "Tuning 이 같은 파일을 씀")
-	var expected := {
-		"player_walk_speed": 4.5, "player_carry_speed": 4.0, "player_dash_distance": 2.5, "player_dash_cooldown": 0.8,
-		"player_interact_range": 1.2, "player_push_strength": 1.0,
-		"guest_hearts": 3, "guest_heart_time": 20.0, "guest_heart_blink_last": true, "guest_patience_pause_in_machine": true,
-		"guest_angry_leave_time": 1.5, "guest_seats": 3, "guest_queue_max": 3, "guest_walk_speed": 2.0,
-		"escape_shake_time": 0.5, "escape_shake_splash_radius": 1.5, "escape_speed": 3.5, "escape_turn_interval": 2.0,
-		"escape_avoid_player_range": 2.0, "escape_puddle_interval": 0.6,
-		"puddle_radius": 0.6, "puddle_lifetime": 12.0, "puddle_max": 20, "puddle_slide_distance": 2.5,
-		"puddle_slide_time": 0.6, "puddle_affects_guests": false,
-		"machine_bath_time": 4.0, "machine_dryer_time": 3.0, "machine_done_wait_heart_mult": 1.0,
-		"machine_auto_eject_solo": false,
-		"shop_duration": 180.0, "result_star3_requires_no_angry": true, "result_show_time": 0.0, "intro_text_time": 3.0,
-	}
-	for key in expected:
-		check_eq(data.get(key), expected[key], key)
-	var tables := {
-		"party_guest_interval": [30, 20, 15, 12], "party_first_guest_delay": [3, 3, 3, 3],
-		"party_star1_guests": [3, 5, 6, 8], "party_star2_guests": [5, 7, 9, 12], "party_star3_guests": [6, 9, 12, 15],
-	}
-	for key in tables:
-		check_eq(Array(data.get(key)), tables[key].map(func(v: int) -> float: return float(v)), key)
+	var rows := _prototype_rows()
+	check(rows.size() >= 40, "TUNING_V3 ✅ 줄을 읽음 (%d개)" % rows.size())
+	for key in rows:
+		if not check(key in data, "리소스에 %s 가 있음" % key):
+			continue
+		var expected: Variant = rows[key]
+		var actual: Variant = data.get(key)
+		if expected is Array:
+			check(_same_array(actual, expected), "%s (기대: %s, 실제: %s)" % [key, expected, actual])
+		else:
+			check(is_equal_approx(float(actual), expected), "%s (기대: %s, 실제: %s)" % [key, expected, actual])
+	# 기분 얼굴 경계 (😊 ≥ 0.66 > 😐 ≥ 0.33 > 😣)
+	check_eq(data.mood_face(0.7), 2, "기분 0.7 = 😊")
+	check_eq(data.mood_face(0.5), 1, "기분 0.5 = 😐")
+	check_eq(data.mood_face(0.2), 0, "기분 0.2 = 😣")
+
+
+## 표에서 4번째 칸이 ✅ 인 줄: 키 → 값 (숫자 또는 숫자 배열)
+func _prototype_rows() -> Dictionary:
+	var rows := {}
+	var text := FileAccess.get_file_as_string(TUNING_DOC)
+	for line in text.split("\n"):
+		var cells := line.split("|")
+		if cells.size() < 6 or cells[4].strip_edges() != "✅":
+			continue
+		var key := cells[1].strip_edges().trim_prefix("`").trim_suffix("`")
+		var value := cells[2].strip_edges().replace("−", "-").replace("+", "")
+		if value.begins_with("["):
+			var items := []
+			for item in value.trim_prefix("[").trim_suffix("]").split(","):
+				items.append(item.strip_edges().to_float())
+			rows[key] = items
+		else:
+			rows[key] = value.to_float()
+	return rows
+
+
+func _same_array(actual: Variant, expected: Array) -> bool:
+	if not (actual is PackedFloat32Array or actual is PackedInt32Array or actual is Array):
+		return false
+	if actual.size() != expected.size():
+		return false
+	for i in expected.size():
+		if not is_equal_approx(float(actual[i]), expected[i]):
+			return false
+	return true

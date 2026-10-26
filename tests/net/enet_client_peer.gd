@@ -4,7 +4,6 @@ extends Node
 ## 성공하면 종료 코드 0, 실패하면 QA_TEST_FAIL 줄을 찍고 1.
 
 const TIMEOUT_SEC := 50.0
-const MIN_MOVE := 1.0
 
 var _port := 0
 
@@ -35,12 +34,11 @@ func _ready() -> void:
 		_finish(false, "내 플레이어 시작 위치/슬롯이 틀림: slot=%d pos=%s 기대 %s" % [my_player.slot, my_player.position, expected])
 		return
 
-	var host_start := host_player.position
-	Input.action_press("move_forward")
-	while host_player.position.distance_to(host_start) < MIN_MOVE:
-		await get_tree().physics_frame
-	Input.action_release("move_forward")
-	print("클라이언트: 호스트 플레이어 이동 확인 %s → %s" % [host_start, host_player.position])
+	# V3: 걸어 다니지 않으므로 자리(seat) 바꾸기로 양방향 동기화를 확인한다.
+	world.switch_seat()
+	while host_player.seat != 1:
+		await get_tree().process_frame
+	print("클라이언트: 호스트 자리 바꿈 확인 (seat %d)" % host_player.seat)
 	_report_client_ok.rpc_id(1)
 
 	var reason: String = await Net.session_ended

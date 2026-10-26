@@ -1,46 +1,51 @@
 extends Node3D
-## 가게 월드 (멍냥 목욕탕 첫 시제품, GDD_V2 4장): 방 하나, 고정 카메라, 욕조·드라이어, 손님.
+## 가게 월드 (멍냥 목욕탕 V3 시제품 1, 손맛): 목욕대 자리와 컴퓨터 자리 두 곳.
 ##
 ## 호스트(혼자 하기 포함)가 플레이어를 스폰·제거하고 MultiplayerSpawner 가 복제한다.
 ## 스폰은 spawn_function + 스폰 데이터로 한다. 플레이어 노드의 권한은 조종하는
 ## 클라이언트에게 있어서 Synchronizer 의 "spawn" 속성은 서버가 보내 주지 않는다.
-## 영업 규칙은 Shop, 들기·내려놓기는 CarryRules, 화면은 HUD. 이 스크립트는 내 입력을 요청으로 바꾼다.
+## 씻기 규칙은 WashStation, 돈·샴푸는 Store, 화면은 HUD. 이 스크립트는 내 입력과 카메라를 맡는다.
 
 const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
-## 방 안쪽 바닥 (벽 두께 + 몸 반지름을 뺀 범위, m). 방은 16 × 12 m.
-const FLOOR_HALF := Vector2(7.3, 5.3)
-## 기계 주변에서 손님이 피하는 여유 (m)
-const MACHINE_MARGIN := Vector2(1.1, 0.85)
+const Player := preload("res://scripts/player/player.gd")
+const WashStation := preload("res://scripts/sim/wash_station.gd")
+## 오른쪽 드래그로 회전판 돌리기 (도/픽셀). 패드·키보드는 turntable_speed (도/초).
+const DRAG_DEGREES_PER_PIXEL := 0.45
+
+## 내 커서 (화면 좌표). 마우스를 움직이면 마우스 위치, 패드면 왼쪽 스틱으로 움직인다.
+var cursor := Vector2(640, 400)
+
+var _pressed := false
+var _seat_shown := -1
 
 @onready var players: Node3D = $Players
 @onready var spawner: MultiplayerSpawner = $PlayerSpawner
 @onready var spawn_points: Node3D = $SpawnPoints
-@onready var carry_rules: Node = $CarryRules
-@onready var shop: Node = $Shop
+@onready var station: WashStation = $WashStation
+@onready var store: Node = $Store
 @onready var sfx: Node = $Sfx
 @onready var hud: CanvasLayer = $HUD
+@onready var camera: Camera3D = $Camera
+@onready var computer_point: Marker3D = $Computer/CameraPoint
 
 
 func _ready() -> void:
 	spawner.spawn_function = _create_player
 	Net.player_joined.connect(_spawn_player)
 	Net.player_left.connect(_remove_player)
+	computer_point.look_at($Computer/LookTarget.global_position)
+	station.camera = camera
+	station.store = store
+	station.sfx = sfx
+	camera.fov = Tuning.data.seat_camera_fov
+	camera.global_transform = station.camera_point.global_transform
+	cursor = get_viewport().get_visible_rect().size / 2.0
 	if Net.is_host():
 		_spawn_player(1)
 		for peer_id in multiplayer.get_peers():
 			_spawn_player(peer_id)
-		shop.reset_round()
-
-
-func _unhandled_input(event: InputEvent) -> void:
-	if hud.is_paused():
-		return
-	var me := get_local_player()
-	if me == null:
-		return
-	if event.is_action_pressed("interact") and shop.is_open():
-		# Space 하나로 들기·내려놓기·기계에 넣기·꺼내기·보내기 (무엇을 할지는 호스트가 정함)
-		shop.send_use()
+		store.reset()
+		station.reset()
 
 
 func get_player(peer_id: int) -> Node3D:
@@ -55,22 +60,94 @@ func get_local_player() -> Node3D:
 	return get_player(multiplayer.get_unique_id())
 
 
-## 방 안쪽 바닥으로 자른 위치.
-func clamp_to_floor(pos: Vector3) -> Vector3:
-	return Vector3(clampf(pos.x, -FLOOR_HALF.x, FLOOR_HALF.x), pos.y, clampf(pos.z, -FLOOR_HALF.y, FLOOR_HALF.y))
+## 내 자리 (플레이어가 아직 없으면 목욕대)
+func local_seat() -> int:
+	var me := get_local_player()
+	return me.seat if me != null else Player.Seat.BATH
 
 
-## 기계가 놓인 자리인가 (도망가는 손님이 기계를 뚫고 지나가지 않게).
-func is_blocked(pos: Vector3) -> bool:
-	for machine in shop.machines():
-		var offset: Vector3 = pos - machine.global_position
-		if absf(offset.x) < MACHINE_MARGIN.x and absf(offset.z) < MACHINE_MARGIN.y:
-			return true
-	return false
+func switch_seat() -> void:
+	var me := get_local_player()
+	if me != null:
+		me.set_seat(Player.Seat.COMPUTER if me.seat == Player.Seat.BATH else Player.Seat.BATH)
+
+
+func select_tool(index: int) -> void:
+	station.tool = posmod(index, WashStation.TOOL_NAMES.size()) as WashStation.Tool
 
 
 func get_spawn_marker(slot: int) -> Node3D:
 	return spawn_points.get_child(slot % spawn_points.get_child_count())
+
+
+func _unhandled_input(event: InputEvent) -> void:
+	if hud.is_paused():
+		return
+	if event is InputEventMouseMotion:
+		cursor = event.position
+		if event.button_mask & MOUSE_BUTTON_MASK_RIGHT and local_seat() == Player.Seat.BATH:
+			station.turn(event.relative.x * DRAG_DEGREES_PER_PIXEL)
+		return
+	if event is InputEventMouseButton and event.pressed:
+		cursor = event.position
+	if event.is_action_pressed("switch_seat"):
+		switch_seat()
+	elif local_seat() != Player.Seat.BATH:
+		return
+	elif event.is_action_pressed("use_tool"):
+		var coin := station.coin_at(cursor)
+		if coin >= 0:
+			station.send_collect(coin)
+		else:
+			_pressed = true
+	elif event.is_action_pressed("tool_next"):
+		select_tool(station.tool + 1)
+	elif event.is_action_pressed("tool_prev"):
+		select_tool(station.tool - 1)
+	else:
+		for i in WashStation.TOOL_NAMES.size():
+			if event.is_action_pressed("tool_%d" % (i + 1)):
+				select_tool(i)
+
+
+func _process(delta: float) -> void:
+	var data: Resource = Tuning.data
+	var seat := local_seat()
+	if seat != _seat_shown:
+		_show_seat(seat)
+	var at_bath: bool = seat == Player.Seat.BATH and not hud.is_paused()
+	if at_bath:
+		var stick := Input.get_vector("cursor_left", "cursor_right", "cursor_up", "cursor_down")
+		if stick.length_squared() > 0.0:
+			cursor = (cursor + stick * data.pad_cursor_speed * delta).clamp(Vector2.ZERO, get_viewport().get_visible_rect().size)
+		var turning := Input.get_axis("turn_left", "turn_right")
+		if absf(turning) > 0.0:
+			station.turn(turning * data.turntable_speed * delta)
+		if Input.is_action_just_pressed("temp_up"):
+			station.temperature = clampf(station.temperature + 0.1, 0.0, 1.0)
+		if Input.is_action_just_pressed("temp_down"):
+			station.temperature = clampf(station.temperature - 0.1, 0.0, 1.0)
+		station.dryer_close = Input.is_action_pressed("dryer_close")
+	var held: bool = at_bath and Input.is_action_pressed("use_tool")
+	station.operate(cursor, held, _pressed and at_bath, delta)
+	_pressed = false
+
+
+## 자리 바꾸기: 카메라가 seat_switch_time 동안 옮겨 간다 (완료 조건 1).
+func _show_seat(seat: int) -> void:
+	var first := _seat_shown < 0
+	_seat_shown = seat
+	var target: Transform3D = station.camera_point.global_transform if seat == Player.Seat.BATH else computer_point.global_transform
+	Input.mouse_mode = Input.MOUSE_MODE_HIDDEN if seat == Player.Seat.BATH else Input.MOUSE_MODE_VISIBLE
+	if first:
+		camera.global_transform = target
+		return
+	var tween := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	tween.tween_property(camera, "global_transform", target, Tuning.data.seat_switch_time)
+
+
+func _exit_tree() -> void:
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
 func _spawn_player(peer_id: int) -> void:
@@ -91,17 +168,12 @@ func _create_player(data: Dictionary) -> Node:
 	return player
 
 
-## 나간 사람이 들고 있던 물건은 그 자리에 떨어진다.
 func _remove_player(peer_id: int) -> void:
 	if not Net.is_host():
 		return
 	var player := get_player(peer_id)
-	if player == null:
-		return
-	var held: Node3D = carry_rules.held_by(peer_id)
-	if held != null:
-		carry_rules.drop(held, player)
-	player.queue_free()
+	if player != null:
+		player.queue_free()
 
 
 func _free_slot() -> int:

@@ -7,12 +7,12 @@ extends "res://tests/qa_test.gd"
 ##
 ## 확인하는 것:
 ##   1. 클라이언트 접속 → 양쪽에 플레이어 2명, 클라이언트 캐릭터는 정해진 자리에서 시작
-##   2. 양쪽이 앞으로 걸으면 상대 화면에서도 위치가 바뀜 (양방향 동기화)
+##   2. 양쪽이 자리를 바꾸면 상대 화면에서도 자리가 바뀜 (양방향 동기화).
+##      V3 는 걸어 다니지 않고 작업대 자리에 앉으므로, 위치 대신 자리(seat)로 확인한다.
 ##   3. 호스트가 나가면 클라이언트가 메뉴로 돌아감 (클라이언트 종료 코드로 확인)
 
 const PORT := 24611
 const CLIENT_SCENE := "res://tests/net/enet_client_peer.tscn"
-const MIN_MOVE := 1.0
 
 var _client_pid := -1
 var _client_ok := false
@@ -41,15 +41,13 @@ func run_test() -> void:
 	var client_player: Node3D = await _wait_player(world, client_id)
 	if client_player == null:
 		return
-	var client_start := client_player.position
-	Input.action_press("move_forward")
-	while not _client_ok or client_player.position.distance_to(client_start) < MIN_MOVE:
+	world.switch_seat()
+	while not _client_ok or client_player.seat != 1:
 		if not _client_alive() or not is_instance_valid(client_player):
 			fail("클라이언트 플레이어가 중간에 사라짐")
 			return
-		await get_tree().physics_frame
-	Input.action_release("move_forward")
-	print("서버: 클라이언트 플레이어 이동 확인 %s → %s" % [client_start, client_player.position])
+		await get_tree().process_frame
+	print("서버: 클라이언트 자리 바꿈 확인 (seat %d)" % client_player.seat)
 
 	# 호스트가 나간다 → 클라이언트는 메뉴로 돌아가서 종료 코드 0 으로 끝나야 한다.
 	await Net.leave_session("테스트 종료")

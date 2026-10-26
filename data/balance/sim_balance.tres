@@ -1,0 +1,56 @@
+[gd_resource type="Resource" script_class="" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://data/balance/sim_balance_data.gd" id="1_balance"]
+
+[resource]
+script = ExtResource("1_balance")
+seat_switch_time = 0.4
+seat_camera_fov = 50.0
+turntable_speed = 180.0
+pad_cursor_speed = 900.0
+mask_resolution = 256
+mask_patterns = 3
+stage_complete_ratio = 0.85
+stage_remaining_blink = 0.5
+foam_ball_max = 60
+foam_ball_per_scrub = 3.0
+wet_shader_amount = 1.0
+fluff_shader_amount = 1.0
+tool_shower_radius = 0.18
+tool_shower_rate = 1.2
+tool_shower_temp_good = PackedFloat32Array(0.35, 0.7)
+tool_shampoo_dose = 1
+tool_shampoo_uses_per_bottle = 8
+tool_scrub_radius = 0.15
+tool_scrub_rate_per_speed = 0.9
+tool_scrub_rate_max = 1.5
+tool_rinse_rate = 1.0
+tool_towel_rate = 1.0
+tool_dryer_range = 0.5
+tool_dryer_rate_near = 1.2
+tool_dryer_rate_far = 0.4
+tool_dryer_fluff_scale = 2.0
+mood_start = 0.7
+mood_cold_water = -0.15
+mood_hot_water = -0.05
+mood_good_water = 0.02
+mood_eye_hit = -0.1
+mood_dryer_too_close = -0.05
+tickle_time = 3.0
+shake_time = 6.0
+money_wash_price = 30
+money_tip_by_mood = PackedInt32Array(0, 5, 15)
+money_scent_tip = 10
+shop_price_basic_shampoo = 20
+shop_price_peach_shampoo = 60
+shop_start_money = 0
+proto_dose_coverage = 0.25
+proto_cold_cooldown = 2.0
+proto_eye_cooldown = 3.0
+proto_blink_interval = 1.5
+proto_water_drops = 70
+proto_tickle_radius = 0.15
+proto_dryer_near = 0.15
+proto_shake_screen_time = 1.5
+proto_peach_request_chance = 0.34
+proto_next_dog_delay = 1.0

@@ -21,8 +21,8 @@
 |---|---|---|---|---|
 | `mask_resolution` | 256 | px | ✅ | 동물 한 마리 마스크 크기 (256×256) — 개발팀이 성능 보고 조정 |
 | `mask_patterns` | 3 | 종 | ✅ | 시제품 더러움 무늬 수 (정식판 8) |
-| `stage_complete_ratio` | 0.9 | 비율 | ✅ | 칠한 비율이 이만큼이면 단계 끝 |
-| `stage_remaining_blink` | 0.5 | s | ✅ | 마지막 10% 구역 반짝임 (단계가 90% 에 가까우면 한 번) |
+| `stage_complete_ratio` | 0.85 | 비율 | ✅ | 칠한 비율이 이만큼이면 단계 끝 |
+| `stage_remaining_blink` | 0.5 | s | ✅ | 마지막 15% 구역 반짝임 (단계가 85% 에 가까우면, `proto_blink_interval` 마다 되풀이) |
 | `foam_ball_max` | 60 | 개 | ✅ | 몸에 붙는 거품 공 최대 |
 | `foam_ball_per_scrub` | 3 | 개/s | ✅ | 문지르는 동안 늘어나는 속도 (마우스 속도 배율 곱함) |
 | `wet_shader_amount` | 1.0 | 0~1 | ✅ | 젖음 셰이더 값 (진하고 반짝) |
@@ -32,12 +32,12 @@
 
 | 키 | 값 | 단위 | 시제품 | 설명 |
 |---|---|---|---|---|
-| `tool_shower_radius` | 0.12 | m | ✅ | 물줄기가 닿는 반경 (마스크 붓 크기로 바꿔 씀) |
+| `tool_shower_radius` | 0.18 | m | ✅ | 물줄기가 닿는 반경 (마스크 붓 크기로 바꿔 씀) |
 | `tool_shower_rate` | 1.2 | /s | ✅ | 붓이 한 자리에 머물 때 칠해지는 속도 (약 0.8초면 꽉 참) |
 | `tool_shower_temp_good` | [0.35, 0.7] | 0~1 | ✅ | 다이얼에서 '좋음' 범위 |
 | `tool_shampoo_dose` | 1 | 덩이 | ✅ | 병 클릭 한 번 = 거품 덩이 1 (몸의 약 1/4 을 문지를 수 있는 양) |
 | `tool_shampoo_uses_per_bottle` | 8 | 마리 | ✅ | 한 병으로 씻는 손님 수 |
-| `tool_scrub_radius` | 0.10 | m | ✅ | 손으로 문지르는 반경 |
+| `tool_scrub_radius` | 0.15 | m | ✅ | 손으로 문지르는 반경 |
 | `tool_scrub_rate_per_speed` | 0.9 | /(m/s) | ✅ | 마우스를 빨리 움직일수록 거품이 빨리 (초당 진행 = 이 값 × 손 속도) |
 | `tool_scrub_rate_max` | 1.5 | /s | ✅ | 진행 최대 |
 | `tool_rinse_rate` | 1.0 | /s | ✅ | 헹구기 (샤워기 같은 판정) |
@@ -92,12 +92,14 @@
 |---|---|---|---|---|
 | `proto_dose_coverage` | 0.25 | 비율 | ✅ | 거품 한 덩이로 문지를 수 있는 몸 비율 |
 | `proto_cold_cooldown` | 2.0 | s | ✅ | 차가운 물 펄쩍 쿨타임 |
-| `proto_eye_cooldown` | 1.0 | s | ✅ | 눈에 물·거품 쿨타임 |
+| `proto_eye_cooldown` | 3.0 | s | ✅ | 눈에 물·거품 쿨타임 (처음 1초 → QA 측정에서 너무 가혹해 3초) |
 | `proto_tickle_radius` | 0.15 | m | ✅ | 간지럼 판정의 '같은 곳' 반경 |
 | `proto_dryer_near` | 0.15 | m | ✅ | 드라이어 '너무 가까움' 거리 (보통 0.35 m, Shift 0.1 m) |
 | `proto_shake_screen_time` | 1.5 | s | ✅ | 몸 털기 때 화면에 거품이 보이는 시간 |
 | `proto_peach_request_chance` | 0.34 | 비율 | ✅ | 복숭아 향을 요청하는 손님 비율 (3마리 중 1마리) |
 | `proto_next_dog_delay` | 1.0 | s | ✅ | 동전을 다 주운 뒤 다음 손님까지 |
+| `proto_blink_interval` | 1.5 | s | ✅ | 거의 다 됐을 때 남은 곳 반짝임을 되풀이하는 간격 |
+| `proto_water_drops` | 70 | 개 | ✅ | 헹군 뒤 몸에 맺히는 물방울 수 |
 
 시제품에서 정한 규칙 (PR #29 PROTOTYPE.md 8장, 기획팀 동의): 요청 카드는 다섯 줄(적시기·거품·헹구기·수건·드라이어), 샤워기는 적시기·헹구기 단계에서만 칠함, 배 밑(몸 표면 약 20%)은 진행 비율에서 뺌, 기분 팁은 계산 때 얼굴로.
 
@@ -108,3 +110,5 @@
 | 2026-10-26 | (최초 작성) | — | GDD_V3 0.1 |
 | 2026-10-26 | 1·2장 | 1인칭·부위 12개 → 작업대 시점 `seat_*`·더러움 마스크 `mask_*`·`stage_complete_ratio` 0.9 | 개발팀 제안 + 대표 의견 (GDD_V3 0.2) |
 | 2026-10-26 | 7장 `proto_*` 8개, `tool_dryer_fluff_scale`·`mood_dryer_too_close` 설명 | (새로) / 값은 그대로 | 시제품 1 PR #29 |
+| 2026-10-26 | 2·3장 | `stage_complete_ratio` 0.9 → 0.85, `tool_shower_radius` 0.12 → 0.18, `tool_scrub_radius` 0.10 → 0.15 (한 단계 약 20초. QA #29 측정: 적시기 90초에 86%) | 대표 요청, 개발팀 측정 (`tests/game/test_wash_pace`) |
+| 2026-10-26 | `proto_eye_cooldown`, 7장 새 키 | 1.0 → 3.0, `proto_blink_interval` 1.5·`proto_water_drops` 70 (새로) | QA #29 측정 (눈 벌점이 너무 잦음), 대표 요청 (남은 곳 반짝 되풀이, 수건 물방울) |
