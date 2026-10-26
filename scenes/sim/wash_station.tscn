@@ -1,12 +1,11 @@
-[gd_scene load_steps=12 format=3 uid="uid://b7washstat01"]
+[gd_scene load_steps=24 format=3 uid="uid://b7washstat01"]
 
 [ext_resource type="Script" path="res://scripts/sim/wash_station.gd" id="1_station"]
 [ext_resource type="Script" path="res://scripts/sim/wash_dog.gd" id="2_dog"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_table"]
-albedo_color = Color(0.85, 0.88, 0.92, 1)
-metallic = 0.4
-roughness = 0.35
+albedo_color = Color(0.91, 0.79, 0.63, 1)
+roughness = 0.7
 
 [sub_resource type="BoxMesh" id="BoxMesh_table"]
 material = SubResource("StandardMaterial3D_table")
@@ -23,11 +22,11 @@ bottom_radius = 0.5
 height = 0.04
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rack"]
-albedo_color = Color(0.35, 0.38, 0.45, 1)
+albedo_color = Color(0.85, 0.68, 0.5, 1)
 
 [sub_resource type="BoxMesh" id="BoxMesh_rack"]
 material = SubResource("StandardMaterial3D_rack")
-size = Vector3(0.12, 0.7, 0.9)
+size = Vector3(0.05, 0.4, 0.5)
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_station"]
 properties/0/path = NodePath(".:dog_info")
@@ -58,9 +57,66 @@ properties/8/path = NodePath(".:dogs_done")
 properties/8/spawn = true
 properties/8/replication_mode = 2
 
-[sub_resource type="BoxMesh" id="BoxMesh_drain"]
-material = SubResource("StandardMaterial3D_rack")
-size = Vector3(1.5, 0.02, 1.0)
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tub"]
+cull_mode = 2
+albedo_color = Color(0.56, 0.83, 0.96, 1)
+roughness = 0.3
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_tub"]
+material = SubResource("StandardMaterial3D_tub")
+top_radius = 0.62
+bottom_radius = 0.56
+height = 0.16
+cap_top = false
+radial_segments = 48
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_plug"]
+albedo_color = Color(1, 0.42, 0.42, 1)
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_plug"]
+material = SubResource("StandardMaterial3D_plug")
+top_radius = 0.04
+bottom_radius = 0.04
+height = 0.04
+
+[sub_resource type="Shader" id="Shader_tiles"]
+code = "shader_type spatial;
+// 노란 타일 벽 (임시 그래픽): 10 cm 타일과 흰 줄눈
+uniform vec4 tile_color : source_color = vec4(0.98, 0.84, 0.5, 1.0);
+uniform vec4 grout_color : source_color = vec4(0.95, 0.93, 0.88, 1.0);
+varying vec3 world_pos;
+void vertex() { world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
+void fragment() {
+	vec2 cell = fract(vec2(world_pos.x, world_pos.y) / 0.15);
+	float grout = step(cell.x, 0.04) + step(cell.y, 0.04);
+	ALBEDO = mix(tile_color.rgb, grout_color.rgb, clamp(grout, 0.0, 1.0));
+	ROUGHNESS = 0.4;
+}
+"
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_tiles"]
+shader = SubResource("Shader_tiles")
+
+[sub_resource type="BoxMesh" id="BoxMesh_wall"]
+material = SubResource("ShaderMaterial_tiles")
+size = Vector3(3.2, 2.4, 0.06)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_frame"]
+albedo_color = Color(1, 1, 1, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_frame"]
+material = SubResource("StandardMaterial3D_frame")
+size = Vector3(0.62, 0.52, 0.04)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sky"]
+albedo_color = Color(0.62, 0.86, 1, 1)
+emission_enabled = true
+emission = Color(0.55, 0.8, 1, 1)
+emission_energy_multiplier = 0.6
+
+[sub_resource type="BoxMesh" id="BoxMesh_sky"]
+material = SubResource("StandardMaterial3D_sky")
+size = Vector3(0.52, 0.42, 0.02)
 
 [node name="WashStation" type="Node3D"]
 script = ExtResource("1_station")
@@ -69,12 +125,28 @@ script = ExtResource("1_station")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
 mesh = SubResource("BoxMesh_table")
 
-[node name="Drain" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
-mesh = SubResource("BoxMesh_drain")
+[node name="Tub" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.98, 0)
+mesh = SubResource("CylinderMesh_tub")
+
+[node name="Plug" type="MeshInstance3D" parent="Tub"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.45, -0.06, 0.3)
+mesh = SubResource("CylinderMesh_plug")
+
+[node name="Wall" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, -1.0)
+mesh = SubResource("BoxMesh_wall")
+
+[node name="Window" type="MeshInstance3D" parent="Wall"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.75, 0.55, 0.04)
+mesh = SubResource("BoxMesh_frame")
+
+[node name="Sky" type="MeshInstance3D" parent="Wall/Window"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.02)
+mesh = SubResource("BoxMesh_sky")
 
 [node name="ToolRack" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, -0.1)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.8, 1.12, -0.35)
 mesh = SubResource("BoxMesh_rack")
 
 [node name="Turntable" type="Node3D" parent="."]

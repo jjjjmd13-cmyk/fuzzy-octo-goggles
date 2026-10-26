@@ -194,8 +194,16 @@ func operate(screen_pos: Vector2, held: bool, pressed: bool, delta: float) -> vo
 		_stop_loops()
 		_last_hit = null
 		return
-	var hit: Variant = dog.ray_hit(camera, screen_pos) if held else null
+	var aim: Variant = dog.ray_hit(camera, screen_pos)
+	var hit: Variant = aim if held else null
 	hitting = hit != null
+	# 강아지가 커서를 따라본다. 샤워기 물줄기가 얼굴로 오면 고개를 돌리고 눈을 감는다 (눈에 물 들어가기 전 신호)
+	if dog.model.has_method("watch"):
+		dog.model.watch(aim, tool == Tool.SHOWER and held)
+	if tool == Tool.SHOWER and hit != null:
+		dog.spray(hit)
+	else:
+		dog.stop_spray()
 	_cold_cooldown = maxf(_cold_cooldown - delta, 0.0)
 	_eye_cooldown = maxf(_eye_cooldown - delta, 0.0)
 	_cheek_cooldown = maxf(_cheek_cooldown - delta, 0.0)
@@ -371,6 +379,7 @@ func _stop_loops() -> void:
 		sfx.set_loop(sound, 0.0)
 	if dog.model != null:
 		dog.stop_drip()
+		dog.stop_spray()
 
 
 func _process(delta: float) -> void:
