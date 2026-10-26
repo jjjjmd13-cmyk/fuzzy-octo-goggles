@@ -9,3 +9,4 @@
 *.dll binary
 *.dylib binary
 *.otf binary
+*.webp binary
