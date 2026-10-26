@@ -1,5 +1,5 @@
 extends "res://tests/qa_test.gd"
-# 기대: 호스트·손님 두 프로세스가 ENet 으로 붙고 둘 다 통과
+# 기대: 호스트 1·손님 2 (같은 역할 여럿) 프로세스가 ENet 으로 붙고 모두 통과
 
 
 func run_test() -> void:
@@ -8,8 +8,10 @@ func run_test() -> void:
 		check_eq(peer.create_server(port), OK, "서버 열기")
 		multiplayer.multiplayer_peer = peer
 		report_ready()
-		var id: int = await multiplayer.peer_connected
-		check(id > 1, "손님 접속")
+		# 손님 두 명이 다 붙을 때까지 기다린다 (먼저 끝내면 늦은 손님이 접속을 못 함).
+		while multiplayer.get_peers().size() < 2:
+			await multiplayer.peer_connected
+		check_eq(multiplayer.get_peers().size(), 2, "손님 둘 접속")
 		# 호스트가 끝나면 손님 쪽에 server_disconnected 가 간다.
 	else:
 		check_eq(peer.create_client("127.0.0.1", port), OK, "접속 시작")
