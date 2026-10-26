@@ -72,16 +72,16 @@ jobs:
         run: |
           echo "SHORT_SHA=${GITHUB_SHA::7}" >> "$GITHUB_ENV"
           mkdir -p build/windows
-          timeout 600 "$GODOT" --headless --path . --export-release "$PRESET" build/windows/Lanternfall.exe
+          timeout 600 "$GODOT" --headless --path . --export-release "$PRESET" build/windows/PawsAndBubbles.exe
           # 실패해도 종료 코드가 0 인 경우가 있어 결과 파일로 확인한다.
-          size=$(stat -c %s build/windows/Lanternfall.exe)
-          echo "Lanternfall.exe: $((size / 1024 / 1024)) MB"
+          size=$(stat -c %s build/windows/PawsAndBubbles.exe)
+          echo "PawsAndBubbles.exe: $((size / 1024 / 1024)) MB"
           [ "$size" -gt 10000000 ] || { echo "::error::실행 파일이 없거나 너무 작음"; exit 1; }
 
       - name: 업로드
         uses: actions/upload-artifact@v4
         with:
-          name: Lanternfall-windows-${{ env.SHORT_SHA }}
+          name: PawsAndBubbles-windows-${{ env.SHORT_SHA }}
           path: build/windows/
           retention-days: 14
           if-no-files-found: error
