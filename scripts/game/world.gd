@@ -9,11 +9,14 @@ extends Node3D
 const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
 const Player := preload("res://scripts/player/player.gd")
 const WashStation := preload("res://scripts/sim/wash_station.gd")
-## 오른쪽 드래그로 회전판 돌리기 (도/픽셀). 패드·키보드는 turntable_speed (도/초).
-const DRAG_DEGREES_PER_PIXEL := 0.45
+## 회전판 화살표를 누를 수 있는 거리 (px)
+const ARROW_PICK_PIXELS := 40.0
 
 ## 내 커서 (화면 좌표). 마우스를 움직이면 마우스 위치, 패드면 왼쪽 스틱으로 움직인다.
 var cursor := Vector2(640, 400)
+
+## false 면 내 입력으로 목욕대를 움직이지 않는다 (테스트가 손동작을 직접 넣을 때)
+var input_enabled := true
 
 var _pressed := false
 var _seat_shown := -1
@@ -72,8 +75,18 @@ func switch_seat() -> void:
 		me.set_seat(Player.Seat.COMPUTER if me.seat == Player.Seat.BATH else Player.Seat.BATH)
 
 
+## 도구걸이 클릭으로 직접 바꾸기 (보통은 단계마다 저절로 바뀜)
 func select_tool(index: int) -> void:
 	station.tool = posmod(index, WashStation.TOOL_NAMES.size()) as WashStation.Tool
+
+
+## 이 화면 위치가 회전판 화살표면 -1(왼쪽)/+1(오른쪽), 아니면 0
+func arrow_at(pos: Vector2) -> int:
+	var points := station.turn_arrow_points()
+	for i in points.size():
+		if points[i].distance_to(pos) <= ARROW_PICK_PIXELS:
+			return -1 if i == 0 else 1
+	return 0
 
 
 func get_spawn_marker(slot: int) -> Node3D:
@@ -85,8 +98,6 @@ func _unhandled_input(event: InputEvent) -> void:
 		return
 	if event is InputEventMouseMotion:
 		cursor = event.position
-		if event.button_mask & MOUSE_BUTTON_MASK_RIGHT and local_seat() == Player.Seat.BATH:
-			station.turn(event.relative.x * DRAG_DEGREES_PER_PIXEL)
 		return
 	if event is InputEventMouseButton and event.pressed:
 		cursor = event.position
@@ -95,19 +106,19 @@ func _unhandled_input(event: InputEvent) -> void:
 	elif local_seat() != Player.Seat.BATH:
 		return
 	elif event.is_action_pressed("use_tool"):
+		# 마우스 하나: 동전 → 회전판 화살표 → 도구 쓰기 순서로 본다
 		var coin := station.coin_at(cursor)
+		var arrow := arrow_at(cursor)
 		if coin >= 0:
 			station.send_collect(coin)
+		elif arrow != 0:
+			station.turn_step(arrow)
 		else:
 			_pressed = true
-	elif event.is_action_pressed("tool_next"):
-		select_tool(station.tool + 1)
-	elif event.is_action_pressed("tool_prev"):
-		select_tool(station.tool - 1)
-	else:
-		for i in WashStation.TOOL_NAMES.size():
-			if event.is_action_pressed("tool_%d" % (i + 1)):
-				select_tool(i)
+	elif event.is_action_pressed("amount_up"):
+		station.adjust(1)
+	elif event.is_action_pressed("amount_down"):
+		station.adjust(-1)
 
 
 func _process(delta: float) -> void:
@@ -120,17 +131,15 @@ func _process(delta: float) -> void:
 		var stick := Input.get_vector("cursor_left", "cursor_right", "cursor_up", "cursor_down")
 		if stick.length_squared() > 0.0:
 			cursor = (cursor + stick * data.pad_cursor_speed * delta).clamp(Vector2.ZERO, get_viewport().get_visible_rect().size)
-		var turning := Input.get_axis("turn_left", "turn_right")
-		if absf(turning) > 0.0:
-			station.turn(turning * data.turntable_speed * delta)
-		if Input.is_action_just_pressed("temp_up"):
-			station.temperature = clampf(station.temperature + 0.1, 0.0, 1.0)
-		if Input.is_action_just_pressed("temp_down"):
-			station.temperature = clampf(station.temperature - 0.1, 0.0, 1.0)
-		station.dryer_close = Input.is_action_pressed("dryer_close")
-	var held: bool = at_bath and Input.is_action_pressed("use_tool")
-	station.operate(cursor, held, _pressed and at_bath, delta)
+	var held: bool = at_bath and Input.is_action_pressed("use_tool") and not _arrow_or_coin_held()
+	if input_enabled:
+		station.operate(cursor, held, _pressed and at_bath, delta)
 	_pressed = false
+
+
+## 동전·화살표를 누른 채면 도구를 쓰지 않는다
+func _arrow_or_coin_held() -> bool:
+	return station.coin_at(cursor) >= 0 or arrow_at(cursor) != 0
 
 
 ## 자리 바꾸기: 카메라가 seat_switch_time 동안 옮겨 간다 (완료 조건 1).

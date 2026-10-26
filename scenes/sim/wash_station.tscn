@@ -2,6 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/sim/wash_station.gd" id="1_station"]
 [ext_resource type="Script" path="res://scripts/sim/wash_dog.gd" id="2_dog"]
+[ext_resource type="PackedScene" uid="uid://b7simownmdl1" path="res://scenes/art/sim/owner_model.tscn" id="3_owner"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_table"]
 albedo_color = Color(0.91, 0.79, 0.63, 1)
@@ -56,6 +57,12 @@ properties/7/replication_mode = 2
 properties/8/path = NodePath(".:dogs_done")
 properties/8/spawn = true
 properties/8/replication_mode = 2
+properties/9/path = NodePath(".:owner_phase")
+properties/9/spawn = true
+properties/9/replication_mode = 2
+properties/10/path = NodePath(".:owner_variant")
+properties/10/spawn = true
+properties/10/replication_mode = 2
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_tub"]
 cull_mode = 2
@@ -118,6 +125,25 @@ emission_energy_multiplier = 0.6
 material = SubResource("StandardMaterial3D_sky")
 size = Vector3(0.52, 0.42, 0.02)
 
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_chair"]
+albedo_color = Color(1, 0.62, 0.77, 1)
+roughness = 0.6
+
+[sub_resource type="BoxMesh" id="BoxMesh_seat"]
+material = SubResource("StandardMaterial3D_chair")
+size = Vector3(0.45, 0.08, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_back"]
+material = SubResource("StandardMaterial3D_chair")
+size = Vector3(0.45, 0.45, 0.06)
+
+[sub_resource type="BoxMesh" id="BoxMesh_chairleg"]
+material = SubResource("StandardMaterial3D_rack")
+size = Vector3(0.05, 0.36, 0.05)
+
+[sub_resource type="QuadMesh" id="QuadMesh_sign"]
+size = Vector2(1.0, 0.4)
+
 [node name="WashStation" type="Node3D"]
 script = ExtResource("1_station")
 
@@ -175,3 +201,30 @@ omni_range = 3.0
 [node name="StationSync" type="MultiplayerSynchronizer" parent="."]
 replication_interval = 0.05
 replication_config = SubResource("SceneReplicationConfig_station")
+
+[node name="Chair" type="Node3D" parent="."]
+transform = Transform3D(0.635, 0, -0.773, 0, 1, 0, 0.773, 0, 0.635, 0.95, 0, -0.78)
+
+[node name="Seat" type="MeshInstance3D" parent="Chair"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+mesh = SubResource("BoxMesh_seat")
+
+[node name="Back" type="MeshInstance3D" parent="Chair"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.65, -0.18)
+mesh = SubResource("BoxMesh_back")
+
+[node name="LegL" type="MeshInstance3D" parent="Chair"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.18, 0.18, 0)
+mesh = SubResource("BoxMesh_chairleg")
+
+[node name="LegR" type="MeshInstance3D" parent="Chair"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.18, 0.18, 0)
+mesh = SubResource("BoxMesh_chairleg")
+
+[node name="Sign" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.6, 2.05, -0.96)
+visible = false
+mesh = SubResource("QuadMesh_sign")
+
+[node name="Owner" parent="." instance=ExtResource("3_owner")]
+transform = Transform3D(1.4, 0, 0, 0, 1.4, 0, 0, 0, 1.4, 1.9, 0, 1.2)

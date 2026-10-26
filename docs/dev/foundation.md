@@ -83,7 +83,9 @@
 | `scenes/art/player_model.tscn` | 동료 몸 (내 화면에서는 숨김) | 키 약 1.8 m. 색을 받으려면 루트에 `set_player_color(color)` |
 | `scenes/art/sim/dog_model.tscn` | 목욕대 강아지 | **얼굴이 +Z(카메라 쪽)**, 바닥이 원점. 지금은 `scripts/sim/toy_dog_model.gd` 가 구·캡슐로 조립한 임시 강아지(숨쉬기·깜빡임·꼬리·머리 따라보기). ChatGPT GLB(정면 −Z)가 오면 이 씬을 GLB 를 Y 로 180° 돌려 넣은 씬으로 바꾸고 루트에 `sim_dog_model.gd` 를 붙여 `body_center`·`face_center`·`fur_meshes` 를 맞춘다. 마우스 판정 모양(`HitBody`, 충돌 층 16)은 `fur_meshes` 의 볼록 껍질로 자동. 반응 함수 `set_mood`·`wiggle_legs`·`flap_cheeks`·`jump`·`shake`, 있으면 `watch(점, 뿌리는 중)`. 부위 색은 `set_instance_shader_parameter("tint", 색)`. UV 는 상관없음 |
 | `scripts/sim/sim_fur.gdshader` | 털 (더러움·젖음·뽀송) | 텍스처를 쓰려면 `fur_color` 대신 albedo 텍스처 uniform 을 추가 |
-| `scenes/sim/wash_station.tscn` | 목욕대·회전판·도구걸이 (임시 상자) | 회전판은 `Turntable` 노드, 강아지는 `Turntable/Dog` |
+| `scenes/sim/wash_station.tscn` | 목욕통·회전판·도구걸이·대기 의자·타일 벽 (임시 도형) | 회전판은 `Turntable` 노드, 강아지는 `Turntable/Dog`, 주인은 `Owner` |
+| `scenes/art/sim/owner_model.tscn` | 주인 (2등신 장난감, `toy_owner_model.gd`) | 바닥이 원점, 정면 +Z. 함수 `set_variant`·`enter`·`go_sit`·`come_react`·`leave`, `height` |
+| `assets/ui/*.png` | 2D 그림 (도구 아이콘·카드·✓·기분 얼굴·말풍선·간판·주인 판자 그림) | 이름표는 `assets/ui/README.md`. 파일이 있으면 쓰고 없으면 임시 도형 (`scripts/game/ui_art.gd`) |
 | `assets/sfx/*.wav` | 효과음 11개 + 반복 소리 3개 (`scripts/game/sfx.gd`) | 같은 파일 이름으로 교체 |
 | `scenes/art/tiles/floor_tile.tscn` | 바닥 타일 2×2 m | 윗면이 y=0 |
 | `scenes/art/tiles/wall_tile.tscn` | 벽 타일 2×2 m, 두께 0.3 m | 아랫변 가운데가 원점, 두께 방향이 +Z(방 안쪽). 2단으로 쌓아 4 m |
@@ -98,16 +100,17 @@ V3 작업대 시점: 걸어 다니지 않고 자리(목욕대·컴퓨터)에 앉
 
 조작표는 [PROTOTYPE.md](PROTOTYPE.md) 2장.
 
-## 목욕대 (`WashStation`, V3 시제품 1)
+## 목욕대 (`WashStation`, V3 시제품 1-2)
 
-- `scripts/sim/paint_mask.gd`: 몸 칠하기 마스크. 모형 UV 대신 **몸 중심에서 본 방향(위경도)** 을 좌표로 쓴다 (256×256). 채널 wet/scrub/rinse/towel/dry, 칠하는 순간 넓이 가중 비율을 같이 갱신 (붓 한 번 약 60~90 µs). 배 밑(방향 y < −0.6)은 작업대에서 손이 안 닿아 비율 계산에서 뺀다.
-- `scripts/sim/wash_dog.gd`: 회전판 위 강아지 (마스크·털 셰이더·거품 공 MultiMesh·뽀송 부풀기·물방울). 마우스 → 카메라 광선 → `HitBody` → 모형 기준 좌표 → 마스크.
-- `scripts/sim/wash_station.gd`: 단계(적시기→거품→헹구기→수건→드라이어→계산), 도구 4개, 물 온도, 기분, 간지럼·몸 털기, 동전.
-  - **작업자** = 목욕대 자리에 먼저 앉은 사람 (호스트가 `operator` 로 정함). 작업자만 마스크를 칠하고 0.1초마다 `_report_progress(단계, 비율, 기분 변화)` 를, 사건(차가운 물·눈·간지럼·몸 털기·볼)은 `_report_event` 를 호스트에 보낸다.
-  - 호스트가 비율이 `stage_complete_ratio` 를 넘으면 단계를 넘기고, 다 끝나면 동전(요금·기분 팁·향 팁)을 놓는다. 동전 줍기·샴푸 짜기(병에서 한 마리분 쓰기)는 요청 RPC.
-  - 구경하는 사람 화면은 마스크 대신 단계별 비율을 셰이더 `global_mask` 로 받는다. 작업자가 바뀌면 새 작업자가 지금까지의 비율로 마스크를 채우고 이어서 칠한다.
-- `scripts/sim/store.gd`: 돈, 기본·복숭아 샴푸 남은 마리 수, 지금 쓰는 샴푸 (호스트 권한, `send_buy`/`send_select` 요청).
-- 화면: `scripts/game/hud.gd` (요청 카드 ✓, 도구 막대, 돈, 컴퓨터 가게 창), `scripts/game/hud_overlay.gd` (도구 커서, 기분 얼굴, 온도 다이얼, 화면 거품).
+- `scripts/sim/paint_mask.gd`: 몸 칠하기 마스크. 모형 UV 대신 **몸 중심에서 본 방향(위경도)** 을 좌표로 쓴다 (256×256). 채널 wet/scrub/rinse/towel/dry, 칠하는 순간 넓이 가중 비율을 같이 갱신. 배 밑(방향 y < −0.6)은 비율 계산에서 뺀다.
+- `scripts/sim/wash_dog.gd`: 회전판 위 강아지 (마스크·털 셰이더·거품 공·물방울·뽀송 부풀기·물줄기·샴푸 덩이·물보라). 마우스 → 카메라 광선 → `HitBody` → 모형 기준 좌표 → 마스크.
+- `scripts/sim/wash_station.gd`: 단계 6개(적시기 → 샴푸 짜기 → 문지르기 → 헹구기 → 수건 → 드라이어 → 계산)와 **단계마다 다른 손동작** (`_use_shower` 누르고 조준 / `_use_bottle` 누르는 시간 / `_use_hand` 원 그리기 / `_use_bucket` 위→아래 쓸기 / `_use_towel` 연타 / `_use_dryer` 휠 거리). 도구는 단계가 바뀌면 저절로, 보이는 쪽이 다 되면 저절로 돎(`turn_step`), 휠은 `adjust()`.
+  - **주인 단계** `owner_phase` (호스트): 들어옴(강아지를 안고, 말풍선) → 기다림(의자) → 반응(동전) → 나감(강아지가 달려감) → 다음 손님. 모양은 `scenes/art/sim/owner_model.tscn`.
+  - **작업자** = 목욕대 자리에 먼저 앉은 사람. 작업자만 마스크를 칠하고 0.1초마다 `_report_progress(단계, 비율, 기분 변화)`, 사건(차가운 물·눈·간지럼·몸 털기·볼·머리에 쏟음)은 `_report_event` 로 호스트에 보낸다. 샴푸 병 사용(`_request_dose`)·동전 줍기는 요청 RPC.
+  - 구경하는 사람 화면은 마스크 대신 단계별 비율을 셰이더 `global_mask` 로 받는다. 작업자가 바뀌면 새 작업자가 지금까지의 비율로 마스크를 채우고 이어서 한다.
+- `scripts/sim/store.gd`: 돈, 기본·복숭아 샴푸 남은 마리 수, 지금 쓰는 샴푸 (호스트 권한).
+- 화면: `scripts/game/hud.gd` (요청 카드 ✓, 도구걸이, 돈, 컴퓨터 가게 창), `scripts/game/hud_overlay.gd` (도구 커서, 기분 얼굴, 온도·거리 다이얼, 회전판 화살표, 주인 말풍선, 화면 거품).
+- 입력: `world.gd` 가 마우스를 받아 동전 → 화살표 → 도구 순서로 판단한다. 테스트는 `world.input_enabled = false` 로 끄고 손동작을 직접 넣는다.
 - 수치는 `data/balance/sim_balance.tres` (TUNING_V3).
 
 ## 같은 PC에서 창 두 개로 테스트
@@ -130,9 +133,9 @@ godot --path . -- --join=127.0.0.1  # 창 2: 접속
 | `tests/test_seeded_rng.tscn` | 시드 난수 결정론, 흐름 분리, 고정값 |
 | `tests/test_balance.tscn` | sim_balance.tres 가 TUNING_V3.md 의 ✅ 줄과 같음 (표를 직접 읽음) |
 | `tests/test_paint_mask.tscn` | 칠하기 마스크: 붓 넓이·넘치지 않음·극·90% 채우기·텍스처·더러움 무늬 3종·속도 |
-| `tests/game/test_wash_flow.tscn` | 혼자: 화면 좌표로 실제 칠하기 → 5단계 → 동전 → 컴퓨터 자리에서 복숭아 샴푸 → 분홍 거품·향 팁 → 샴푸가 떨어지면 거품 없음. 차가운 물·간지럼·몸 털기·소리 |
-| `tests/game/test_wash_pace.tscn` | 사람 흉내 손(800 px/s 지그재그, 2초마다 60° 돌림)으로 다섯 단계 시간: 단계 25초·한 마리 80초 안, 30초보다 길게 |
-| `tests/net/test_station_sync.tscn` | 2인(.roles): 작업자만 칠함, 구경 쪽은 비율만, 클라이언트 샴푸 구매, 작업자 바뀜 → 이어서 칠하기 |
+| `tests/game/test_wash_flow.tscn` | 혼자: 주인이 맡김 → 손동작 6개(온도 휠·눈·화살표·저절로 돌기·짜는 시간·원 대 왕복·쏟기·연타 간격·드라이어 거리) → 주인 반응·동전 → 강아지가 주인에게 → 복숭아 샴푸·분홍 거품·넘침·향 팁 → 샴푸 바닥 |
+| `tests/game/test_wash_pace.tscn` | 사람 흉내 손(`tests/game/wash_hands.gd`)으로 단계별 시간이 `stage_target_seconds` 의 0.4~1.5배 안 |
+| `tests/net/test_station_sync.tscn` | 2인(.roles): 작업자만 칠함, 구경 쪽은 비율만·주인이 맡긴 강아지가 보임, 클라이언트 샴푸 구매, 작업자 바뀜 → 이어서 짜기·문지르기 |
 
 네트워크 테스트는 TESTING.md 의 "한 프로세스에 피어 여러 개" 대신 **클라이언트를 별도 Godot 프로세스**(`tests/net/enet_client_peer.tscn`, `OS.create_process`)로 띄운다.
 `Net` 은 루트 MultiplayerAPI 와 씬 전환을 그대로 쓰기 때문에, 실제 게임과 같은 경로로 시험하려는 것이다. 클라이언트 출력은 같은 로그에 찍히고, 클라이언트 실패는 `QA_TEST_FAIL` 줄과 종료 코드로 서버 쪽 테스트 실패가 된다. 포트는 테스트마다 다름 (24611, 24612).

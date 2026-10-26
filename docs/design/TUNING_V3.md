@@ -32,12 +32,12 @@
 
 | 키 | 값 | 단위 | 시제품 | 설명 |
 |---|---|---|---|---|
-| `tool_shower_radius` | 0.18 | m | ✅ | 물줄기가 닿는 반경 (마스크 붓 크기로 바꿔 씀) |
+| `tool_shower_radius` | 0.24 | m | ✅ | 물줄기가 닿는 반경 (마스크 붓 크기로 바꿔 씀) |
 | `tool_shower_rate` | 1.2 | /s | ✅ | 붓이 한 자리에 머물 때 칠해지는 속도 (약 0.8초면 꽉 참) |
 | `tool_shower_temp_good` | [0.35, 0.7] | 0~1 | ✅ | 다이얼에서 '좋음' 범위 |
 | `tool_shampoo_dose` | 1 | 덩이 | ✅ | 병 클릭 한 번 = 거품 덩이 1 (몸의 약 1/4 을 문지를 수 있는 양) |
 | `tool_shampoo_uses_per_bottle` | 8 | 마리 | ✅ | 한 병으로 씻는 손님 수 |
-| `tool_scrub_radius` | 0.15 | m | ✅ | 손으로 문지르는 반경 |
+| `tool_scrub_radius` | 0.2 | m | ✅ | 손으로 문지르는 반경 |
 | `tool_scrub_rate_per_speed` | 0.9 | /(m/s) | ✅ | 마우스를 빨리 움직일수록 거품이 빨리 (초당 진행 = 이 값 × 손 속도) |
 | `tool_scrub_rate_max` | 1.5 | /s | ✅ | 진행 최대 |
 | `tool_rinse_rate` | 1.0 | /s | ✅ | 헹구기 (샤워기 같은 판정) |
@@ -100,32 +100,37 @@
 | `proto_next_dog_delay` | 1.0 | s | ✅ | 동전을 다 주운 뒤 다음 손님까지 |
 | `proto_blink_interval` | 1.5 | s | ✅ | 거의 다 됐을 때 남은 곳 반짝임을 되풀이하는 간격 |
 | `proto_water_drops` | 70 | 개 | ✅ | 헹군 뒤 몸에 맺히는 물방울 수 |
+| `proto_owner_arrive_time` | 2.5 | s | ✅ | 주인이 강아지를 안고 들어와 목욕통에 내려놓기까지 |
+| `proto_owner_leave_time` | 1.5 | s | ✅ | 강아지가 주인에게 달려가고 주인이 나가기까지 |
+| `proto_temp_wheel_step` | 0.1 | | ✅ | 물 온도 휠 한 칸 |
+| `proto_dryer_start_distance` | 0.32 | m | ✅ | 드라이어 처음 거리 (휠로 바꿈) |
+| `proto_turn_step` | 90 | ° | ✅ | 저절로·화살표로 한 번에 도는 각도 (보이는 쪽 = 앞·옆·뒤·옆) |
 
 시제품에서 정한 규칙 (PR #29 PROTOTYPE.md 8장, 기획팀 동의): 요청 카드는 다섯 줄(적시기·거품·헹구기·수건·드라이어), 샤워기는 적시기·헹구기 단계에서만 칠함, 배 밑(몸 표면 약 20%)은 진행 비율에서 뺌, 기분 팁은 계산 때 얼굴로.
 
-## 8. 시제품 1 두 번째 반복 (GDD_V3 8.1-2) — 새 키 초안
+## 8. 시제품 1 두 번째 반복 (GDD_V3 8.1-2)
 
-> **'시제품' 칸을 ✅ 로 하지 않았음**: `test_balance` 가 ✅ 줄을 리소스와 대조하므로, 개발팀이 리소스에 넣을 때 ✅ 로 바꾸고 값을 확정해 주세요.
+> 개발팀이 리소스에 넣으며 ✅ 로 바꿈 (PR 손동작 6개). 값은 기획팀 초안 그대로.
 
 | 키 | 값 | 단위 | 시제품 | 설명 |
 |---|---|---|---|---|
-| `stage_target_seconds` | [12, 3, 15, 10, 10, 15] | s | 1-2 | 단계별 목표 시간: 적시기·샴푸 짜기·문지르기·헹구기·수건·드라이어 (합 약 65초). 붓 크기·속도는 이 시간에 맞춰 개발팀이 조정 |
-| `squeeze_max_time` | 1.5 | s | 1-2 | 샴푸 병을 이만큼 누르면 덩이 최대 |
-| `squeeze_coverage_max` | 0.6 | 비율 | 1-2 | 최대 덩이로 문지를 수 있는 몸 비율 (0.3 이면 적당, 넘으면 넘쳐 흐름 = 샴푸 낭비) |
-| `squeeze_overflow_at` | 0.4 | 비율 | 1-2 | 이보다 많이 짜면 거품이 흘러내리고 병 사용 횟수 1 더 씀 |
-| `scrub_circle_min_angle` | 270 | ° | 1-2 | 원 그리기로 인정하는 최소 누적 각도 (한 바퀴 조금 안 됨) |
-| `scrub_back_forth_rate` | 0.2 | 배 | 1-2 | 원이 아닌 왕복 문지르기의 거품 속도 배율 (거의 안 큼) |
-| `rinse_pour_min_drag` | 0.25 | 화면 높이 비율 | 1-2 | 위→아래로 이만큼 끌어야 바가지가 쏟아짐 |
-| `rinse_pour_band_width` | 0.3 | m | 1-2 | 한 번 쏟을 때 씻기는 띠 폭 (3~4번에 끝) |
-| `towel_press_area` | 0.12 | m | 1-2 | 한 번 꾹 누를 때 닦이는 반경 |
-| `towel_press_cooldown` | 0.12 | s | 1-2 | 연타 최소 간격 (초당 약 8번까지) |
-| `dryer_distance_range` | [0.08, 0.5] | m | 1-2 | 휠로 바꾸는 거리 범위 (0.15 m 밑은 기분 −, `proto_dryer_near`) |
-| `dryer_wheel_step` | 0.04 | m | 1-2 | 휠 한 칸 |
-| `auto_turn_visible_ratio` | 0.85 | 비율 | 1-2 | 보이는 쪽이 이만큼 되면 강아지가 저절로 돎 |
-| `auto_turn_time` | 1.2 | s | 1-2 | 도는 시간 |
-| `owner_variants` | 6 | 종 | 1-2 | 주인 모양 (모자·옷 색) |
-| `owner_reaction_time` | 2.5 | s | 1-2 | 끝나고 주인 반응 연출 길이 |
-| `dog_look_owner_interval` | [3, 6] | s | 1-2 | 강아지가 주인 쪽을 보는 간격 (무작위) |
+| `stage_target_seconds` | [12, 3, 15, 10, 10, 15] | s | ✅ | 단계별 목표 시간: 적시기·샴푸 짜기·문지르기·헹구기·수건·드라이어 (합 약 65초). 붓 크기·속도는 이 시간에 맞춰 개발팀이 조정 |
+| `squeeze_max_time` | 1.5 | s | ✅ | 샴푸 병을 이만큼 누르면 덩이 최대 |
+| `squeeze_coverage_max` | 0.6 | 비율 | ✅ | 최대 덩이로 문지를 수 있는 몸 비율 (0.3 이면 적당, 넘으면 넘쳐 흐름 = 샴푸 낭비) |
+| `squeeze_overflow_at` | 0.4 | 비율 | ✅ | 이보다 많이 짜면 거품이 흘러내리고 병 사용 횟수 1 더 씀 |
+| `scrub_circle_min_angle` | 270 | ° | ✅ | 원 그리기로 인정하는 최소 누적 각도 (한 바퀴 조금 안 됨) |
+| `scrub_back_forth_rate` | 0.2 | 배 | ✅ | 원이 아닌 왕복 문지르기의 거품 속도 배율 (거의 안 큼) |
+| `rinse_pour_min_drag` | 0.25 | 화면 높이 비율 | ✅ | 위→아래로 이만큼 끌어야 바가지가 쏟아짐 |
+| `rinse_pour_band_width` | 0.3 | m | ✅ | 한 번 쏟을 때 씻기는 띠 폭 (3~4번에 끝) |
+| `towel_press_area` | 0.12 | m | ✅ | 한 번 꾹 누를 때 닦이는 반경 |
+| `towel_press_cooldown` | 0.12 | s | ✅ | 연타 최소 간격 (초당 약 8번까지) |
+| `dryer_distance_range` | [0.08, 0.5] | m | ✅ | 휠로 바꾸는 거리 범위 (0.15 m 밑은 기분 −, `proto_dryer_near`) |
+| `dryer_wheel_step` | 0.04 | m | ✅ | 휠 한 칸 |
+| `auto_turn_visible_ratio` | 0.85 | 비율 | ✅ | 보이는 쪽이 이만큼 되면 강아지가 저절로 돎 |
+| `auto_turn_time` | 1.2 | s | ✅ | 도는 시간 |
+| `owner_variants` | 6 | 종 | ✅ | 주인 모양 (모자·옷 색) |
+| `owner_reaction_time` | 2.5 | s | ✅ | 끝나고 주인 반응 연출 길이 |
+| `dog_look_owner_interval` | [3, 6] | s | ✅ | 강아지가 주인 쪽을 보는 간격 (무작위) |
 
 ## 9. 수직 단면 (`slice_*`) — 초안 ([MILESTONE_V3_SLICE.md](MILESTONE_V3_SLICE.md))
 
@@ -154,5 +159,6 @@
 | 2026-10-26 | 7장 `proto_*` 8개, `tool_dryer_fluff_scale`·`mood_dryer_too_close` 설명 | (새로) / 값은 그대로 | 시제품 1 PR #29 |
 | 2026-10-26 | 2·3장 | `stage_complete_ratio` 0.9 → 0.85, `tool_shower_radius` 0.12 → 0.18, `tool_scrub_radius` 0.10 → 0.15 (한 단계 약 20초. QA #29 측정: 적시기 90초에 86%) | 대표 요청, 개발팀 측정 (`tests/game/test_wash_pace`) |
 | 2026-10-26 | `proto_eye_cooldown`, 7장 새 키 | 1.0 → 3.0, `proto_blink_interval` 1.5·`proto_water_drops` 70 (새로) | QA #29 측정 (눈 벌점이 너무 잦음), 대표 요청 (남은 곳 반짝 되풀이, 수건 물방울) |
+| 2026-10-27 | 3장 `tool_shower_radius`·`tool_scrub_radius`, 7장 새 키 5개, 8장 ✅ | 0.18 → 0.24, 0.15 → 0.2 (사람 흉내 손으로 단계 목표 시간에 맞춤: 적시기 16초·문지르기 16초, 한 마리 61초 / 목표 65초) | 개발팀 측정 (`tests/game/test_wash_pace`) |
 | 2026-10-26 | 8장 (새로, 초안) | — | 플레이 테스트 3: 단계마다 다른 손동작·한 손 조작·주인 손님 (GDD_V3 0.3) |
 | 2026-10-26 | 9장 `slice_*` (새로, 초안) | — | 수직 단면 범위 (MILESTONE_V3_SLICE) |
