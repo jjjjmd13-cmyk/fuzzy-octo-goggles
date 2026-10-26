@@ -1,7 +1,37 @@
 # 멍냥 목욕탕 V3 — ChatGPT 그래픽 요청문 (시제품 1)
 
-작성: 기획팀 · 2026-10-26 · 근거: [GDD_V3.md](../design/GDD_V3.md) 2장·8.1
+작성: 기획팀 · 2026-10-26 (0.2: 2D 먼저, 무료 3D 경로) · 근거: [GDD_V3.md](../design/GDD_V3.md) 2장·8.1
 V2 요청문 [CHATGPT_PROMPTS_V2.md](CHATGPT_PROMPTS_V2.md) 의 **색·스타일은 그대로** 쓰고, V3 에서 바뀌는 것만 적는다.
+
+## 0. 받는 순서 (0.2) — **2D 로 확실히 되는 것부터**
+
+ChatGPT 는 그림(2D)은 잘 만들고 3D 파일은 약하다. 그래서 사람 대표가 바로 만들 수 있는 2D 부터 받아서 시제품에 붙이고, 3D 는 아래 '무료 3D 경로'로 따로 만든다.
+
+| 순서 | ID | 무엇 | 종류 | 게임에서 |
+|---|---|---|---|---|
+| 1 | V3-ART-00 | 작업대 시점 분위기 그림 | 2D | 모든 그림의 기준 + 목욕대 뒤 **배경 그림**으로 바로 씀 |
+| 2 | V3-UI-01 | 도구 아이콘 4 · 요청 카드 · 기분 얼굴 · 동전 | 2D | 바로 붙임 |
+| 3 | V3-UI-02 | 주인 말풍선 그림 (요청 아이콘들) | 2D | 바로 붙임 |
+| 4 | V3-UI-03 | 가게 간판 / 로고 | 2D | 메뉴·가게 벽 |
+| 5 | V3-ART-01 | 주인 6명 그림 (정면, 흰 배경) | 2D | 우선 **판자 그림(빌보드)** 으로 대기 의자에 세움 → 나중에 3D |
+| 6 | V3-ART-02 | 강아지 **3D 변환용 그림** (정면·옆·뒤, 흰 배경) | 2D | 아래 무료 3D 경로의 입력 |
+| 7 | V3-TEX-01 | 털 · 타일 · 나무 텍스처 | 2D | 임시 모형에 입혀서 상자 느낌을 줄임 |
+| 8 | V3-PET-01 · STN-01 · TOOL-01~04 | 3D 모형 | 3D | ChatGPT 3D 가 되면 받고, 안 되면 무료 3D 경로 |
+
+## 0-1. 무료 3D 경로 (그림 → 3D)
+
+| 단계 | 도구 | 비용·라이선스 | 메모 |
+|---|---|---|---|
+| ① 그림 | ChatGPT (V3-ART-02 처럼 **흰 배경, 정면, 그림자 없이, 귀·꼬리가 몸에서 떨어져 보이게**) | 이미 쓰는 것 | 한 장에 한 물체 |
+| ② 그림 → 3D | **TRELLIS** (Microsoft) | **MIT — 상업 사용 가능**, 무료. 일부 부속 코드는 라이선스가 다를 수 있음 → 받기 전에 확인 | 직접 돌리려면 NVIDIA GPU 24 GB 이상이 필요. 없으면 Hugging Face 공개 데모(무료, 대기열)에서 돌려 GLB 로 받음 — 데모 이용 조건은 받을 때 확인 |
+| ② 대안 | **TripoSR** (Stability AI · Tripo) | **MIT — 상업 사용 가능**, 무료 | 결과가 TRELLIS 보다 거칠지만 더 작은 GPU 로 돌아감 |
+| ③ 손질 | **Blender** | 무료 (GPL, 만든 모형은 우리 것) | 크기·기준점 맞추기, 삼각형 줄이기, **털 UV 를 겹치지 않게 다시 펼치기**(Smart UV Project), 귀·꼬리를 따로 떼어 코드로 흔들게 |
+| 쓰지 않음 | Hunyuan3D 2.x (Tencent) | 라이선스가 **한국·EU·영국을 적용 지역에서 뺌** → 한국 스튜디오는 쓸 수 없음 | |
+| 조건부 | Stable Fast 3D (Stability AI) | 커뮤니티 라이선스: 연 매출 100만 달러 미만이면 상업 무료, 넘으면 유료 계약 | 쓰려면 대표 확인 먼저 |
+| 보류 (돈이 들 수 있음) | Meshy · Tripo 같은 웹 서비스 | 무료 등급의 상업 사용 조건을 확인하지 못함. 유료 플랜은 월 구독 (금액은 확인 못함) | CLAUDE.md 규칙대로 쓰지 않고 보류. 필요하면 대표에게 '무엇·얼마·왜' 먼저 |
+
+- 애니메이션: 강아지는 사람 뼈대가 아니라 무료 자동 리깅(Mixamo 등)이 맞지 않음 → **귀·꼬리·머리를 따로 떼어 코드로 흔드는 방식**(개발팀)으로 시작.
+- 출처: [TRELLIS.2 모델 카드](https://huggingface.co/microsoft/TRELLIS.2-4B/blob/main/README.md), [TripoSR 발표](https://stability.ai/news/triposr-3d-generation), [Hunyuan3D-2 라이선스](https://huggingface.co/tencent/Hunyuan3D-2/blob/main/LICENSE), [Stable Fast 3D](https://huggingface.co/cocktailpeanut/sf3d)
 
 ## 1. V2 와 달라지는 점
 
@@ -98,6 +128,31 @@ Create flat 2D game icons, transparent background, thick rounded shapes with a s
 2. A "request card" 512x320: a white rounded card with a paw print corner and 4 empty icon slots in a row, plus small 96x96 icons to put in the slots: bath tub with bubbles, comb, ribbon, peach (scent), and a green check mark to stamp over a finished slot.
 3. Three mood faces 128x128 (simple puppy faces): happy, neutral, unhappy.
 4. A shiny coin 96x96 with a paw print.
+```
+
+### V3-UI-02 주인 말풍선 그림
+```text
+Create flat 2D speech bubble icons for a cute pet grooming shop game, transparent background, thick rounded shapes with a soft dark outline #3A3A4A: a round white speech bubble (512x384) with room for 1-3 small icons, and 128x128 icons to place inside: bath with bubbles, peach (scent), cherry blossom (scent), lemon (scent), comb, scissors, red ribbon, blue ribbon. Also a "thank you" bubble with a heart, a "hmm" bubble with three dots, and a "sigh" bubble with a little cloud.
+```
+
+### V3-UI-03 가게 간판 / 로고
+```text
+Create a cute shop sign logo for a pet bathhouse named "Paws & Bubbles", 1024x512, transparent background: rounded wooden sign board in light wood #E8C9A0 with a bubbly hand-lettered title, a paw print and soap bubbles around it, pastel pink #FF9EC4 and sky blue #8FD3F4 accents. Also make a Korean version of the same sign with the title "멍냥 목욕탕".
+```
+
+### V3-ART-01 주인 6명
+```text
+Create 6 cute pet owner characters for a cozy shop game, each on a separate image, full body, front view, plain white background, no shadow: 2-head-tall toy proportions, simple dot eyes, rounded shapes, pastel clothes. Make them clearly different by hat and outfit color: (1) grandma with a knitted beanie, (2) office worker with a tie, (3) kid with a yellow raincoat, (4) sporty girl with a cap, (5) chef with an apron, (6) artist with a beret. Each holds out their hands as if passing a puppy. Same art style as the mood illustration.
+```
+
+### V3-ART-02 강아지 3D 변환용 그림
+```text
+Create a clean character reference image of the cute round cream puppy (same design as V3-PET-01) for converting into a 3D model: plain pure white background, no shadow, no ground, even soft lighting, the puppy sitting and facing the camera straight on, ears and tail clearly separated from the body (not overlapping the body outline), simple flat colors. Make 3 separate images: front view, side view, back view, same size and position.
+```
+
+### V3-TEX-01 텍스처
+```text
+Create seamless tileable 1024x1024 textures, flat hand-painted, no baked lighting: (1) short soft cream puppy fur #F5DEB3, (2) pastel mint bathroom wall tiles #DFF5EC with soft grout, (3) light wood planks #E8C9A0.
 ```
 
 ## 5. 검수 체크리스트
