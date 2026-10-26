@@ -1,18 +1,34 @@
 extends CanvasLayer
 ## 가게 화면 표시. 값은 동기화된 상태를 읽기만 한다 (판정은 호스트).
 
+const INTRO_TEXT := "더러운 손님을 씻기고(목욕) 말려서(말리기) 출구로! 젖은 손님은 도망가요."
 const HELP_TEXT := """[조작]
-WASD 이동 · Shift 달리기
-E 들기 / 내려놓기 · R 건네기 (가까운 빈손 동료에게)
+WASD 이동 · Shift 대시
+Space 들기 / 내려놓기 / 기계에 넣기 / 꺼내기 / 보내기
 Esc 메뉴 · F1 이 도움말"""
+const ACTION_TEXT := {
+	"pickup": "Space: %s 들기",
+	"drop": "Space: 내려놓기",
+	"load": "Space: %s에 넣기",
+	"unload": "Space: %s에서 꺼내기",
+	"deliver": "Space: 손님 보내기",
+}
 
 @onready var world: Node = get_parent()
 @onready var status_label: Label = $Status
 @onready var invite_button: Button = $InviteButton
+@onready var clock_label: Label = $TopPanel/Top/Clock
+@onready var score_label: Label = $TopPanel/Top/Score
+@onready var intro_label: Label = $Intro
 @onready var prompt_label: Label = $Bottom/Prompt
-@onready var stamina_bar: ProgressBar = $Bottom/StaminaBar
 @onready var help_label: Label = $Help
+@onready var results: Control = $Results
+@onready var results_label: Label = $Results/Box/Text
+@onready var stars_label: Label = $Results/Box/Stars
 @onready var pause_menu: Control = $PauseMenu
+
+var _intro_left := 0.0
+var _last_round := -1
 
 
 func _ready() -> void:
@@ -20,7 +36,10 @@ func _ready() -> void:
 	$PauseMenu/Box/Leave.pressed.connect(Net.leave_session)
 	invite_button.pressed.connect(Net.invite_friends)
 	pause_menu.hide()
+	results.hide()
 	help_label.text = HELP_TEXT
+	help_label.hide()
+	intro_label.text = INTRO_TEXT
 
 
 func is_paused() -> bool:
@@ -32,6 +51,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		_set_paused(not pause_menu.visible)
 	elif event.is_action_pressed("toggle_help"):
 		help_label.visible = not help_label.visible
+	elif results.visible and not is_paused() and event.is_pressed() and not event.is_echo() \
+			and (event is InputEventKey or event is InputEventJoypadButton):
+		# 결과 화면: 아무 키로 다시 시작
+		world.shop.send_restart()
+		get_viewport().set_input_as_handled()
 
 
 func _set_paused(paused: bool) -> void:
@@ -39,26 +63,34 @@ func _set_paused(paused: bool) -> void:
 	pause_menu.visible = paused
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
+	var shop: Node = world.shop
 	status_label.text = "%s · 플레이어 %d / %d · F1 조작" % [Net.status_text, world.get_players().size(), Net.MAX_PLAYERS]
 	invite_button.visible = Net.can_invite_friends()
+
+	if shop.round_id != _last_round:
+		_last_round = shop.round_id
+		_intro_left = Tuning.data.intro_text_time
+	_intro_left = maxf(_intro_left - delta, 0.0)
+	intro_label.visible = _intro_left > 0.0 and shop.is_open()
+
+	var seconds := ceili(shop.time_left)
+	clock_label.text = "%d:%02d" % [seconds / 60, seconds % 60]
+	score_label.text = "보낸 손님 %d · 화나서 나감 %d" % [shop.delivered, shop.angry]
+
+	results.visible = shop.phase == shop.Phase.RESULTS
+	if results.visible:
+		results_label.text = "영업 끝!\n\n보낸 손님  %d\n화나서 나간 손님  %d" % [shop.delivered, shop.angry]
+		stars_label.text = "★".repeat(shop.stars) + "☆".repeat(3 - shop.stars)
+
 	var me: Node = world.get_local_player()
-	if me == null:
-		return
-	var data: Resource = Tuning.data
-	stamina_bar.max_value = data.player_stamina
-	stamina_bar.value = me.stamina
-	stamina_bar.visible = me.stamina < data.player_stamina - 0.01
-	prompt_label.text = _prompt(me)
+	prompt_label.text = _prompt(me) if me != null and shop.is_open() else ""
 
 
 func _prompt(me: Node) -> String:
-	var rules: Node = world.carry_rules
-	var held: Node = rules.held_by(me.get_peer_id())
-	if held != null:
-		var text := "E: %s 내려놓기" % held.display_name
-		if rules.give_target(me) != null:
-			text += " · R: 건네기"
-		return text
-	var item: Node = rules.pickup_candidate(me)
-	return "E: %s 들기" % item.display_name if item != null else ""
+	var action: Dictionary = world.shop.use_action(me)
+	var kind: String = action.get("kind", "")
+	if kind.is_empty():
+		return ""
+	var text: String = ACTION_TEXT[kind]
+	return text % action.target.display_name if text.contains("%s") else text

@@ -1,13 +1,9 @@
 extends Node
-## 들기·놓기·건네기 규칙 (호스트 권한).
+## 들기·내려놓기 기본 규칙 (호스트 권한). 무엇을 할지(들기/기계에 넣기/보내기)는 Shop 이 정하고,
+## 실제로 들고 놓는 것은 여기서 한다.
 ##
-## 클라이언트는 send_request() 로 "하고 싶다"만 보낸다. 호스트가 거리·빈손 여부를 보고 판정해
-## Carryable.holder_peer 를 바꾸면 모든 피어에 퍼진다. 같은 물건을 두 사람이 동시에 집으려 해도
-## 호스트가 차례로 처리하므로 한 사람만 든다. 물건은 월드 기준 경로(문자열)로 가리킨다.
-
-const ACT_PICKUP := "pickup"
-const ACT_DROP := "drop"
-const ACT_GIVE := "give"
+## 판정은 수평 거리 + 앞쪽 부채꼴(TUNING_V2 player_interact_range, proto_interact_half_angle).
+## 거리는 화면에 그려진 위치가 아니라 각 플레이어가 마지막으로 보낸 위치(reported_position)로 잰다.
 
 @onready var world: Node = get_parent()
 
@@ -29,87 +25,53 @@ func held_by(peer_id: int) -> Node3D:
 	return null
 
 
-## 이 플레이어가 지금 집을 수 있는 가장 가까운 물건 (없으면 null). HUD 안내도 같은 판정을 쓴다.
+## 플레이어 앞쪽 부채꼴 안에 있는가 (아주 가까우면 방향 상관없음).
+func in_front(player: Node3D, pos: Vector3, max_range: float) -> bool:
+	var from: Vector3 = player.reported_position()
+	var distance := horizontal_distance(from, pos)
+	if distance > max_range:
+		return false
+	if distance < 0.5:
+		return true
+	var to := Vector2(pos.x - from.x, pos.z - from.z).normalized()
+	var facing := Vector2(-sin(player.net_yaw), -cos(player.net_yaw))
+	return rad_to_deg(facing.angle_to(to)) <= Tuning.data.proto_interact_half_angle \
+		and rad_to_deg(facing.angle_to(to)) >= -Tuning.data.proto_interact_half_angle
+
+
+## 이 플레이어가 지금 집을 수 있는 가장 가까운 물건 (없으면 null). 화면 안내도 같은 판정을 쓴다.
 func pickup_candidate(player: Node3D) -> Node3D:
 	if held_by(player.get_peer_id()) != null:
 		return null
 	var best: Node3D = null
-	var best_distance: float = Tuning.data.carry_pickup_range
+	var best_distance := INF
+	var reach: float = Tuning.data.player_interact_range
 	for item in carryables():
-		if item.is_held():
+		if not item.can_be_picked():
 			continue
-		var distance := horizontal_distance(player.reported_position(), item.global_position)
-		if distance <= best_distance:
+		var pos: Vector3 = item.floor_position()
+		if not in_front(player, pos, reach):
+			continue
+		var distance := horizontal_distance(player.reported_position(), pos)
+		if distance < best_distance:
 			best = item
 			best_distance = distance
 	return best
 
 
-## 건네받을 동료: give_range 안의 가장 가까운 빈손 플레이어.
-func give_target(player: Node3D) -> Node3D:
-	var best: Node3D = null
-	var best_distance: float = Tuning.data.carry_give_range
-	for other in world.get_players():
-		if other == player or held_by(other.get_peer_id()) != null:
-			continue
-		var distance := horizontal_distance(player.reported_position(), other.reported_position())
-		if distance <= best_distance:
-			best = other
-			best_distance = distance
-	return best
-
-
-## 클라이언트·호스트 공용 입구. 호스트는 바로 처리하고, 클라이언트는 호스트로 보낸다.
-func send_request(action: String, item: Node = null) -> void:
-	var item_path := String(world.get_path_to(item)) if item != null else ""
-	if Net.is_host():
-		_handle(multiplayer.get_unique_id(), action, item_path)
-	else:
-		request.rpc_id(1, action, item_path)
-
-
-@rpc("any_peer", "reliable")
-func request(action: String, item_path: String) -> void:
-	if Net.is_host():
-		_handle(multiplayer.get_remote_sender_id(), action, item_path)
-
-
-func _handle(sender: int, action: String, item_path: String) -> void:
-	var player: Node3D = world.get_player(sender)
-	if player == null:
-		return
-	var held := held_by(sender)
-	match action:
-		ACT_PICKUP:
-			var item := _find_item(item_path)
-			if item == null or item.is_held() or held != null:
-				return
-			if horizontal_distance(player.reported_position(), item.global_position) <= Tuning.data.carry_pickup_range:
-				item.holder_peer = sender
-		ACT_DROP:
-			if held != null:
-				drop(held, player)
-		ACT_GIVE:
-			var other := give_target(player)
-			if held != null and other != null:
-				held.holder_peer = other.get_peer_id()
+## 호스트 전용.
+func pick_up(item: Node3D, player: Node3D) -> void:
+	item.holder_peer = player.get_peer_id()
+	item.on_picked(player.get_peer_id())
 
 
 ## 호스트 전용: 든 사람 앞 바닥에 내려놓는다. 플레이어가 나갈 때도 쓴다.
 func drop(item: Node3D, player: Node3D) -> void:
 	var yaw: float = player.net_yaw  # 조종하는 피어가 보낸 방향 (화면에 그려진 방향은 조금 늦음)
-	var forward := -Basis(Vector3.UP, yaw).z
-	var pos: Vector3 = player.reported_position()
-	var floor_y := pos.y
-	if forward.length() > 0.01:
-		pos += forward.normalized() * Tuning.data.carry_drop_distance
-	item.ground_position = Vector3(pos.x, floor_y, pos.z)
+	var pos: Vector3 = player.reported_position() - Basis(Vector3.UP, yaw).z * Tuning.data.proto_drop_distance
+	if world.has_method("clamp_to_floor"):
+		pos = world.clamp_to_floor(pos)
+	item.ground_position = Vector3(pos.x, 0.0, pos.z)
 	item.ground_yaw = yaw
 	item.holder_peer = 0
-
-
-func _find_item(item_path: String) -> Node3D:
-	if item_path.is_empty():
-		return null
-	var item := world.get_node_or_null(NodePath(item_path))
-	return item if item != null and item.is_in_group("carryables") else null
+	item.on_dropped()

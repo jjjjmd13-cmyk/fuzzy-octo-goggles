@@ -1,7 +1,0 @@
-[gd_scene load_steps=2 format=3]
-
-[ext_resource type="Script" path="res://tests/net/test_carry_sync.gd" id="1_test"]
-
-[node name="CarrySyncTest" type="Node"]
-script = ExtResource("1_test")
-time_limit_sec = 60.0
