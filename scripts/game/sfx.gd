@@ -15,6 +15,13 @@ const SOUNDS := {
 	"yelp": preload("res://assets/sfx/yelp.wav"),  # 차가운 물에 펄쩍
 	"shake": preload("res://assets/sfx/shake.wav"),  # 몸 털기
 	"huff": preload("res://assets/sfx/huff.wav"),  # 기분 나쁨 (눈에 물, 드라이어 뜨거움)
+	"squirt": preload("res://assets/sfx/squirt.wav"),  # 샴푸 병 짜기
+	"pour": preload("res://assets/sfx/pour.wav"),  # 바가지 물 쏟기
+	"press": preload("res://assets/sfx/press.wav"),  # 수건 꾹
+	"clap": preload("res://assets/sfx/clap.wav"),  # 주인 박수 (😊)
+	"sigh": preload("res://assets/sfx/sigh.wav"),  # 주인 한숨 (😣)
+	"whine": preload("res://assets/sfx/whine.wav"),  # 강아지가 주인을 보며 낑낑
+	"bark": preload("res://assets/sfx/bark.wav"),  # 주인에게 달려감
 }
 const LOOPS := {
 	"shower": preload("res://assets/sfx/shower.wav"),  # 쏴아

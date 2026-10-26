@@ -1,11 +1,15 @@
 extends Control
-## HUD 위에 직접 그리는 것: 도구 커서, 기분 얼굴(😊😐😣), 물 온도 다이얼, 몸 털기 거품.
-## 그림은 임시 도형. 그래픽이 오면 이 파일의 _draw_* 만 바꾼다.
+## HUD 위에 직접 그리는 것: 도구 커서, 기분 얼굴(😊😐😣), 물 온도·드라이어 거리 다이얼, 회전판 화살표,
+## 주인 말풍선, 몸 털기 거품.
+## 그림은 임시 도형. assets/ui/ 에 그림이 있으면 그 그림을 쓴다 (face_*, bubble, icon_*, tool_*).
 
 const WashStation := preload("res://scripts/sim/wash_station.gd")
-const FACE_POS := Vector2(150, 360)
+const UiArt := preload("res://scripts/game/ui_art.gd")
+const FACE_POS := Vector2(150, 410)
 const FACE_RADIUS := 44.0
-const DIAL_RECT := Rect2(40, 430, 28, 220)
+const DIAL_RECT := Rect2(40, 490, 28, 200)
+const FACE_ART := ["face_unhappy", "face_neutral", "face_happy"]
+const TOOL_ART := ["tool_shower", "tool_bottle", "tool_hand", "tool_bucket", "tool_towel", "tool_dryer"]
 const FACE_COLORS: Array[Color] = [Color(0.95, 0.45, 0.4), Color(0.95, 0.8, 0.35), Color(0.5, 0.9, 0.5)]
 
 var _foam_left := 0.0
@@ -39,8 +43,14 @@ func _draw() -> void:
 	var station: WashStation = world.station
 	var at_bath: bool = world.local_seat() == 0
 	_draw_face(station.mood_face())
-	if at_bath and station.tool == WashStation.Tool.SHOWER:
-		_draw_dial(station.temperature)
+	if at_bath and station.owner_bubble_visible():
+		_draw_bubble(station)
+	if at_bath and station.is_washing():
+		if station.tool == WashStation.Tool.SHOWER:
+			_draw_dial(station.temperature)
+		elif station.tool == WashStation.Tool.DRYER:
+			_draw_distance(station)
+		_draw_arrows(station)
 	if _foam_left > 0.0:
 		var alpha := clampf(_foam_left / Tuning.data.proto_shake_screen_time * 1.5, 0.0, 1.0)
 		var color := Color(station.dog.foam_color, 0.85 * alpha)
@@ -52,6 +62,10 @@ func _draw() -> void:
 
 
 func _draw_face(level: int) -> void:
+	var picture := UiArt.texture(FACE_ART[level])
+	if picture != null:
+		draw_texture_rect(picture, Rect2(FACE_POS - Vector2.ONE * FACE_RADIUS, Vector2.ONE * FACE_RADIUS * 2.0), false)
+		return
 	draw_circle(FACE_POS, FACE_RADIUS, FACE_COLORS[level])
 	draw_arc(FACE_POS, FACE_RADIUS, 0, TAU, 48, Color.BLACK, 3.0)
 	var eye_y := FACE_POS.y - 10
@@ -86,44 +100,129 @@ func _draw_dial(temperature: float) -> void:
 	var y := bottom - height * temperature
 	draw_rect(Rect2(DIAL_RECT.position.x - 8, y - 4, DIAL_RECT.size.x + 16, 8), Color.WHITE)
 	var font := get_theme_default_font()
-	draw_string(font, Vector2(DIAL_RECT.position.x - 8, DIAL_RECT.position.y - 10), "물 온도 Q/E", HORIZONTAL_ALIGNMENT_LEFT, -1, 18)
+	draw_string(font, Vector2(DIAL_RECT.position.x - 8, DIAL_RECT.position.y - 10), "물 온도 (휠)", HORIZONTAL_ALIGNMENT_LEFT, -1, 18)
+
+
+## 주인 머리 위 말풍선: 목욕 + (복숭아 향)
+func _draw_bubble(station: WashStation) -> void:
+	var camera: Camera3D = hud.world.camera
+	var point: Vector3 = station.owner_bubble_point()
+	if camera.is_position_behind(point):
+		return
+	var center := camera.unproject_position(point)
+	var wants := station.wants_peach()
+	var size := Vector2(150 if wants else 90, 80)
+	var rect := Rect2(center - size / 2.0, size)
+	var bubble := UiArt.texture("bubble")
+	if bubble != null:
+		draw_texture_rect(bubble, rect.grow(10), false)
+	else:
+		draw_rect(rect, Color(1, 1, 1, 0.95))
+		draw_rect(rect, Color(0.2, 0.2, 0.3), false, 3.0)
+		draw_colored_polygon(PackedVector2Array([rect.position + Vector2(size.x * 0.4, size.y), rect.position + Vector2(size.x * 0.55, size.y), center + Vector2(-5, size.y * 0.5 + 22)]), Color(1, 1, 1, 0.95))
+	var slot := Vector2(rect.position.x + 45, center.y)
+	_draw_icon("icon_bath", slot, 30.0, func(c: Vector2) -> void:
+		# 임시 욕조 그림: 파란 반원 + 거품
+		draw_rect(Rect2(c + Vector2(-26, -4), Vector2(52, 22)), Color(0.56, 0.83, 0.96))
+		for k in 4:
+			draw_circle(c + Vector2(-18 + k * 12, -8 - (k % 2) * 6), 8, Color(1, 1, 1))
+			draw_arc(c + Vector2(-18 + k * 12, -8 - (k % 2) * 6), 8, 0, TAU, 12, Color(0.6, 0.7, 0.8), 1.5))
+	if wants:
+		_draw_icon("icon_peach", slot + Vector2(60, 0), 26.0, func(c: Vector2) -> void:
+			draw_circle(c, 22, Color(1.0, 0.7, 0.6))
+			draw_circle(c + Vector2(-6, -6), 8, Color(1.0, 0.82, 0.75))
+			draw_colored_polygon(PackedVector2Array([c + Vector2(2, -20), c + Vector2(18, -30), c + Vector2(10, -16)]), Color(0.4, 0.75, 0.4)))
+
+
+## 그림(assets/ui/<name>.png)이 있으면 그 그림, 없으면 fallback 으로 그린다
+func _draw_icon(art: String, center: Vector2, radius: float, fallback: Callable) -> void:
+	var picture := UiArt.texture(art)
+	if picture != null:
+		draw_texture_rect(picture, Rect2(center - Vector2.ONE * radius, Vector2.ONE * radius * 2.0), false)
+	else:
+		fallback.call(center)
+
+
+## 드라이어 거리: 가까움(위) ↔ 멂(아래), 빨간 칸 = 너무 가까움
+func _draw_distance(station: WashStation) -> void:
+	var data: Resource = Tuning.data
+	var range_m: PackedFloat32Array = data.dryer_distance_range
+	draw_rect(DIAL_RECT, Color(0.1, 0.1, 0.15, 0.8))
+	var near := inverse_lerp(range_m[0], range_m[1], data.proto_dryer_near)
+	draw_rect(Rect2(DIAL_RECT.position, Vector2(DIAL_RECT.size.x, DIAL_RECT.size.y * near)), Color(1.0, 0.4, 0.3, 0.8))
+	draw_rect(Rect2(DIAL_RECT.position + Vector2(0, DIAL_RECT.size.y * near), Vector2(DIAL_RECT.size.x, DIAL_RECT.size.y * (1.0 - near))), Color(0.56, 0.83, 0.96, 0.8))
+	var y := DIAL_RECT.position.y + DIAL_RECT.size.y * inverse_lerp(range_m[0], range_m[1], station.dryer_distance)
+	draw_rect(Rect2(DIAL_RECT.position.x - 8, y - 4, DIAL_RECT.size.x + 16, 8), Color.WHITE)
+	draw_rect(Rect2(DIAL_RECT.position.x - 8, y - 4, DIAL_RECT.size.x + 16, 8), Color.BLACK, false, 1.5)
+	var font := get_theme_default_font()
+	draw_string(font, Vector2(DIAL_RECT.position.x - 8, DIAL_RECT.position.y - 10), "거리 (휠)", HORIZONTAL_ALIGNMENT_LEFT, -1, 18)
+
+
+## 회전판 가장자리 화살표 (누르면 바로 돌림)
+func _draw_arrows(station: WashStation) -> void:
+	var points := station.turn_arrow_points()
+	for i in points.size():
+		var c := points[i]
+		var side := -1.0 if i == 0 else 1.0
+		var color := Color(1, 1, 1, 0.9) if station.turning_left == 0.0 else Color(1, 1, 1, 0.35)
+		draw_circle(c, 22, Color(0.2, 0.25, 0.35, 0.55))
+		draw_arc(c, 14, PI * 0.15, PI * 1.35, 16, color, 4.0)
+		var tip := c + Vector2(side * 14, 4)
+		draw_colored_polygon(PackedVector2Array([tip + Vector2(0, -9), tip + Vector2(side * 9, 4), tip + Vector2(-side * 6, 6)]), color)
 
 
 func _draw_cursor(station: WashStation, pos: Vector2) -> void:
 	var outline := Color(0, 0, 0, 0.8)
-	match station.tool:
-		WashStation.Tool.SHOWER:
-			var water := Color(0.4, 0.6, 1.0).lerp(Color(1.0, 0.45, 0.35), station.temperature)
-			draw_circle(pos + Vector2(14, -14), 16, Color(0.75, 0.78, 0.82))
-			draw_arc(pos + Vector2(14, -14), 16, 0, TAU, 24, outline, 2.0)
-			for i in 5:
-				var a := 0.6 + i * 0.22
-				var drop := pos + Vector2(cos(a + PI), sin(a + PI)).rotated(PI) * (6 + fmod(_time * 60.0 + i * 7, 18))
-				draw_circle(drop, 3, water)
-		WashStation.Tool.SHAMPOO:
-			if station.dose <= 0.0:
-				# 병 (누르면 짜짐)
-				var bottle := Color(1, 0.6, 0.78) if world_store_peach() else Color(0.95, 0.95, 1)
-				draw_rect(Rect2(pos + Vector2(-10, -8), Vector2(20, 34)), bottle)
-				draw_rect(Rect2(pos + Vector2(-10, -8), Vector2(20, 34)), outline, false, 2.0)
-				draw_rect(Rect2(pos + Vector2(-4, -18), Vector2(8, 10)), Color(0.3, 0.3, 0.35))
-			else:
-				# 손 (문지르기)
-				draw_circle(pos, 16, Color(1, 0.82, 0.68))
+	var picture := UiArt.texture(TOOL_ART[station.tool])
+	if picture != null and station.tool != WashStation.Tool.BOTTLE:
+		draw_texture_rect(picture, Rect2(pos + Vector2(-8, -56), Vector2(56, 56)), false)
+	else:
+		match station.tool:
+			WashStation.Tool.SHOWER:
+				var water := Color(0.4, 0.6, 1.0).lerp(Color(1.0, 0.45, 0.35), station.temperature)
+				draw_circle(pos + Vector2(26, -26), 16, Color(0.75, 0.78, 0.82))
+				draw_arc(pos + Vector2(26, -26), 16, 0, TAU, 24, outline, 2.0)
+				draw_circle(pos + Vector2(26, -26), 7, water)
+			WashStation.Tool.BOTTLE:
+				# 누르는 동안 병이 찌그러진다
+				var squash := 0.0
+				if station.squeezing:
+					squash = clampf(station.squeeze_time / Tuning.data.squeeze_max_time, 0.0, 1.0)
+				var width := 22.0 * (1.0 - squash * 0.45)
+				var bottle := Color(1, 0.6, 0.78) if world_store_peach() else Color(0.72, 0.89, 0.83)
+				var body := Rect2(pos + Vector2(-width / 2.0, -46), Vector2(width, 34))
+				if picture != null:
+					draw_texture_rect(picture, Rect2(pos + Vector2(-width, -64), Vector2(width * 2.0, 52)), false)
+				else:
+					draw_rect(body, bottle)
+					draw_rect(body, outline, false, 2.0)
+					draw_rect(Rect2(pos + Vector2(-4, -12), Vector2(8, 8)), Color(0.3, 0.3, 0.35))
+			WashStation.Tool.HAND:
+				var glove := Color(1.0, 0.85, 0.3)
+				draw_circle(pos, 16, glove)
 				for i in 4:
-					draw_rect(Rect2(pos + Vector2(-14 + i * 8, -32), Vector2(6, 18)), Color(1, 0.82, 0.68))
+					draw_rect(Rect2(pos + Vector2(-14 + i * 8, -32), Vector2(6, 18)), glove)
 				draw_arc(pos, 16, 0, TAU, 24, outline, 2.0)
-		WashStation.Tool.TOWEL:
-			draw_rect(Rect2(pos - Vector2(18, 14), Vector2(36, 28)), Color(0.98, 0.9, 0.55))
-			for i in 3:
-				draw_line(pos + Vector2(-18, -6 + i * 7), pos + Vector2(18, -6 + i * 7), Color(0.9, 0.6, 0.3), 2.0)
-			draw_rect(Rect2(pos - Vector2(18, 14), Vector2(36, 28)), outline, false, 2.0)
-		WashStation.Tool.DRYER:
-			draw_rect(Rect2(pos + Vector2(4, -10), Vector2(34, 20)), Color(0.9, 0.5, 0.65))
-			draw_rect(Rect2(pos + Vector2(24, 8), Vector2(10, 22)), Color(0.75, 0.4, 0.55))
-			draw_rect(Rect2(pos + Vector2(4, -10), Vector2(34, 20)), outline, false, 2.0)
-			var reach := 10.0 if station.dryer_close else 22.0
-			draw_arc(pos, reach, 0, TAU, 24, Color(1, 1, 1, 0.8), 2.0)
+				if station.circling:
+					draw_arc(pos, 30, 0, TAU, 24, Color(1, 1, 1, 0.8), 2.0)
+			WashStation.Tool.BUCKET:
+				draw_colored_polygon(PackedVector2Array([pos + Vector2(-22, -40), pos + Vector2(22, -40), pos + Vector2(15, -10), pos + Vector2(-15, -10)]), Color(0.56, 0.83, 0.96))
+				draw_polyline(PackedVector2Array([pos + Vector2(-22, -40), pos + Vector2(22, -40), pos + Vector2(15, -10), pos + Vector2(-15, -10), pos + Vector2(-22, -40)]), outline, 2.0)
+				draw_line(pos + Vector2(0, -6), pos + Vector2(0, 30), Color(1, 1, 1, 0.6), 2.0)
+				draw_colored_polygon(PackedVector2Array([pos + Vector2(-6, 24), pos + Vector2(6, 24), pos + Vector2(0, 36)]), Color(1, 1, 1, 0.6))
+			WashStation.Tool.TOWEL:
+				draw_rect(Rect2(pos - Vector2(20, 16), Vector2(40, 32)), Color(1.0, 0.62, 0.77))
+				draw_line(pos + Vector2(-20, 4), pos + Vector2(20, 4), Color(1, 1, 1), 3.0)
+				draw_rect(Rect2(pos - Vector2(20, 16), Vector2(40, 32)), outline, false, 2.0)
+			WashStation.Tool.DRYER:
+				draw_rect(Rect2(pos + Vector2(4, -10), Vector2(34, 20)), Color(0.56, 0.83, 0.96))
+				draw_rect(Rect2(pos + Vector2(24, 8), Vector2(10, 22)), Color(1.0, 0.42, 0.42))
+				draw_rect(Rect2(pos + Vector2(4, -10), Vector2(34, 20)), outline, false, 2.0)
+	if station.tool == WashStation.Tool.DRYER:
+		# 바람이 닿는 넓이 (가까울수록 좁고 셈)
+		var range_m: PackedFloat32Array = Tuning.data.dryer_distance_range
+		var reach := lerpf(10.0, 34.0, inverse_lerp(range_m[0], range_m[1], station.dryer_distance))
+		draw_arc(pos, reach, 0, TAU, 24, Color(1, 1, 1, 0.8), 2.0)
 	draw_circle(pos, 3, Color.WHITE)
 	if station.hitting:
 		draw_arc(pos, 8, 0, TAU, 16, Color(1, 1, 0.5, 0.9), 2.0)

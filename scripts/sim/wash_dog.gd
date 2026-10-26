@@ -36,6 +36,10 @@ var _drop_mesh: MultiMeshInstance3D
 var _drips: CPUParticles3D
 var _splash: CPUParticles3D
 var _spray: CPUParticles3D
+var _pour: CPUParticles3D
+var _press: CPUParticles3D
+var _stream: MeshInstance3D
+var _glob: MeshInstance3D
 
 
 func _ready() -> void:
@@ -48,6 +52,45 @@ func _ready() -> void:
 	_spray.spread = 80.0
 	_spray.initial_velocity_min = 0.6
 	_spray.initial_velocity_max = 1.4
+	_pour = _make_particles(Color(0.36, 0.75, 0.92), 0.02, true)
+	_pour.amount = 60
+	_pour.direction = Vector3.DOWN
+	_pour.spread = 15.0
+	_pour.lifetime = 0.7
+	_press = _make_particles(Color(0.36, 0.75, 0.92), 0.012, true)
+	_press.amount = 10
+	_press.direction = Vector3.DOWN
+	_press.initial_velocity_min = 0.2
+	_press.initial_velocity_max = 0.6
+	# 샤워기 물줄기 (노즐 → 맞는 곳)
+	_stream = MeshInstance3D.new()
+	var tube := CylinderMesh.new()
+	tube.top_radius = 0.006
+	tube.bottom_radius = 0.014
+	tube.height = 1.0
+	tube.radial_segments = 8
+	_stream.mesh = tube
+	var water := StandardMaterial3D.new()
+	water.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	water.albedo_color = Color(0.5, 0.8, 1.0, 0.55)
+	water.emission_enabled = true
+	water.emission = Color(0.3, 0.6, 0.9)
+	water.emission_energy_multiplier = 0.4
+	_stream.material_override = water
+	_stream.visible = false
+	add_child(_stream)
+	# 짜는 중인 샴푸 덩이
+	_glob = MeshInstance3D.new()
+	var blob := SphereMesh.new()
+	blob.radius = 0.5
+	blob.height = 1.0
+	_glob.mesh = blob
+	var glob_material := StandardMaterial3D.new()
+	glob_material.albedo_color = Color(1, 1, 1)
+	glob_material.roughness = 0.3
+	_glob.material_override = glob_material
+	_glob.visible = false
+	add_child(_glob)
 
 
 ## 새 손님. pattern = 진흙 무늬 종류, seed 는 무늬 위치 (모든 피어에서 같은 모양이 나옴).
@@ -150,7 +193,7 @@ func react(method: String, arg: Variant = null) -> void:
 
 
 ## 거품 공을 붙인다 (모형 기준 위치 근처, 몸 바깥쪽으로 조금 띄움).
-func add_foam(world_point: Vector3, count: int, rng: RandomNumberGenerator) -> void:
+func add_foam(world_point: Vector3, count: int, rng: RandomNumberGenerator, size_scale: float = 1.0) -> void:
 	var local := to_model(world_point)
 	var outward := (local - _body_center()).normalized()
 	for i in count:
@@ -160,7 +203,7 @@ func add_foam(world_point: Vector3, count: int, rng: RandomNumberGenerator) -> v
 			_foam_size.remove_at(0)
 		var jitter := Vector3(rng.randf_range(-1, 1), rng.randf_range(-1, 1), rng.randf_range(-1, 1)) * 0.05
 		_foam_pos.append(local + outward * 0.02 + jitter)
-		_foam_size.append(rng.randf_range(0.018, 0.03))
+		_foam_size.append(rng.randf_range(0.018, 0.03) * size_scale)
 	_update_foam_mesh()
 
 
@@ -244,6 +287,62 @@ func clear_foam() -> void:
 func set_foam_color(color: Color) -> void:
 	foam_color = color
 	_update_foam_mesh()
+
+
+## 샤워기 물줄기를 from → to 로 보인다 (색 = 물 온도)
+func show_stream(from: Vector3, to: Vector3, color: Color) -> void:
+	var length := from.distance_to(to)
+	if length < 0.01:
+		return
+	_stream.visible = true
+	var up := (from - to).normalized()
+	var side := up.cross(Vector3.FORWARD if absf(up.dot(Vector3.FORWARD)) < 0.9 else Vector3.RIGHT).normalized()
+	_stream.global_transform = Transform3D(Basis(side, up, side.cross(up)).scaled(Vector3(1, length, 1)), (from + to) / 2.0)
+	(_stream.material_override as StandardMaterial3D).albedo_color = Color(color, 0.55)
+
+
+func hide_stream() -> void:
+	if _stream != null:
+		_stream.visible = false
+
+
+## 짜는 중인 샴푸 덩이 (amount = 0~1, 클수록 큼)
+func show_glob(world_point: Vector3, amount: float) -> void:
+	_glob.visible = true
+	_glob.global_position = world_point + Vector3(0, 0.03 + amount * 0.04, 0)
+	_glob.scale = Vector3.ONE * (0.02 + amount * 0.09)
+	(_glob.material_override as StandardMaterial3D).albedo_color = foam_color
+
+
+func hide_glob() -> void:
+	if _glob != null:
+		_glob.visible = false
+
+
+## 너무 많이 짜서 거품이 흘러내림 (아래로 거품 줄)
+func overflow_foam(world_point: Vector3, rng: RandomNumberGenerator) -> void:
+	for i in 6:
+		add_foam(world_point - Vector3(0, i * 0.04, 0), 2, rng, 1.3)
+
+
+## 바가지 물이 쏟아짐 (띠 위 여러 곳)
+func pour_effect(points: Array[Vector3]) -> void:
+	if points.is_empty():
+		return
+	var top := points[0]
+	for p in points:
+		if p.y > top.y:
+			top = p
+	_pour.global_position = top + Vector3(0, 0.15, 0)
+	_pour.restart()
+	_pour.emitting = true
+
+
+## 수건으로 꾹 눌러 물이 짜임
+func press_effect(world_point: Vector3) -> void:
+	_press.global_position = world_point
+	_press.restart()
+	_press.emitting = true
 
 
 ## 진흙 물이 흘러내림 (적시는 곳에 진흙이 있을 때)

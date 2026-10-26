@@ -22,13 +22,13 @@ extends Resource
 @export var fluff_shader_amount := 1.0
 
 @export_group("도구")
-@export var tool_shower_radius := 0.18
+@export var tool_shower_radius := 0.24
 @export var tool_shower_rate := 1.2
 ## 온도 다이얼 '좋음' 범위 [최소, 최대] (0~1)
 @export var tool_shower_temp_good := PackedFloat32Array([0.35, 0.7])
 @export var tool_shampoo_dose := 1
 @export var tool_shampoo_uses_per_bottle := 8
-@export var tool_scrub_radius := 0.15
+@export var tool_scrub_radius := 0.2
 ## 초당 진행 = 이 값 × 손 속도 (m/s)
 @export var tool_scrub_rate_per_speed := 0.9
 @export var tool_scrub_rate_max := 1.5
@@ -79,6 +79,54 @@ extends Resource
 @export var proto_blink_interval := 1.5
 ## 헹구기가 끝나면 몸에 붙는 물방울 수 (수건·드라이어로 닦은 곳부터 사라짐)
 @export var proto_water_drops := 70
+
+@export_group("두 번째 반복 (TUNING_V3 8장)")
+## 단계별 목표 시간: 적시기·샴푸 짜기·문지르기·헹구기·수건·드라이어 (s)
+@export var stage_target_seconds := PackedFloat32Array([12, 3, 15, 10, 10, 15])
+## 샴푸 병을 이만큼 누르면 덩이 최대 (s)
+@export var squeeze_max_time := 1.5
+## 최대 덩이로 문지를 수 있는 몸 비율
+@export var squeeze_coverage_max := 0.6
+## 이보다 많이 짜면 거품이 흘러내리고 병 사용 횟수 1 더 씀 (비율)
+@export var squeeze_overflow_at := 0.4
+## 원 그리기로 인정하는 최소 누적 각도 (°)
+@export var scrub_circle_min_angle := 270.0
+## 원이 아닌 왕복 문지르기의 거품 속도 배율
+@export var scrub_back_forth_rate := 0.2
+## 위→아래로 이만큼(화면 높이 비율) 끌어야 바가지가 쏟아짐
+@export var rinse_pour_min_drag := 0.25
+## 한 번 쏟을 때 씻기는 띠 폭 (m)
+@export var rinse_pour_band_width := 0.3
+## 수건 한 번 누를 때 닦이는 반경 (m)
+@export var towel_press_area := 0.12
+## 수건 연타 최소 간격 (s)
+@export var towel_press_cooldown := 0.12
+## 드라이어 거리 범위 (m)
+@export var dryer_distance_range := PackedFloat32Array([0.08, 0.5])
+## 드라이어 휠 한 칸 (m)
+@export var dryer_wheel_step := 0.04
+## 보이는 쪽이 이만큼 되면 강아지가 저절로 돎
+@export var auto_turn_visible_ratio := 0.85
+## 저절로 도는 시간 (s)
+@export var auto_turn_time := 1.2
+## 주인 모양 수
+@export var owner_variants := 6
+## 끝나고 주인 반응 연출 길이 (s)
+@export var owner_reaction_time := 2.5
+## 강아지가 주인 쪽을 보는 간격 (s, 무작위)
+@export var dog_look_owner_interval := PackedFloat32Array([3, 6])
+
+@export_group("두 번째 반복 임시 값 (개발팀)")
+## 주인이 강아지를 안고 들어와 내려놓기까지 (s)
+@export var proto_owner_arrive_time := 2.5
+## 강아지가 주인에게 달려가고 주인이 나가기까지 (s)
+@export var proto_owner_leave_time := 1.5
+## 물 온도 휠 한 칸
+@export var proto_temp_wheel_step := 0.1
+## 드라이어 처음 거리 (m)
+@export var proto_dryer_start_distance := 0.32
+## 저절로·화살표로 한 번에 도는 각도 (°)
+@export var proto_turn_step := 90.0
 
 
 ## 기분 0~1 → 얼굴 단계 0(😣) / 1(😐) / 2(😊)

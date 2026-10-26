@@ -36,6 +36,8 @@ var _look := Vector2.ZERO
 var _watch_point: Variant = null
 var _watch_spray := false
 var _head_rest := Vector3.ZERO
+## 드라이어 바람 세기 (0~1, 잠깐씩 갱신)
+var _blow := 0.0
 
 
 func _ready() -> void:
@@ -52,8 +54,14 @@ func watch(point: Variant, spraying: bool) -> void:
 	_watch_spray = spraying
 
 
+## 드라이어 바람 (작업대가 바람이 닿는 동안 부름): 가까울수록(closeness 1) 귀·꼬리가 세게 날림
+func blow(closeness: float) -> void:
+	_blow = maxf(_blow, 0.3 + closeness * 0.7)
+
+
 func _process(delta: float) -> void:
 	_t += delta
+	_blow = maxf(_blow - delta * 3.0, 0.0)
 	_leg_wiggle = maxf(_leg_wiggle - delta, 0.0)
 	_cheek_flap = maxf(_cheek_flap - delta, 0.0)
 	_jump = maxf(_jump - delta, 0.0)
@@ -94,7 +102,7 @@ func _process(delta: float) -> void:
 	# 귀: 기분이 나쁘면 처지고, 드라이어·볼 펄럭이면 팔랑
 	for i in _ear_pivots.size():
 		var side := -1.0 if i == 0 else 1.0
-		var flutter := sin(_t * 45.0 + i) * 0.35 * signf(_cheek_flap)
+		var flutter := sin(_t * 45.0 + i) * (0.35 * signf(_cheek_flap) + 0.45 * _blow)
 		_ear_pivots[i].rotation.z = side * (EAR_TILT[_mood] + flutter)
 		_ear_pivots[i].rotation.x = -0.2 + sin(_t * 30.0 + i) * 0.3 * _shake
 
@@ -111,7 +119,7 @@ func _process(delta: float) -> void:
 	var wag: Array = TAIL_WAG[_mood]
 	for i in _tail_segments.size():
 		var segment := _tail_segments[i]
-		segment.rotation.z = sin(_t * wag[0] - i * 0.7) * wag[1] + sin(_t * 40.0 - 2.0 - i) * 0.5 * _shake
+		segment.rotation.z = sin(_t * wag[0] - i * 0.7) * wag[1] + sin(_t * 40.0 - 2.0 - i) * (0.5 * _shake + 0.25 * _blow)
 		segment.rotation.x = wag[2] * (0.5 if i == 0 else 0.3) + (-0.9 if i == 0 else 0.0)
 
 	# 앞다리 찰랑

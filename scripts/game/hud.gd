@@ -4,11 +4,14 @@ extends CanvasLayer
 ## 커서 모양·기분 얼굴·온도 다이얼·몸 털기 거품은 Overlay(hud_overlay.gd)가 그린다.
 
 const WashStation := preload("res://scripts/sim/wash_station.gd")
-const HELP_TEXT := """[조작]
-왼쪽 버튼(패드 RT) 도구 쓰기 · 오른쪽 드래그(오른쪽 스틱, A/D) 돌리기
-1~4 / 휠(패드 ◀▶) 도구 · Q/E(패드 ▲▼) 물 온도
-Shift(패드 B) 드라이어 가까이 · Tab(패드 LB) 자리 바꾸기
-Esc 메뉴 · F1 이 도움말"""
+const UiArt := preload("res://scripts/game/ui_art.gd")
+const TOOL_ART := ["tool_shower", "tool_bottle", "tool_hand", "tool_bucket", "tool_towel", "tool_dryer"]
+const HELP_TEXT := """[조작 — 마우스 하나로]
+왼쪽 버튼(패드 RT) 도구 쓰기 — 단계마다 쓰는 법이 달라요
+휠(패드 오른쪽 스틱 ▲▼) 물 온도 · 드라이어 거리
+도구는 저절로 바뀌어요 (오른쪽 아래 도구걸이로 직접 바꿀 수도)
+강아지는 저절로 돌아요 (회전판 양쪽 화살표로 바로 돌리기)
+Tab(패드 LB·RB) 자리 바꾸기 · Esc 메뉴 · F1 이 도움말"""
 
 @onready var world: Node = get_parent()
 @onready var status_label: Label = $Status
@@ -48,10 +51,18 @@ func _ready() -> void:
 	help_label.hide()
 	for i in WashStation.TOOL_NAMES.size():
 		var button := Button.new()
-		button.text = "%d %s" % [i + 1, WashStation.TOOL_NAMES[i]]
+		button.text = WashStation.TOOL_NAMES[i]
 		button.focus_mode = Control.FOCUS_NONE
 		button.toggle_mode = true
-		button.custom_minimum_size = Vector2(124, 60)
+		button.custom_minimum_size = Vector2(96, 60)
+		# 도구 아이콘 그림이 있으면 (assets/ui/tool_*.png) 글자 위에 붙인다
+		var icon := UiArt.texture(TOOL_ART[i])
+		if icon != null:
+			button.icon = icon
+			button.expand_icon = true
+			button.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			button.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+			button.custom_minimum_size = Vector2(96, 96)
 		button.pressed.connect(func() -> void: world.select_tool(i))
 		tool_bar.add_child(button)
 		_tool_buttons.append(button)
@@ -60,6 +71,16 @@ func _ready() -> void:
 		label.theme_type_variation = &"PromptLabel"
 		card_steps.add_child(label)
 		_step_labels.append(label)
+	# 요청 카드 바탕 그림 (assets/ui/card.png)
+	var card_picture := UiArt.texture("card")
+	if card_picture != null:
+		var style := StyleBoxTexture.new()
+		style.texture = card_picture
+		style.content_margin_left = 24
+		style.content_margin_top = 20
+		style.content_margin_right = 24
+		style.content_margin_bottom = 20
+		$Card.add_theme_stylebox_override("panel", style)
 	world.get_node("WashStation").screen_foam.connect(overlay.show_foam)
 
 
@@ -97,13 +118,13 @@ func _process(_delta: float) -> void:
 		_step_labels[i].text = "%s %s" % ["✓" if done else ("▶" if current else "·"), WashStation.STAGE_NAMES[i]]
 		_step_labels[i].modulate = Color(0.55, 1, 0.6) if done else (Color(1, 1, 1) if current else Color(0.7, 0.7, 0.7))
 
-	tool_bar.visible = at_bath
+	tool_bar.visible = at_bath and station.is_washing()
 	for i in _tool_buttons.size():
 		_tool_buttons[i].button_pressed = i == station.tool
 	var hint: String = station.next_hint() if at_bath else ""
 	if at_bath and not station.is_operator() and station.stage < WashStation.Stage.PAY:
 		hint = "다른 사람이 씻기는 중이에요 (구경 중)"
-	var warning: bool = at_bath and station.eye_warning_left > 0.0
+	var warning: bool = at_bath and station.eye_warning_left > 0.0 and station.overflow_left <= 0.0
 	if warning:
 		hint = "앗, 눈에 물이 들어갔어요! 얼굴(눈)은 피해서 씻어 주세요"
 	hint_label.add_theme_color_override("font_color", Color(1, 0.5, 0.45) if warning else Color(1, 0.92, 0.55))
