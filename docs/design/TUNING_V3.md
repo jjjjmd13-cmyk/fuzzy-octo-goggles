@@ -127,6 +127,24 @@
 | `owner_reaction_time` | 2.5 | s | 1-2 | 끝나고 주인 반응 연출 길이 |
 | `dog_look_owner_interval` | [3, 6] | s | 1-2 | 강아지가 주인 쪽을 보는 간격 (무작위) |
 
+## 9. 수직 단면 (`slice_*`) — 초안 ([MILESTONE_V3_SLICE.md](MILESTONE_V3_SLICE.md))
+
+> 8장처럼 ✅ 없이 초안. 개발팀이 리소스에 넣을 때 ✅ 로.
+
+| 키 | 값 | 단위 | 시제품 | 설명 |
+|---|---|---|---|---|
+| `slice_days` | 3 | 일 | 단면 | |
+| `slice_guests_per_day` | [4, 5, 6] | 명 | 단면 | 1·2·3일차 |
+| `slice_queue_seats` | 3 | 자리 | 단면 | 대기 의자 |
+| `slice_owner_patience` | 150 | s | 단면 | 의자에 앉아서 떠나기까지 (창가 화분 있으면 ×1.2) |
+| `slice_cat_price` | 45 | 돈 | 단면 | 고양이 요금 (강아지 `money_wash_price` 30) |
+| `slice_cat_temp_good` | [0.45, 0.6] | 0~1 | 단면 | 고양이 온도 '좋음' 범위 |
+| `slice_timid_temp_good` | [0.5, 0.6] | 0~1 | 단면 | 겁쟁이 온도 '좋음' 범위 |
+| `slice_price_wide_shower` | 150 | 돈 | 단면 | 넓은 샤워기 |
+| `slice_wide_shower_mult` | 1.5 | 배 | 단면 | 적시기·헹구기 붓 반경 |
+| `slice_price_plant` | 80 | 돈 | 단면 | 창가 화분 |
+| `slice_plant_patience_mult` | 1.2 | 배 | 단면 | |
+
 ## 바꾼 기록
 
 | 날짜 | 키 | 전 → 후 | 이유 |
@@ -137,3 +155,4 @@
 | 2026-10-26 | 2·3장 | `stage_complete_ratio` 0.9 → 0.85, `tool_shower_radius` 0.12 → 0.18, `tool_scrub_radius` 0.10 → 0.15 (한 단계 약 20초. QA #29 측정: 적시기 90초에 86%) | 대표 요청, 개발팀 측정 (`tests/game/test_wash_pace`) |
 | 2026-10-26 | `proto_eye_cooldown`, 7장 새 키 | 1.0 → 3.0, `proto_blink_interval` 1.5·`proto_water_drops` 70 (새로) | QA #29 측정 (눈 벌점이 너무 잦음), 대표 요청 (남은 곳 반짝 되풀이, 수건 물방울) |
 | 2026-10-26 | 8장 (새로, 초안) | — | 플레이 테스트 3: 단계마다 다른 손동작·한 손 조작·주인 손님 (GDD_V3 0.3) |
+| 2026-10-26 | 9장 `slice_*` (새로, 초안) | — | 수직 단면 범위 (MILESTONE_V3_SLICE) |
