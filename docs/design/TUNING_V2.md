@@ -55,6 +55,7 @@
 | `puddle_max` | 20 | 개 | ✅ | 넘으면 가장 오래된 것부터 없앰 |
 | `puddle_slide_distance` | 2.5 | m | ✅ | 밟으면 진행 방향으로 미끄러짐 |
 | `puddle_slide_time` | 0.6 | s | ✅ | 그동안 조작 불가 (들고 있던 것은 그대로) |
+| `puddle_affects_guests` | false | bool | ✅ | 동물(손님)은 웅덩이에서 미끄러지지 않음 — 플레이어만 |
 
 ## 3. 기계 (`machine_*`)
 
