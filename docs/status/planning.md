@@ -1,23 +1,15 @@
 # 기획팀 상태
 
-**지금 하는 일**: 시제품(PR #12) 검토 반영 — TUNING.md 를 시제품 구현에 맞춤 (`planning/tuning-proto`). 다음: 소리 방향 문서
+**지금 하는 일**: 새 콘셉트 3안 제안 (`planning/concepts-v2`, `docs/design/CONCEPTS_V2.md`) — 대표 선택 대기
 
 **끝낸 일**:
-- 게임 콘셉트 3개 제안 → **B. 등불 원정대 선택됨 (2026-10-25)**
-- 상세 기획서 `docs/design/GDD.md` 0.1판, ChatGPT 그래픽 요청문 `docs/art/CHATGPT_PROMPTS.md`
-- GDD 15장 결정 반영 (실패 패널티는 첫 테스트 후 결정, 일정은 단계 + 완료 조건)
-- 글꼴 결정 `docs/design/FONT.md` — Pretendard (OFL 1.1) + Noto Sans CJK fallback
-- 시제품 플레이 테스트지 `docs/design/PLAYTEST_PROTOTYPE.md` (질문 10개 + 답별 분기, 실패 패널티 결정표)
-- 수치표 `docs/design/TUNING.md` (GDD 수치를 리소스 키·단위·초기값으로 정리, 시제품용 표시)
-- 시제품 PR #12 의 '기획 문서에 없어서 정한 것' 검토 → 모두 동의 (PR 코멘트). TUNING 에 `party_*` 배열·`proto_*` 4개 반영, GDD 5.5 부활 조건 문장 명확히
+- 1차 콘셉트 3안 → B. 등불 원정대 선택 → 기획서·수치표·플레이 테스트지·글꼴 결정
+- 플레이 테스트 1 (2026-10-26) 정리 `docs/design/playtest/2026-10-26.md`
+- **등불 원정대 접음 (2026-10-26, 사람 대표 결정).** 시제품 2차 PR #19 는 닫음. 기존 문서(GDD·TUNING·PLAYTEST)는 기록으로 남김
+- 새 콘셉트 3안: A. 멍냥 목욕탕 (추천) / B. 데굴데굴 눈사람 / C. 장난감 대탈출
+- 글꼴 결정 `docs/design/FONT.md` (Pretendard + Noto Sans CJK) 은 새 게임에도 그대로 씀
 
 **막힌 것**: 없음
 
 **다른 부서에 요청**:
-- 개발팀:
-  - GDD 13장 첫 시제품. 수치는 `docs/design/TUNING.md` 키 이름대로 리소스 한 곳에서 읽게 (제안 경로 `res://data/balance/balance.tres`)
-  - 시제품에 디버그 키: 시작 기름 30으로 바꾸기 (플레이 테스트 2판째에 씀)
-  - 글꼴 파일 추가 (`docs/design/FONT.md` "개발팀 요청" 5개). 원본 파일을 고치지 말 것 (OFL 예약 글꼴 이름)
-- QA:
-  - 절차 생성 결정성 테스트 (GDD 9.4) — 생성기가 생긴 뒤
-  - `docs/qa/TEST_PLAN.md` 의 "늦게 들어오기"(JOIN, LANT-3x): GDD 3장에서 데모는 원정 도중 참가(난입) 없음, 로비에서만 참가. 데모 범위에 맞춰 우선순위 조정 부탁 (정식판 후보로 남겨 두는 건 좋음)
+- 개발팀: 새 콘셉트가 정해질 때까지 등불 원정대 기능 추가는 멈춤 (대표 세션이 전달함). 네트워크 기반·들기/놓기 구조는 새 게임에서 다시 쓸 예정
