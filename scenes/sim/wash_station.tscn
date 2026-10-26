@@ -1,0 +1,105 @@
+[gd_scene load_steps=12 format=3 uid="uid://b7washstat01"]
+
+[ext_resource type="Script" path="res://scripts/sim/wash_station.gd" id="1_station"]
+[ext_resource type="Script" path="res://scripts/sim/wash_dog.gd" id="2_dog"]
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_table"]
+albedo_color = Color(0.85, 0.88, 0.92, 1)
+metallic = 0.4
+roughness = 0.35
+
+[sub_resource type="BoxMesh" id="BoxMesh_table"]
+material = SubResource("StandardMaterial3D_table")
+size = Vector3(1.6, 0.9, 1.1)
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_plate"]
+albedo_color = Color(0.45, 0.7, 0.85, 1)
+roughness = 0.5
+
+[sub_resource type="CylinderMesh" id="CylinderMesh_plate"]
+material = SubResource("StandardMaterial3D_plate")
+top_radius = 0.48
+bottom_radius = 0.5
+height = 0.04
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_rack"]
+albedo_color = Color(0.35, 0.38, 0.45, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_rack"]
+material = SubResource("StandardMaterial3D_rack")
+size = Vector3(0.12, 0.7, 0.9)
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_station"]
+properties/0/path = NodePath(".:dog_info")
+properties/0/spawn = true
+properties/0/replication_mode = 2
+properties/1/path = NodePath(".:stage")
+properties/1/spawn = true
+properties/1/replication_mode = 2
+properties/2/path = NodePath(".:ratio")
+properties/2/spawn = true
+properties/2/replication_mode = 2
+properties/3/path = NodePath(".:mood")
+properties/3/spawn = true
+properties/3/replication_mode = 2
+properties/4/path = NodePath(".:operator")
+properties/4/spawn = true
+properties/4/replication_mode = 2
+properties/5/path = NodePath(".:yaw")
+properties/5/spawn = true
+properties/5/replication_mode = 2
+properties/6/path = NodePath(".:coins")
+properties/6/spawn = true
+properties/6/replication_mode = 2
+properties/7/path = NodePath(".:used_peach")
+properties/7/spawn = true
+properties/7/replication_mode = 2
+properties/8/path = NodePath(".:dogs_done")
+properties/8/spawn = true
+properties/8/replication_mode = 2
+
+[sub_resource type="BoxMesh" id="BoxMesh_drain"]
+material = SubResource("StandardMaterial3D_rack")
+size = Vector3(1.5, 0.02, 1.0)
+
+[node name="WashStation" type="Node3D"]
+script = ExtResource("1_station")
+
+[node name="Table" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+mesh = SubResource("BoxMesh_table")
+
+[node name="Drain" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 0)
+mesh = SubResource("BoxMesh_drain")
+
+[node name="ToolRack" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.9, 1.25, -0.1)
+mesh = SubResource("BoxMesh_rack")
+
+[node name="Turntable" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.92, 0)
+
+[node name="Plate" type="MeshInstance3D" parent="Turntable"]
+mesh = SubResource("CylinderMesh_plate")
+
+[node name="Dog" type="Node3D" parent="Turntable"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.02, 0)
+script = ExtResource("2_dog")
+
+[node name="CameraPoint" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.05, 1.55)
+
+[node name="LookTarget" type="Marker3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0.05)
+
+[node name="Lamp" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.4, 2.3, 0.6)
+light_energy = 0.3
+omni_range = 3.0
+
+[node name="Coins" type="Node3D" parent="."]
+
+[node name="StationSync" type="MultiplayerSynchronizer" parent="."]
+replication_interval = 0.05
+replication_config = SubResource("SceneReplicationConfig_station")

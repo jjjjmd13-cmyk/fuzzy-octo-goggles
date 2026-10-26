@@ -1,7 +1,7 @@
 [gd_scene load_steps=4 format=3 uid="uid://b7hud00000001"]
 
 [ext_resource type="Script" path="res://scripts/game/hud.gd" id="1_hud"]
-[ext_resource type="Script" path="res://scripts/game/guest_overlay.gd" id="2_overlay"]
+[ext_resource type="Script" path="res://scripts/game/hud_overlay.gd" id="2_overlay"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_band"]
 bg_color = Color(0.05, 0.07, 0.12, 0.78)
@@ -17,20 +17,15 @@ content_margin_bottom = 8.0
 [node name="HUD" type="CanvasLayer"]
 script = ExtResource("1_hud")
 
-[node name="GuestOverlay" type="Control" parent="."]
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-mouse_filter = 2
-script = ExtResource("2_overlay")
-
 [node name="Status" type="Label" parent="."]
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
 offset_left = 16.0
-offset_top = 12.0
-offset_right = 760.0
-offset_bottom = 40.0
+offset_top = -30.0
+offset_right = 700.0
+offset_bottom = -6.0
+grow_vertical = 0
 theme_type_variation = &"SmallLabel"
 
 [node name="InviteButton" type="Button" parent="."]
@@ -44,116 +39,159 @@ offset_bottom = 56.0
 grow_horizontal = 0
 text = "친구 초대"
 
-[node name="TopPanel" type="PanelContainer" parent="."]
+[node name="SeatButton" type="Button" parent="."]
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -276.0
+offset_top = 64.0
+offset_right = -16.0
+offset_bottom = 108.0
+grow_horizontal = 0
+focus_mode = 0
+
+[node name="Card" type="PanelContainer" parent="."]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 286.0
+offset_bottom = 300.0
+mouse_filter = 2
+
+[node name="Box" type="VBoxContainer" parent="Card"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Card/Box"]
+layout_mode = 2
+theme_type_variation = &"PromptLabel"
+
+[node name="Request" type="Label" parent="Card/Box"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.65, 0.8, 1)
+text = "복숭아 향으로 부탁해요"
+
+[node name="Steps" type="VBoxContainer" parent="Card/Box"]
+layout_mode = 2
+
+[node name="Money" type="Label" parent="."]
 anchors_preset = 5
 anchor_left = 0.5
 anchor_right = 0.5
-offset_left = -240.0
-offset_top = 6.0
-offset_right = 240.0
-offset_bottom = 96.0
+offset_left = -110.0
+offset_top = 12.0
+offset_right = 110.0
+offset_bottom = 60.0
 grow_horizontal = 2
-mouse_filter = 2
-
-[node name="Top" type="VBoxContainer" parent="TopPanel"]
-layout_mode = 2
-
-[node name="Clock" type="Label" parent="TopPanel/Top"]
-layout_mode = 2
-theme_type_variation = &"TitleLabel"
+theme_type_variation = &"PromptLabel"
+theme_override_styles/normal = SubResource("StyleBoxFlat_band")
 horizontal_alignment = 1
 
-[node name="Score" type="Label" parent="TopPanel/Top"]
-layout_mode = 2
-horizontal_alignment = 1
+[node name="ToolBar" type="HBoxContainer" parent="."]
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -560.0
+offset_top = -84.0
+offset_right = -16.0
+offset_bottom = -16.0
+grow_horizontal = 0
+grow_vertical = 0
+alignment = 2
 
-[node name="IntroPanel" type="PanelContainer" parent="."]
-anchors_preset = 5
+[node name="Hint" type="Label" parent="."]
+anchors_preset = 7
 anchor_left = 0.5
+anchor_top = 1.0
 anchor_right = 0.5
-offset_left = -580.0
-offset_top = 102.0
-offset_right = 580.0
-offset_bottom = 152.0
+anchor_bottom = 1.0
+offset_left = -520.0
+offset_top = -150.0
+offset_right = 520.0
+offset_bottom = -100.0
 grow_horizontal = 2
-mouse_filter = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_band")
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 0.92, 0.55, 1)
+theme_override_styles/normal = SubResource("StyleBoxFlat_band")
+horizontal_alignment = 1
 
-[node name="Intro" type="Label" parent="IntroPanel"]
+[node name="Shop" type="PanelContainer" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = -170.0
+offset_right = 300.0
+offset_bottom = 170.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Box" type="VBoxContainer" parent="Shop"]
+layout_mode = 2
+alignment = 1
+
+[node name="Title" type="Label" parent="Shop/Box"]
 layout_mode = 2
 theme_type_variation = &"PromptLabel"
 horizontal_alignment = 1
+text = "가게 컴퓨터 — 샴푸 사기"
+
+[node name="Info" type="Label" parent="Shop/Box"]
+layout_mode = 2
+horizontal_alignment = 1
+
+[node name="BuyBasic" type="Button" parent="Shop/Box"]
+layout_mode = 2
+focus_mode = 0
+
+[node name="BuyPeach" type="Button" parent="Shop/Box"]
+layout_mode = 2
+focus_mode = 0
+
+[node name="Use" type="HBoxContainer" parent="Shop/Box"]
+layout_mode = 2
+alignment = 1
+
+[node name="UseBasic" type="Button" parent="Shop/Box/Use"]
+layout_mode = 2
+focus_mode = 0
+toggle_mode = true
+text = "기본 샴푸 쓰기"
+
+[node name="UsePeach" type="Button" parent="Shop/Box/Use"]
+layout_mode = 2
+focus_mode = 0
+toggle_mode = true
+text = "복숭아 샴푸 쓰기"
+
+[node name="Back" type="Label" parent="Shop/Box"]
+layout_mode = 2
+theme_type_variation = &"SmallLabel"
+horizontal_alignment = 1
+text = "Tab (패드 LB) 로 목욕대로 돌아가기"
+
+[node name="Overlay" type="Control" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("2_overlay")
 
 [node name="Help" type="Label" parent="."]
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -620.0
-offset_top = 68.0
+offset_top = 116.0
 offset_right = -16.0
-offset_bottom = 200.0
+offset_bottom = 330.0
 grow_horizontal = 0
 theme_type_variation = &"SmallLabel"
 horizontal_alignment = 2
-
-[node name="Bottom" type="VBoxContainer" parent="."]
-anchors_preset = 7
-anchor_left = 0.5
-anchor_top = 1.0
-anchor_right = 0.5
-anchor_bottom = 1.0
-offset_left = -420.0
-offset_top = -100.0
-offset_right = 420.0
-offset_bottom = -20.0
-grow_horizontal = 2
-grow_vertical = 0
-alignment = 2
-
-[node name="Hint" type="Label" parent="Bottom"]
-layout_mode = 2
-theme_override_styles/normal = SubResource("StyleBoxFlat_band")
-theme_override_colors/font_color = Color(1, 0.92, 0.55, 1)
-horizontal_alignment = 1
-
-[node name="Prompt" type="Label" parent="Bottom"]
-layout_mode = 2
-theme_override_styles/normal = SubResource("StyleBoxFlat_band")
-theme_type_variation = &"PromptLabel"
-horizontal_alignment = 1
-
-[node name="Results" type="PanelContainer" parent="."]
-anchors_preset = 8
-anchor_left = 0.5
-anchor_top = 0.5
-anchor_right = 0.5
-anchor_bottom = 0.5
-offset_left = -260.0
-offset_top = -190.0
-offset_right = 260.0
-offset_bottom = 190.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="Box" type="VBoxContainer" parent="Results"]
-layout_mode = 2
-alignment = 1
-
-[node name="Text" type="Label" parent="Results/Box"]
-layout_mode = 2
-theme_type_variation = &"PromptLabel"
-horizontal_alignment = 1
-
-[node name="Stars" type="Label" parent="Results/Box"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.82, 0.25, 1)
-theme_override_font_sizes/font_size = 64
-horizontal_alignment = 1
-
-[node name="Again" type="Label" parent="Results/Box"]
-layout_mode = 2
-horizontal_alignment = 1
-text = "아무 키나 눌러 다시 시작"
 
 [node name="PauseMenu" type="PanelContainer" parent="."]
 anchors_preset = 8
