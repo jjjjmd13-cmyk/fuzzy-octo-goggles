@@ -23,8 +23,10 @@ var delivered := 0
 var angry := 0
 var stars := 0
 var party_size := 1
-## 판이 새로 시작될 때마다 1 씩 오른다 (화면이 시작 안내를 띄우는 신호)
+## 판이 새로 시작될 때마다 1 씩 오른다
 var round_id := 0
+## 이번 판에 누군가 손님을 처음 들었는가. 시작 안내는 시간 대신 이것으로 끈다 (QA 리뷰: 손님이 오기 전에 안내가 사라짐).
+var first_pickup_done := false
 
 # --- 호스트 전용
 var _spawn_timer := 0.0
@@ -73,6 +75,30 @@ func use_action(player: Node3D) -> Dictionary:
 			return {"kind": "unload", "target": machine}
 	var item: Node3D = carry_rules.pickup_candidate(player)
 	return {"kind": "pickup", "target": item} if item != null else {}
+
+
+## Space 로 할 일이 없을 때 보여 줄 "다음에 할 일" (처음 하는 사람용). 없으면 "".
+func next_step_hint(player: Node3D) -> String:
+	var held: Node3D = carry_rules.held_by(player.get_peer_id())
+	if held != null and held.is_in_group("guests"):
+		match held.state:
+			Guest.State.MUDDY:
+				return "목욕(파랑 욕조)으로 데려가세요"
+			Guest.State.WET:
+				return "말리기(주황 드라이어)로!"
+			Guest.State.DRY:
+				return "출구(초록 문)로!"
+		return ""
+	for machine in machines():
+		if machine.done:
+			return "%s에서 다 된 손님을 꺼내세요" % machine.display_name
+	var waiting := false
+	for guest in guests.get_children():
+		if guest.phase == Guest.Phase.ESCAPING or guest.phase == Guest.Phase.SHAKING:
+			return "도망가는 강아지를 쫓아가서 Space 로 잡으세요"
+		if guest.phase == Guest.Phase.SEATED or guest.phase == Guest.Phase.FREE:
+			waiting = true
+	return "대기석의 강아지에게 가서 Space" if waiting else ""
 
 
 func send_use() -> void:
@@ -138,6 +164,7 @@ func reset_round() -> void:
 		var marker: Node3D = world.get_spawn_marker(player.slot)
 		player.teleport.rpc_id(player.get_peer_id(), marker.global_position, marker.global_rotation.y)
 	phase = Phase.OPEN
+	first_pickup_done = false
 	round_id += 1
 
 
@@ -238,6 +265,7 @@ func _free_seat_of(guest: Node) -> void:
 
 
 func on_guest_picked(guest: Node) -> void:
+	first_pickup_done = true
 	_free_seat_of(guest)
 
 

@@ -37,12 +37,18 @@ func run_test() -> void:
 	var seat: Vector3 = world.get_node("Seats").get_child(0).global_position
 	check(guest.ground_position.distance_to(seat) < 0.1, "첫 자리에 앉음")
 	check_eq(guest.hearts_left(), 3, "하트 3개")
+	var hud: Node = world.hud
+	check(hud.intro_panel.visible, "시작 안내가 손님이 앉은 뒤에도 남아 있음 (시간이 아니라 첫 들기로 꺼짐)")
+	check_eq(hud.hint_label.text, "대기석의 강아지에게 가서 Space", "빈손일 때 다음 할 일")
 
 	# --- 3. 들기 → 욕조에 넣기 → 4초 → 젖음
 	await _stand_facing(guest.ground_position + Vector3(0.9, 0, 0), guest.ground_position)
 	check_eq(world.hud.prompt_label.text, "Space: 강아지 들기", "화면 안내")
 	await _space()
 	check_eq(guest.holder_peer, 1, "Space → 들기")
+	await _settle()
+	check(not hud.intro_panel.visible, "손님을 처음 들면 시작 안내가 꺼짐")
+	check(hud.hint_label.text.begins_with("목욕"), "진흙 손님을 들면 목욕으로 (%s)" % hud.hint_label.text)
 	var bath: Node3D = world.get_node("Machines/Bath")
 	await _stand_facing(bath.global_position + Vector3(0, 0, 1.5), bath.global_position)
 	check_eq(world.hud.prompt_label.text, "Space: 욕조에 넣기", "욕조 안내")
@@ -59,6 +65,7 @@ func run_test() -> void:
 	# --- 꺼내기 → 내려놓으면 털고 도망
 	await _space()
 	check_eq(guest.holder_peer, 1, "Space → 욕조에서 꺼내기")
+	check(hud.hint_label.text.begins_with("말리기"), "젖은 손님을 들면 말리기로 (%s)" % hud.hint_label.text)
 	check(bath.occupant.is_empty(), "욕조 비었음")
 	await _stand_facing(Vector3(0, 0, 1), Vector3(0, 0, 0))
 	var held_patience: float = guest.patience
@@ -72,6 +79,7 @@ func run_test() -> void:
 	var drop_pos: Vector3 = guest.ground_position
 	await _wait(Tuning.data.escape_shake_time + 1.5)
 	check_eq(guest.phase, Guest.Phase.ESCAPING, "털고 나서 도망")
+	check(hud.hint_label.text.begins_with("도망가는 강아지"), "도망가면 잡으라는 안내 (%s)" % hud.hint_label.text)
 	check(guest.ground_position.distance_to(drop_pos) > 1.0, "뛰어다님 (%.1f m)" % guest.ground_position.distance_to(drop_pos))
 	check(puddles.get_child_count() >= 4, "뛰면서 웅덩이를 남김 (%d)" % puddles.get_child_count())
 
@@ -90,6 +98,7 @@ func run_test() -> void:
 	check(sfx.played.has("poof"), "뽀옹 소리")
 	await _space()
 	check_eq(guest.holder_peer, 1, "드라이어에서 꺼내기")
+	check(hud.hint_label.text.begins_with("출구"), "뽀송 손님을 들면 출구로 (%s)" % hud.hint_label.text)
 
 	# --- 6. 뽀송 손님을 내려놓으면 앉아 있음 → 다시 들고 출구로
 	await _stand_facing(Vector3(2, 0, 2), Vector3(2, 0, 1))

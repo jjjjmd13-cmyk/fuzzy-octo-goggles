@@ -1,7 +1,8 @@
-[gd_scene load_steps=8 format=3]
+[gd_scene load_steps=9 format=3]
 
 [ext_resource type="Script" path="res://scripts/game/machine.gd" id="1_machine"]
 [ext_resource type="PackedScene" uid="uid://b7machdryer" path="res://scenes/art/machines/dryer_model.tscn" id="2_model"]
+[ext_resource type="FontFile" path="res://assets/fonts/pretendard/Pretendard-Bold.otf" id="3_font"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_body"]
 size = Vector3(1.6, 0.8, 1.1)
@@ -58,3 +59,15 @@ mesh = SubResource("SphereMesh_done")
 
 [node name="Sync" type="MultiplayerSynchronizer" parent="."]
 replication_config = SubResource("SceneReplicationConfig_machine")
+
+[node name="NameTag" type="Label3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+billboard = 1
+no_depth_test = true
+modulate = Color(1, 0.75, 0.45, 1)
+outline_modulate = Color(0, 0, 0, 1)
+text = "말리기"
+font = ExtResource("3_font")
+pixel_size = 0.012
+font_size = 64
+outline_size = 16

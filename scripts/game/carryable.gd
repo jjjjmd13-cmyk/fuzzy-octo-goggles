@@ -9,7 +9,7 @@ extends Node3D
 
 signal holder_changed(peer_id: int)
 
-## 화면 안내에 쓰는 이름 ("E: <이름> 들기")
+## 화면 안내에 쓰는 이름 ("Space: <이름> 들기")
 @export var display_name := "물건"
 
 # --- Sync (호스트 → 모두)

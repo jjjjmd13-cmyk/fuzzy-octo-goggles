@@ -19,7 +19,9 @@ const ACTION_TEXT := {
 @onready var invite_button: Button = $InviteButton
 @onready var clock_label: Label = $TopPanel/Top/Clock
 @onready var score_label: Label = $TopPanel/Top/Score
-@onready var intro_label: Label = $Intro
+@onready var intro_panel: Control = $IntroPanel
+@onready var intro_label: Label = $IntroPanel/Intro
+@onready var hint_label: Label = $Bottom/Hint
 @onready var prompt_label: Label = $Bottom/Prompt
 @onready var help_label: Label = $Help
 @onready var results: Control = $Results
@@ -27,8 +29,6 @@ const ACTION_TEXT := {
 @onready var stars_label: Label = $Results/Box/Stars
 @onready var pause_menu: Control = $PauseMenu
 
-var _intro_left := 0.0
-var _last_round := -1
 
 
 func _ready() -> void:
@@ -63,16 +63,13 @@ func _set_paused(paused: bool) -> void:
 	pause_menu.visible = paused
 
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	var shop: Node = world.shop
 	status_label.text = "%s · 플레이어 %d / %d · F1 조작" % [Net.status_text, world.get_players().size(), Net.MAX_PLAYERS]
 	invite_button.visible = Net.can_invite_friends()
 
-	if shop.round_id != _last_round:
-		_last_round = shop.round_id
-		_intro_left = Tuning.data.intro_text_time
-	_intro_left = maxf(_intro_left - delta, 0.0)
-	intro_label.visible = _intro_left > 0.0 and shop.is_open()
+	# 시작 안내는 누군가 손님을 처음 들 때까지 (시간으로 끄지 않음)
+	intro_panel.visible = shop.is_open() and not shop.first_pickup_done
 
 	var seconds := ceili(shop.time_left)
 	clock_label.text = "%d:%02d" % [seconds / 60, seconds % 60]
@@ -84,7 +81,11 @@ func _process(delta: float) -> void:
 		stars_label.text = "★".repeat(shop.stars) + "☆".repeat(3 - shop.stars)
 
 	var me: Node = world.get_local_player()
-	prompt_label.text = _prompt(me) if me != null and shop.is_open() else ""
+	var playing: bool = me != null and shop.is_open()
+	prompt_label.text = _prompt(me) if playing else ""
+	hint_label.text = shop.next_step_hint(me) if playing else ""
+	prompt_label.visible = not prompt_label.text.is_empty()
+	hint_label.visible = not hint_label.text.is_empty()
 
 
 func _prompt(me: Node) -> String:
