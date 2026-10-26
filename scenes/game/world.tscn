@@ -10,6 +10,7 @@
 [ext_resource type="Script" path="res://scripts/game/stalker.gd" id="8_stalker"]
 [ext_resource type="PackedScene" uid="uid://b7stalkmdl001" path="res://scenes/art/stalker_model.tscn" id="9_stalker_model"]
 [ext_resource type="PackedScene" uid="uid://b7hud00000001" path="res://scenes/game/hud.tscn" id="10_hud"]
+[ext_resource type="PackedScene" uid="uid://b7exitmodel01" path="res://scenes/art/exit_model.tscn" id="11_exit"]
 
 [sub_resource type="Environment" id="Environment_dark"]
 background_mode = 1
@@ -163,8 +164,13 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0, 3)
 [node name="BottleC" parent="Bottles" instance=ExtResource("7_bottle")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -16)
 
+[node name="Exit" type="Node3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, -16.8)
+
+[node name="Model" parent="Exit" instance=ExtResource("11_exit")]
+
 [node name="Stalker" type="CharacterBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0.05, -16)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0.05, -13)
 collision_layer = 4
 script = ExtResource("8_stalker")
 

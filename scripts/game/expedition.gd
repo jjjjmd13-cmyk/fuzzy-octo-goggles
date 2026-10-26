@@ -10,7 +10,7 @@ signal round_started
 signal player_downed(peer_id: int)
 signal player_revived(peer_id: int, reviver_id: int)
 
-enum Phase { PLAYING, FAILED }
+enum Phase { PLAYING, FAILED, SUCCEEDED }
 
 ## 요청 종류 (request 의 action).
 const ACT_PICKUP_LANTERN := "pickup_lantern"
@@ -146,7 +146,7 @@ func _physics_process(delta: float) -> void:
 	if not is_host():
 		return
 	var players: Array = world.get_players()
-	if phase == Phase.FAILED:
+	if phase != Phase.PLAYING:
 		restart_in -= delta
 		if restart_in <= 0.0:
 			reset_round()
@@ -161,6 +161,17 @@ func _physics_process(delta: float) -> void:
 	if not players.is_empty() and players.all(func(p: Node) -> bool: return not p.is_active()):
 		phase = Phase.FAILED
 		restart_in = Tuning.data.proto_fail_restart_delay
+	elif _all_active_at_exit(players):
+		phase = Phase.SUCCEEDED
+		restart_in = Tuning.data.proto_fail_restart_delay
+
+
+## 임시 목표: 쓰러지지 않은 플레이어가 모두 출구(방 C 끝) 가까이에 오면 원정 성공.
+func _all_active_at_exit(players: Array) -> bool:
+	var exit_pos: Vector3 = world.get_node("Exit").global_position
+	var active := players.filter(func(p: Node) -> bool: return p.is_active())
+	return not active.is_empty() and active.all(
+		func(p: Node) -> bool: return horizontal_distance(p.global_position, exit_pos) <= Tuning.data.proto_exit_radius)
 
 
 func _tick_oil(delta: float) -> void:

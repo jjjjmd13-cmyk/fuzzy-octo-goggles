@@ -79,6 +79,12 @@ extends Resource
 @export var proto_give_range := 3.0
 ## 전원 쓰러짐 뒤 다시 시작까지 (s)
 @export var proto_fail_restart_delay := 5.0
+## 임시 목표(출구) 도착 판정 반경 (m)
+@export var proto_exit_radius := 2.0
+## 추적자가 배회할 때 플레이어 쪽(빛 가장자리 바깥)으로 갈 확률 0~1. 0 이면 방 안 아무 곳.
+@export var proto_stalker_wander_toward_player := 0.6
+## 이 거리(수평, m) 안에서 어둠 속 플레이어와 몸이 닿으면 바로 공격 준비
+@export var proto_stalker_contact_range := 0.9
 ## 디버그 키(F5)로 다시 시작할 때의 시작 기름 (PLAYTEST_PROTOTYPE.md 2판째)
 @export var proto_debug_oil_start := 30.0
 

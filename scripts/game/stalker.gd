@@ -80,6 +80,12 @@ func _physics_process(delta: float) -> void:
 	# 빛을 맞으면 어느 상태든 후퇴 (후퇴 중 제외).
 	if state != State.FLEE and _lit_time >= data.stalker_light_flee_time:
 		_enter(State.FLEE)
+	# 어둠 속에서 몸이 닿으면 게이지와 상관없이 바로 공격 준비 (플레이 테스트 1: "통과해도 상관없다").
+	if state != State.FLEE and state != State.ATTACK:
+		var touched := _touching_player(expedition)
+		if touched != null:
+			target_peer = touched.get_peer_id()
+			_enter(State.ATTACK)
 	if state == State.ATTACK:
 		_tick_attack(delta, expedition)
 
@@ -159,6 +165,14 @@ func _find_candidate() -> Node:
 	return best
 
 
+func _touching_player(expedition: Node) -> Node:
+	for player in _world().get_players():
+		if player.is_active() and not expedition.is_in_big_light(player.global_position) \
+				and expedition.horizontal_distance(global_position, player.global_position) <= Tuning.data.proto_stalker_contact_range:
+			return player
+	return null
+
+
 func _try_start_stalk() -> bool:
 	var candidate := _find_candidate()
 	if candidate == null:
@@ -180,7 +194,7 @@ func _enter(new_state: State) -> void:
 		State.WANDER:
 			_speed = data.stalker_wander_speed
 			target_peer = 0
-			agent.target_position = _random_nav_point()
+			agent.target_position = _wander_point()
 		State.STALK:
 			_speed = data.stalker_stalk_speed
 		State.ATTACK:
@@ -223,6 +237,26 @@ func _face(point: Vector3, delta: float) -> void:
 	if Vector2(dir.x, dir.z).length() < 0.05:
 		return
 	rotation.y = lerp_angle(rotation.y, atan2(-dir.x, -dir.z), minf(delta * 8.0, 1.0))
+
+
+## 배회 목적지. proto_stalker_wander_toward_player 확률로 플레이어 쪽으로 간다:
+## 플레이어가 큰 빛 안이면 그 빛 가장자리 바로 바깥(추적자 쪽), 어둠 속이면 플레이어 근처.
+## 빛을 들고 다녀도 추적자가 모습을 드러내 기다리게 하려는 것 (플레이 테스트 1: "괴물이 반응을 안 한다").
+func _wander_point() -> Vector3:
+	var expedition: Node = _expedition()
+	var players: Array = _world().get_players().filter(func(p: Node) -> bool: return p.is_active())
+	if players.is_empty() or _rng.randf() >= Tuning.data.proto_stalker_wander_toward_player:
+		return _random_nav_point()
+	var player: Node3D = players[_rng.randi() % players.size()]
+	var point := player.global_position
+	if expedition.is_in_big_light(point):
+		var center: Vector3 = expedition.lantern.light_center()
+		var away := global_position - center
+		away.y = 0.0
+		if away.length() < 0.1:
+			away = Vector3.FORWARD
+		point = center + away.normalized() * (expedition.lantern.light_radius() + 1.5)
+	return NavigationServer3D.map_get_closest_point(get_world_3d().navigation_map, point)
 
 
 func _random_nav_point() -> Vector3:

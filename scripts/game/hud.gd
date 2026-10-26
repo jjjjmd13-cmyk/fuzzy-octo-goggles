@@ -1,5 +1,8 @@
 extends CanvasLayer
 ## 시제품 화면 표시. 모든 값은 동기화된 상태를 읽기만 한다 (판정은 호스트).
+## 문구는 data/text/prototype_text.tres (기획팀이 고치는 곳).
+
+const TEXT: Resource = preload("res://data/text/prototype_text.tres")
 
 const HELP_TEXT := """[조작]
 WASD 이동 · Shift 달리기 · 마우스 둘러보기
@@ -26,6 +29,15 @@ F7 나 쓰러지기 · F3 수치 보기 · F1 이 도움말"""
 @onready var help_label: Label = $Help
 @onready var debug_label: Label = $Debug
 @onready var pause_menu: Control = $PauseMenu
+@onready var intro_panel: Control = $Intro
+@onready var intro_label: Label = $Intro/Box/Body
+@onready var notice_label: Label = $Notice
+@onready var warning_label: Label = $Warning
+
+var _intro_left := 0.0
+var _notice_left := 0.0
+var _last_phase := -1
+var _last_level_key := ""
 
 
 func _ready() -> void:
@@ -34,8 +46,19 @@ func _ready() -> void:
 	invite_button.pressed.connect(Net.invite_friends)
 	pause_menu.hide()
 	debug_label.hide()
+	help_label.hide()  # 처음엔 안내(Intro)가 같은 자리를 쓴다. F1 로 연다.
 	help_label.text = HELP_TEXT % int(Tuning.data.proto_debug_oil_start)
 	revive_bar.max_value = Tuning.data.down_revive_time
+	$Intro/Box/Title.text = TEXT.intro_title
+	intro_label.text = TEXT.intro_body
+	notice_label.text = ""
+	warning_label.text = ""
+
+
+## 화면 가운데 위에 잠깐 크게 띄우는 안내.
+func show_notice(text: String, seconds: float = 2.0) -> void:
+	notice_label.text = text
+	_notice_left = seconds
 
 
 func is_paused() -> bool:
@@ -61,20 +84,21 @@ func _set_paused(paused: bool) -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if paused else Input.MOUSE_MODE_CAPTURED
 
 
-func _process(_delta: float) -> void:
+func _process(delta: float) -> void:
 	var data: Resource = Tuning.data
 	var expedition: Node = world.expedition
 	var oil_tank: Node = world.oil_tank
 	var lantern: Node3D = world.lantern
 	var me: Node = world.get_local_player()
 
-	status_label.text = "%s · 플레이어 %d / %d" % [Net.status_text, world.get_players().size(), Net.MAX_PLAYERS]
+	status_label.text = "%s · 플레이어 %d / %d · F1 조작" % [Net.status_text, world.get_players().size(), Net.MAX_PLAYERS]
 	invite_button.visible = Net.can_invite_friends()
 
 	oil_bar.max_value = data.oil_max
 	oil_bar.value = oil_tank.oil
 	if oil_tank.has_oil():
-		oil_label.text = "기름 %d / %d%s" % [ceili(oil_tank.oil), int(data.oil_max), "  부족!" if oil_tank.is_low() else ""]
+		oil_label.text = "기름 %d / %d · 분당 -%.1f%s" % [
+			ceili(oil_tank.oil), int(data.oil_max), expedition.oil_drain_per_minute(), "  부족!" if oil_tank.is_low() else ""]
 	elif oil_tank.in_wick():
 		oil_label.text = "기름 없음 — 심지 %d초" % ceili(oil_tank.wick_left)
 	else:
@@ -90,8 +114,11 @@ func _process(_delta: float) -> void:
 		light_text += " · 손등 %s" % ("켬" if me.is_handlamp_lit() else ("꺼짐" if not me.handlamp_on else "—"))
 	light_label.text = light_text
 
+	_update_timers(delta, expedition)
 	if me == null:
 		return
+	_update_level_notice(me, lantern)
+	_update_warning(me)
 	vignette.material.set_shader_parameter("amount", me.dark / data.dark_max)
 	stamina_bar.max_value = data.player_stamina
 	stamina_bar.value = me.stamina
@@ -126,9 +153,46 @@ func _update_prompt(me: Node) -> void:
 	revive_bar.value = progress
 
 
+## 판이 (다시) 시작되면 안내를 보여 주고, 안내·알림 시간을 줄인다.
+func _update_timers(delta: float, expedition: Node) -> void:
+	if expedition.phase != _last_phase:
+		if expedition.phase == expedition.Phase.PLAYING:
+			_intro_left = TEXT.intro_seconds
+		_last_phase = expedition.phase
+	_intro_left = maxf(_intro_left - delta, 0.0)
+	intro_panel.visible = _intro_left > 0.0
+	_notice_left = maxf(_notice_left - delta, 0.0)
+	if _notice_left <= 0.0:
+		notice_label.text = ""
+
+
+## 내가 든 등불의 밝기 단계가 바뀌면 크게 알린다 (플레이 테스트 1: "휠을 굴려도 똑같다").
+func _update_level_notice(me: Node, lantern: Node3D) -> void:
+	var key := ""
+	if lantern.holder_peer == me.get_peer_id():
+		key = "%s/%d" % [lantern.level_name(), int(lantern.light_radius())]
+	if key != _last_level_key and not key.is_empty() and not _last_level_key.is_empty():
+		show_notice(TEXT.level_notice % [lantern.level_name(), int(lantern.light_radius())], 1.5)
+	_last_level_key = key
+
+
+## 추적자가 나를 노리면 경고 (플레이 테스트 1: "언제 쫓아오는지 모르겠다").
+func _update_warning(me: Node) -> void:
+	var stalker: Node = world.stalker
+	var text := ""
+	if stalker.target_peer == me.get_peer_id() and me.is_active():
+		if stalker.state == stalker.State.ATTACK:
+			text = TEXT.attack_warning
+		elif stalker.state == stalker.State.STALK:
+			text = TEXT.stalked_warning
+	warning_label.text = text
+
+
 func _update_center(me: Node, expedition: Node) -> void:
-	if expedition.phase == expedition.Phase.FAILED:
-		center_label.text = "전원 쓰러짐 — 원정 실패\n%d초 뒤 다시 시작" % ceili(expedition.restart_in)
+	if expedition.phase == expedition.Phase.SUCCEEDED:
+		center_label.text = TEXT.success_message % ceili(expedition.restart_in)
+	elif expedition.phase == expedition.Phase.FAILED:
+		center_label.text = TEXT.fail_message % ceili(expedition.restart_in)
 	elif me.knocked_out:
 		center_label.text = "기절했습니다\n(이번 판에서는 다시 일어날 수 없습니다)"
 	elif me.downed:

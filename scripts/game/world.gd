@@ -48,10 +48,11 @@ func _unhandled_input(event: InputEvent) -> void:
 		expedition.send_request(expedition.ACT_DROP_LANTERN)
 	elif event.is_action_pressed("lantern_give"):
 		expedition.send_request(expedition.ACT_GIVE_LANTERN)
-	elif event.is_action_pressed("lantern_brighter"):
-		expedition.send_request(expedition.ACT_LANTERN_LEVEL, 1)
-	elif event.is_action_pressed("lantern_dimmer"):
-		expedition.send_request(expedition.ACT_LANTERN_LEVEL, -1)
+	elif event.is_action_pressed("lantern_brighter") or event.is_action_pressed("lantern_dimmer"):
+		if lantern.holder_peer != me.get_peer_id():
+			hud.show_notice(hud.TEXT.need_lantern_hint, 2.5)
+		else:
+			expedition.send_request(expedition.ACT_LANTERN_LEVEL, 1 if event.is_action_pressed("lantern_brighter") else -1)
 	elif event.is_action_pressed("debug_restart_low_oil"):
 		expedition.send_request(expedition.ACT_DEBUG_RESTART, int(Tuning.data.proto_debug_oil_start))
 	elif event.is_action_pressed("debug_restart"):
