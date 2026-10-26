@@ -85,3 +85,61 @@ jobs:
           path: build/windows/
           retention-days: 14
           if-no-files-found: error
+
+  # 깨끗한 Windows 에서 만든 실행 파일이 켜지는지 확인한다 (QA 첫 플레이 점검의 Windows 부분).
+  # 러너에는 그래픽 카드가 없어서, 화면 없이(headless) 켜 보는 것을 판정 기준으로 하고
+  # 화면을 그리는 실행(D3D12 소프트웨어)은 참고용으로만 남긴다.
+  windows-smoke:
+    name: Windows 실행 확인
+    needs: windows
+    runs-on: windows-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        shell: pwsh
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: PawsAndBubbles-windows-*
+          path: game
+          merge-multiple: true
+
+      - name: 깨끗한 상태 확인
+        run: |
+          $userdir = Join-Path $env:APPDATA "Godot\app_userdata\PawsAndBubbles"
+          if (Test-Path $userdir) { Write-Output "::error::저장 폴더가 이미 있음: $userdir"; exit 1 }
+          Write-Output "저장 파일 없음 (깨끗한 상태)"
+
+      - name: 화면 없이 켜기 (판정)
+        run: |
+          $p = Start-Process -FilePath game\PawsAndBubbles.exe -PassThru -Wait -NoNewWindow `
+            -ArgumentList "--headless", "--quit-after", "1800", "--log-file", "$PWD\headless.log"
+          Get-Content headless.log
+          if ($p.ExitCode -ne 0) { Write-Output "::error::종료 코드 $($p.ExitCode) (튕김)"; exit 1 }
+          $errors = Select-String -Path headless.log -Pattern 'SCRIPT ERROR|Parse Error|Failed to load script|^ERROR:'
+          if ($errors) { Write-Output "::error::오류 출력 있음"; $errors; exit 1 }
+          Write-Output "통과: 1800 프레임 동안 튕기지 않고 오류 없음"
+
+      - name: 화면 그리며 켜기 (참고용, D3D12 소프트웨어)
+        continue-on-error: true
+        run: |
+          $p = Start-Process -FilePath game\PawsAndBubbles.exe -PassThru -Wait `
+            -ArgumentList "--rendering-driver", "d3d12", "--quit-after", "300", "--log-file", "$PWD\render.log"
+          Get-Content render.log -ErrorAction SilentlyContinue
+          Write-Output "종료 코드 $($p.ExitCode)"
+          if ($p.ExitCode -ne 0) { exit 1 }
+
+      - name: 저장 폴더
+        if: always()
+        run: |
+          $userdir = Join-Path $env:APPDATA "Godot\app_userdata\PawsAndBubbles"
+          if (Test-Path $userdir) { Get-ChildItem -Recurse $userdir | Select-Object FullName, Length } else { Write-Output "저장 폴더 없음" }
+
+      - name: 로그 올리기
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-smoke-logs-${{ github.run_id }}
+          path: "*.log"
+          retention-days: 14
+          if-no-files-found: ignore
