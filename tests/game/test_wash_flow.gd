@@ -72,6 +72,8 @@ func run_test() -> void:
 	await _wait(func() -> bool: return station.turning_left == 0.0, 3.0)
 	turns_before = station.turns
 	check(await hands.do_stage(WashStation.Stage.WET) < 999.0, "적시기 끝")
+	await _frames(2)
+	check(station.eye_warning_left == 0.0 and not world.hud.hint_label.text.contains("눈에 물"), "단계가 바뀌면 눈에 물 경고 대신 새 단계 안내 (이슈 #39)")
 	check(station.turns > turns_before, "보이는 쪽이 다 되면 저절로 돎 (%d번)" % (station.turns - turns_before))
 	check("ding" in sfx.played, "단계 끝 → 딩")
 

@@ -793,6 +793,8 @@ func _visible_done(channel: String) -> float:
 
 func _on_stage_changed() -> void:
 	_seen_stage = stage
+	# 단계가 바뀌면 새 단계 안내가 먼저 보이게 눈에 물 경고를 지운다 (이슈 #39)
+	eye_warning_left = 0.0
 	_blink_left = 0.0
 	_blink_wait = 0.0
 	_dose_pending = false
