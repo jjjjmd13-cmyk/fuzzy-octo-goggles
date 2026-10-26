@@ -81,7 +81,7 @@
 | 씬 | 무엇 | 약속 |
 |---|---|---|
 | `scenes/art/player_model.tscn` | 동료 몸 (내 화면에서는 숨김) | 키 약 1.8 m. 색을 받으려면 루트에 `set_player_color(color)` |
-| `scenes/art/sim/dog_model.tscn` | 목욕대 강아지 | **얼굴이 +Z(카메라 쪽)**, 바닥이 원점. ChatGPT GLB(정면 −Z)는 이 씬 안에서 Y 로 180° 돌려 넣는다. 루트 스크립트 `sim_dog_model.gd` 의 `body_center`·`face_center`·`fur_meshes` 를 맞춘다. 마우스 판정 모양(`HitBody`, 충돌 층 16)은 시작할 때 `fur_meshes` 의 볼록 껍질로 자동으로 만든다. UV 는 상관없음 (마스크가 방향으로 칠함) |
+| `scenes/art/sim/dog_model.tscn` | 목욕대 강아지 | **얼굴이 +Z(카메라 쪽)**, 바닥이 원점. 지금은 `scripts/sim/toy_dog_model.gd` 가 구·캡슐로 조립한 임시 강아지(숨쉬기·깜빡임·꼬리·머리 따라보기). ChatGPT GLB(정면 −Z)가 오면 이 씬을 GLB 를 Y 로 180° 돌려 넣은 씬으로 바꾸고 루트에 `sim_dog_model.gd` 를 붙여 `body_center`·`face_center`·`fur_meshes` 를 맞춘다. 마우스 판정 모양(`HitBody`, 충돌 층 16)은 `fur_meshes` 의 볼록 껍질로 자동. 반응 함수 `set_mood`·`wiggle_legs`·`flap_cheeks`·`jump`·`shake`, 있으면 `watch(점, 뿌리는 중)`. 부위 색은 `set_instance_shader_parameter("tint", 색)`. UV 는 상관없음 |
 | `scripts/sim/sim_fur.gdshader` | 털 (더러움·젖음·뽀송) | 텍스처를 쓰려면 `fur_color` 대신 albedo 텍스처 uniform 을 추가 |
 | `scenes/sim/wash_station.tscn` | 목욕대·회전판·도구걸이 (임시 상자) | 회전판은 `Turntable` 노드, 강아지는 `Turntable/Dog` |
 | `assets/sfx/*.wav` | 효과음 11개 + 반복 소리 3개 (`scripts/game/sfx.gd`) | 같은 파일 이름으로 교체 |

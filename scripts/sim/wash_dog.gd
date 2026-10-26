@@ -35,11 +35,19 @@ var _drop_dir := PackedVector3Array()
 var _drop_mesh: MultiMeshInstance3D
 var _drips: CPUParticles3D
 var _splash: CPUParticles3D
+var _spray: CPUParticles3D
 
 
 func _ready() -> void:
 	_drips = _make_particles(Color(0.45, 0.32, 0.18), 0.02, false)
 	_splash = _make_particles(Color(0.55, 0.8, 1.0), 0.03, true)
+	_spray = _make_particles(Color(0.36, 0.75, 0.92), 0.012, false)
+	_spray.amount = 40
+	_spray.lifetime = 0.35
+	_spray.direction = Vector3.UP
+	_spray.spread = 80.0
+	_spray.initial_velocity_min = 0.6
+	_spray.initial_velocity_max = 1.4
 
 
 ## 새 손님. pattern = 진흙 무늬 종류, seed 는 무늬 위치 (모든 피어에서 같은 모양이 나옴).
@@ -246,6 +254,17 @@ func drip(world_point: Vector3) -> void:
 
 func stop_drip() -> void:
 	_drips.emitting = false
+
+
+## 샤워기 물이 몸에 맞아 튀는 물보라
+func spray(world_point: Vector3) -> void:
+	_spray.global_position = world_point
+	_spray.emitting = true
+
+
+func stop_spray() -> void:
+	if _spray != null:
+		_spray.emitting = false
 
 
 ## 차가운 물에 펄쩍: 물이 튄다
