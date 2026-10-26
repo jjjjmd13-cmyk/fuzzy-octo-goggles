@@ -15,9 +15,7 @@
 - 스팀 경로 실기 확인 불가 (컨테이너에 스팀 없음, codeberg.org 막힘). SteamMultiplayerPeer 포함 여부 **미확인**.
 
 **다른 부서에 요청**:
-- 기획팀: 대표 요청으로 TUNING_V3 의 `stage_complete_ratio` 0.85, `tool_shower_radius` 0.18, `tool_scrub_radius` 0.15 를 이 PR 에서 직접 고쳤습니다 (바꾼 기록 줄 추가, `test_balance` 가 표를 읽음). 임시 키도 바뀜·추가: `proto_eye_cooldown` 1 → **3**, 새 키 `proto_blink_interval` 1.5, `proto_water_drops` 70.
-- 기획팀: TUNING_V3 에 개발팀 임시 키 8개 반영 부탁 (값·뜻은 `docs/dev/PROTOTYPE.md` 7장): `proto_dose_coverage` 0.25, `proto_cold_cooldown` 2, `proto_eye_cooldown` 1, `proto_tickle_radius` 0.15, `proto_dryer_near` 0.15, `proto_shake_screen_time` 1.5, `proto_peach_request_chance` 0.34, `proto_next_dog_delay` 1. 설명란에 있던 값은 키로 뺀 것뿐입니다.
-- 기획팀: 시제품에서 정한 것 확인 부탁 (PROTOTYPE.md 8장) — 카드 다섯 줄(수건·드라이어 따로), 드라이어 거리(보통 0.35 m / Shift 0.1 m), 뽀송 모형 크기는 1.3배까지만(2배는 화면을 덮음), 배 밑은 진행 비율에서 뺌.
-- 기획팀(그래픽 요청문 V3): 요청문은 GLB 정면 −Z 인데 게임의 강아지 씬 약속은 얼굴 +Z(카메라 쪽)입니다. GLB 는 그대로 받고 `scenes/art/sim/dog_model.tscn` 안에서 180° 돌려 넣을 테니 요청문은 바꾸지 않아도 됩니다. 강아지 모형이 오면 마우스 판정 모양(`HitBody`)과 얼굴 위치를 개발팀이 맞춥니다.
+- 기획팀: 대표 요청으로 TUNING_V3 의 `stage_complete_ratio` 0.85, `tool_shower_radius` 0.18, `tool_scrub_radius` 0.15, 7장 `proto_eye_cooldown` 3.0 과 새 키 `proto_blink_interval` 1.5·`proto_water_drops` 70 을 이 PR 에서 직접 고쳤습니다 (#30 과 병합하며 바꾼 기록 줄 추가). 확인만 부탁합니다.
+- 기획팀(그래픽 요청문 V3): 강아지 GLB 는 정면 −Z 로 받아 `scenes/art/sim/dog_model.tscn` 안에서 180° 돌려 넣습니다 (#29 에서 동의). 마우스 판정 모양은 털 메시에서 자동으로 만들고, 얼굴 위치(`face_center`)는 개발팀이 맞춥니다.
 - QA: V3 로 바뀌며 걷기가 없어져 `tests/net/test_enet_two_peers`·`enet_client_peer` 의 "앞으로 걸어서 위치 동기화" 확인을 "자리(seat) 바꾸기 동기화"로 바꿨습니다 (안 바꾸면 테스트가 깨짐). V2 테스트(`test_bath_flow`, `test_seats_queue`, `test_slip_dash`, `net/test_bath_sync`)는 기능과 함께 지웠습니다. TEST_PLAN 의 V2 항목 정리 부탁합니다.
 - QA: 헤드리스에서는 효과음을 실제로 틀지 않고 기록만 합니다 (`sfx.gd`). 더미 오디오 드라이버에서 재생 중에 종료하면 "resources still in use" 오류가 찍혀 실행기가 실패로 봤습니다.
