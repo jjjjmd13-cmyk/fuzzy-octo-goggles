@@ -15,10 +15,24 @@ for p in pass fail; do
 done
 
 echo "#### 통과해야 하는 프로젝트"
-if ! "$HERE/run_tests.sh" "$WORK/pass"; then
+if ! QA_LOG_DIR="$WORK/pass-logs" "$HERE/run_tests.sh" "$WORK/pass"; then
   echo "::error::자체 검사 실패: 통과해야 할 테스트가 실패함"
   exit 1
 fi
+# 같은 역할(guest 2개)은 로그 파일이 따로여야 한다. 한 파일을 같이 쓰면 줄이 섞여
+# 성공 줄이 깨지거나 한쪽 오류가 가려진다 (#24 에서 찾은 버그).
+guest_logs=("$WORK"/pass-logs/*test_roles*guest*.log)
+if [ "${#guest_logs[@]}" -ne 2 ]; then
+  echo "::error::자체 검사 실패: guest 2개의 로그 파일이 ${#guest_logs[@]}개 (2개여야 함)"
+  exit 1
+fi
+for log in "${guest_logs[@]}"; do
+  if [ "$(grep -cx QA_TEST_PASS "$log")" -ne 1 ]; then
+    echo "::error::자체 검사 실패: $(basename "$log") 에 성공 줄이 정확히 하나가 아님"
+    exit 1
+  fi
+done
+echo "같은 역할 로그 분리: 통과"
 
 echo
 echo "#### 실패해야 하는 프로젝트"

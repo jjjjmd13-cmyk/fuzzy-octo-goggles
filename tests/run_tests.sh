@@ -9,6 +9,7 @@
 #   QA_IMPORT_TIMEOUT  임포트 최대 시간(초) (기본: 600)
 #   QA_READY_TIMEOUT   여러 프로세스 테스트에서 첫 역할의 준비 대기(초) (기본: 30)
 #   QA_TEST_PORT_BASE  여러 프로세스 테스트에 줄 첫 포트 (기본: 25000, 테스트마다 +10)
+#   QA_LOG_DIR         로그를 남길 폴더 (기본: 임시 폴더)
 set -uo pipefail
 
 PROJECT="${1:-$(cd "$(dirname "$0")/.." && pwd)}"
@@ -27,7 +28,8 @@ if [ ! -f "$PROJECT/project.godot" ]; then
   exit 0
 fi
 
-LOG_DIR="$(mktemp -d)"
+LOG_DIR="${QA_LOG_DIR:-$(mktemp -d)}"
+mkdir -p "$LOG_DIR"
 
 echo "== 임포트: $PROJECT"
 timeout "$IMPORT_TIMEOUT" "$GODOT" --headless --path "$PROJECT" --import >"$LOG_DIR/import.log" 2>&1
