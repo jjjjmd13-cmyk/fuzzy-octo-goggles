@@ -1,116 +1,44 @@
-[gd_scene load_steps=20 format=3 uid="uid://b7wrld000001"]
+[gd_scene load_steps=10 format=3 uid="uid://b7wrld000001"]
 
 [ext_resource type="Script" path="res://scripts/game/world.gd" id="1_world"]
 [ext_resource type="Script" path="res://scripts/level/room_builder.gd" id="2_room"]
-[ext_resource type="Script" path="res://scripts/game/expedition.gd" id="3_expedition"]
-[ext_resource type="Script" path="res://scripts/game/oil_tank.gd" id="4_oil"]
-[ext_resource type="Script" path="res://scripts/game/lantern.gd" id="5_lantern"]
-[ext_resource type="PackedScene" uid="uid://b7lanternmdl1" path="res://scenes/art/lantern_model.tscn" id="6_lantern_model"]
-[ext_resource type="PackedScene" uid="uid://b7oilbottle02" path="res://scenes/game/oil_bottle.tscn" id="7_bottle"]
-[ext_resource type="Script" path="res://scripts/game/stalker.gd" id="8_stalker"]
-[ext_resource type="PackedScene" uid="uid://b7stalkmdl001" path="res://scenes/art/stalker_model.tscn" id="9_stalker_model"]
-[ext_resource type="PackedScene" uid="uid://b7hud00000001" path="res://scenes/game/hud.tscn" id="10_hud"]
+[ext_resource type="Script" path="res://scripts/game/carry_rules.gd" id="3_carry"]
+[ext_resource type="PackedScene" uid="uid://b7crateprop01" path="res://scenes/props/crate.tscn" id="4_crate"]
+[ext_resource type="PackedScene" uid="uid://b7hud00000001" path="res://scenes/game/hud.tscn" id="5_hud"]
 
-[sub_resource type="Environment" id="Environment_dark"]
-background_mode = 1
-background_color = Color(0, 0, 0, 1)
-ambient_light_source = 2
-ambient_light_color = Color(0.45, 0.5, 0.65, 1)
-ambient_light_energy = 0.06
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+
+[sub_resource type="Sky" id="Sky_main"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_bright"]
+background_mode = 2
+sky = SubResource("Sky_main")
+ambient_light_source = 3
+ambient_light_energy = 0.25
 tonemap_mode = 2
-
-[sub_resource type="NavigationMesh" id="NavigationMesh_rooms"]
-geometry_parsed_geometry_type = 1
-agent_height = 1.75
-agent_radius = 0.5
-agent_max_climb = 0.25
-
-[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_oil"]
-properties/0/path = NodePath(".:oil")
-properties/0/spawn = false
-properties/0/replication_mode = 2
-properties/1/path = NodePath(".:wick_left")
-properties/1/spawn = false
-properties/1/replication_mode = 2
-
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ring"]
-transparency = 1
-shading_mode = 0
-albedo_color = Color(1, 0.8, 0.45, 0.35)
-
-[sub_resource type="TorusMesh" id="TorusMesh_ring"]
-material = SubResource("StandardMaterial3D_ring")
-inner_radius = 0.985
-outer_radius = 1.0
-rings = 96
-ring_segments = 4
-
-[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_lantern"]
-properties/0/path = NodePath(".:holder_peer")
-properties/0/spawn = false
-properties/0/replication_mode = 2
-properties/1/path = NodePath(".:level")
-properties/1/spawn = false
-properties/1/replication_mode = 2
-properties/2/path = NodePath(".:ground_position")
-properties/2/spawn = false
-properties/2/replication_mode = 2
-
-[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_stalker"]
-radius = 0.35
-height = 1.95
-
-[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_stalker"]
-properties/0/path = NodePath(".:net_position")
-properties/0/spawn = false
-properties/0/replication_mode = 1
-properties/1/path = NodePath(".:net_yaw")
-properties/1/spawn = false
-properties/1/replication_mode = 1
-properties/2/path = NodePath(".:state")
-properties/2/spawn = false
-properties/2/replication_mode = 2
-properties/3/path = NodePath(".:target_peer")
-properties/3/spawn = false
-properties/3/replication_mode = 2
-
-[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_expedition"]
-properties/0/path = NodePath(".:phase")
-properties/0/spawn = false
-properties/0/replication_mode = 2
-properties/1/path = NodePath(".:restart_in")
-properties/1/spawn = false
-properties/1/replication_mode = 2
-properties/2/path = NodePath(".:party_size")
-properties/2/spawn = false
-properties/2/replication_mode = 2
-properties/3/path = NodePath(".:round_oil_start")
-properties/3/spawn = false
-properties/3/replication_mode = 2
 
 [node name="World" type="Node3D"]
 script = ExtResource("1_world")
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="."]
-environment = SubResource("Environment_dark")
+environment = SubResource("Environment_bright")
 
-[node name="NavigationRegion3D" type="NavigationRegion3D" parent="."]
-navigation_mesh = SubResource("NavigationMesh_rooms")
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 10, 0)
+light_energy = 0.7
+shadow_enabled = true
 
-[node name="RoomA" type="Node3D" parent="NavigationRegion3D"]
+[node name="ShopCamera" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.573576, 0.819152, 0, -0.819152, 0.573576, 0, 17, 11)
+current = true
+fov = 45.0
+
+[node name="Shop" type="Node3D" parent="."]
 script = ExtResource("2_room")
-door_east = true
-
-[node name="RoomB" type="Node3D" parent="NavigationRegion3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 0)
-script = ExtResource("2_room")
-door_north = true
-door_west = true
-
-[node name="RoomC" type="Node3D" parent="NavigationRegion3D"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, -12)
-script = ExtResource("2_room")
-door_south = true
+size_tiles = Vector2i(8, 6)
+build_ceiling = false
+south_wall_visible = false
 
 [node name="SpawnPoints" type="Node3D" parent="."]
 
@@ -121,79 +49,28 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.1, 1.5)
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0.1, 1.5)
 
 [node name="Spawn3" type="Marker3D" parent="SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.1, 4.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.1, 4)
 
 [node name="Spawn4" type="Marker3D" parent="SpawnPoints"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0.1, 4.5)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0.1, 4)
 
-[node name="LanternStart" type="Marker3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+[node name="Props" type="Node3D" parent="."]
 
-[node name="OilTank" type="Node" parent="."]
-script = ExtResource("4_oil")
+[node name="CrateA" parent="Props" instance=ExtResource("4_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, -3)
 
-[node name="Sync" type="MultiplayerSynchronizer" parent="OilTank"]
-replication_config = SubResource("SceneReplicationConfig_oil")
+[node name="CrateB" parent="Props" instance=ExtResource("4_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3.5)
 
-[node name="Lantern" type="Node3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
-script = ExtResource("5_lantern")
+[node name="CrateC" parent="Props" instance=ExtResource("4_crate")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, -3)
 
-[node name="Model" parent="Lantern" instance=ExtResource("6_lantern_model")]
-
-[node name="Light" type="OmniLight3D" parent="Lantern"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
-light_color = Color(1, 0.78, 0.5, 1)
-light_energy = 1.6
-shadow_enabled = true
-omni_range = 10.0
-omni_attenuation = 0.8
-
-[node name="Ring" type="MeshInstance3D" parent="Lantern"]
-mesh = SubResource("TorusMesh_ring")
-
-[node name="Sync" type="MultiplayerSynchronizer" parent="Lantern"]
-replication_config = SubResource("SceneReplicationConfig_lantern")
-
-[node name="Bottles" type="Node3D" parent="."]
-
-[node name="BottleB" parent="Bottles" instance=ExtResource("7_bottle")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0, 3)
-
-[node name="BottleC" parent="Bottles" instance=ExtResource("7_bottle")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -16)
-
-[node name="Stalker" type="CharacterBody3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 15, 0.05, -16)
-collision_layer = 4
-script = ExtResource("8_stalker")
-
-[node name="CollisionShape3D" type="CollisionShape3D" parent="Stalker"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.975, 0)
-shape = SubResource("CapsuleShape3D_stalker")
-
-[node name="NavigationAgent3D" type="NavigationAgent3D" parent="Stalker"]
-path_desired_distance = 0.6
-target_desired_distance = 0.8
-path_height_offset = 0.5
-height = 1.95
-radius = 0.4
-
-[node name="Model" parent="Stalker" instance=ExtResource("9_stalker_model")]
-
-[node name="Sync" type="MultiplayerSynchronizer" parent="Stalker"]
-replication_interval = 0.05
-replication_config = SubResource("SceneReplicationConfig_stalker")
-
-[node name="Expedition" type="Node" parent="."]
-script = ExtResource("3_expedition")
-
-[node name="Sync" type="MultiplayerSynchronizer" parent="Expedition"]
-replication_config = SubResource("SceneReplicationConfig_expedition")
+[node name="CarryRules" type="Node" parent="."]
+script = ExtResource("3_carry")
 
 [node name="Players" type="Node3D" parent="."]
 
 [node name="PlayerSpawner" type="MultiplayerSpawner" parent="."]
 spawn_path = NodePath("../Players")
 
-[node name="HUD" parent="." instance=ExtResource("10_hud")]
+[node name="HUD" parent="." instance=ExtResource("5_hud")]

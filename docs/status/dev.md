@@ -1,29 +1,19 @@
 # 개발팀 상태
 
-**지금 하는 일**: 이슈 #10 수정 PR (`dev/fix-full-lobby`) 검토 대기. 그다음 사람 대표 플레이 테스트 결과 대기
+**지금 하는 일**: 멍냥 목욕탕 ① 등불 코드 삭제 + 쿼터뷰 플레이어 + 들기 부품(`dev/bathhouse-carry`) 검토 대기. 다음 ② 동물·기계 (기획팀 GDD_V2 목표 받은 뒤)
 
 **끝낸 일**:
-- 이슈 #10: 방이 가득 차면 5번째가 곧바로 "방이 가득 찼습니다 (4/4)" 로 거절됨 (ENet·스팀 모두)
-- 협동 멀티플레이 기반 (PR #4, 병합됨)
-- GDD 13장 첫 시제품 (PR #12, 병합됨. `docs/dev/PROTOTYPE.md` 에 실행 방법)
-  - 손으로 배치한 방 3개 (2 m 타일, 문 연결), 1인칭 이동·달리기·스태미나
-  - 큰 등불 줍기·내려놓기·건네기·밝기 3단계, 손등, 공용 기름(호스트 권한) + 심지 60초
-  - 어둠 게이지(호스트 계산), 그림자 추적자 상태 기계 전체 (호스트 AI, 길찾기, 20 Hz 동기화)
-  - 쓰러짐 30초 → 등불 빛 안에서 3초 부활, 전원 쓰러짐 → 실패 → 다시 시작
-  - 수치 리소스 하나 `data/balance/balance.tres` (TUNING.md 키 이름 그대로)
-  - 디버그 키: F5 기름 30 으로 다시 시작 (플레이 테스트 2판째), F6 다시 시작, F7 쓰러지기, F3 수치
-  - 글꼴: Pretendard 1.3.9 원본 4종 + OFL 라이선스, 테마 한 곳 (`ui/theme/main_theme.tres`)
-  - Windows·Linux 내보내기 설정 (`export_presets.cfg`), 컨테이너에서 실제 내보내기·실행 확인
+- 멍냥 목욕탕 뼈대: 등불 원정대 코드 삭제(보관 브랜치 `archive/lanternfall-prototype`), 위에서 비스듬히 보는 3인칭 플레이어 + 고정 카메라, 들기·내려놓기·건네기 공용 부품 `Carryable`, 밝은 가게 방 하나
+- 이슈 #10: 방이 가득 차면 5번째가 곧바로 "방이 가득 찼습니다 (4/4)" 로 거절됨
+- 협동 멀티플레이 기반 (Net, 오프라인·ENet·Steam, 메뉴, 테스트 체계)
 
-**자동 테스트 (QA 규칙 `docs/qa/TESTING.md`)**: `GODOT=/path/to/Godot_v4.4.1-stable_linux.x86_64 tests/run_tests.sh` → 7개
-- 기반: `test_offline_session`, `net/test_enet_two_peers`, `test_seeded_rng`
-- 시제품: `test_balance`, `game/test_lantern_oil`, `game/test_stalker`, `net/test_lantern_sync`
-- 네트워크 테스트는 클라이언트를 별도 프로세스로 띄움, UDP 포트 24611·24612 사용. 전체 약 40초.
+**자동 테스트**: `GODOT=/path/to/Godot_v4.4.1-stable_linux.x86_64 tests/run_tests.sh`
+- 개발팀: `test_offline_session`, `test_seeded_rng`, `test_balance`, `game/test_carry`, `net/test_enet_two_peers`, `net/test_carry_sync`(.roles)
 
 **막힌 것**:
 - 스팀 경로 실기 확인 불가 (컨테이너에 스팀 없음, codeberg.org 막힘). SteamMultiplayerPeer 포함 여부 **미확인** — `tools/fetch_godotsteam.sh` 가 받은 뒤 검사해 출력함.
 
 **다른 부서에 요청**:
-- 기획팀: `docs/dev/PROTOTYPE.md` 9장 "시제품에서 정한 것"(심지 빛 취급, 기름 5 미만 부활, 혼자일 때 쓰러짐 = 실패 등) 확인 부탁.
-- 기획팀: 소리(기름 부족 경고음, 추적자 공격 준비 소리) 에셋/방향이 정해지면 붙이겠습니다. 지금은 눈 빛·붉은 빛으로만 알림.
-- QA: TEST_PLAN LANT-10·11·12·20·21 을 자동 테스트로 넣었습니다 (`tests/net/test_lantern_sync`). LANT-22(두 명이 동시에 부활)는 3인 테스트가 필요해 아직.
+- QA: 등불 원정대를 지우면서 `tests/net/test_host_authority`(LANT-13·40, 등불·추적자 시험)를 지웠습니다. 같은 성격(위조 요청 무시)을 들기로 옮긴 시험이 `tests/net/test_carry_sync` 5번입니다. TEST_PLAN 의 LANT 항목 정리 부탁합니다.
+- QA: `export_presets.cfg` 의 실행 파일 이름(`Lanternfall.exe`)은 Windows 빌드 CI(`build.yml`)가 쓰고 있어 그대로 두었습니다. 이름을 바꿀 때 같이 바꿔 주세요 (제품 이름만 PawsAndBubbles 로 바꿈).
+- 기획팀: 새 수치 키(`carry_pickup_range` 1.6 m, `carry_give_range` 2.5 m, `carry_speed_mult` 0.85, `carry_drop_distance` 0.9 m, 달리기 3초)를 TUNING_V2 에 넣어 주세요. 임시 값입니다.

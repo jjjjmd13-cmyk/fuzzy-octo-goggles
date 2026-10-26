@@ -28,16 +28,6 @@
 - **Compatibility(OpenGL 3) 를 기본으로 안 한 이유**: 3D 기능이 가장 적다. 대신 Vulkan 이 안 되는 오래된 PC를 위해 OpenGL 대체를 켜 두었다.
 - 나중에 그래픽 방향상 Forward+ 가 꼭 필요하면 설정 한 줄만 바꾸면 된다 (씬·코드는 그대로).
 
-### 등불 원정대(어두운 던전)에서의 조명 비용
-
-빛이 거의 없는 던전에서 플레이어 등불 4개가 주 광원이라 동적 광원이 가장 큰 비용이다.
-
-- Mobile 렌더러는 **메시 하나에 닿는 라이트가 옴니 8개 + 스포트 8개까지**다 (Forward+ 는 클러스터 방식이라 이 제한이 없음).
-  등불 4개 + 방의 고정 광원 몇 개는 이 안에 든다. 대신 **바닥·벽을 방 단위 메시로 나눠야** 한 메시에 광원이 몰리지 않는다 (절차 생성 시 방/타일 조각 단위로 만들면 자연히 됨).
-- 가장 비싼 건 **옴니 라이트 그림자**(큐브맵)다. 4개 모두 그림자를 켜면 Steam Deck 에서 부담이 크다. 처음 방침:
-  자기 등불만 그림자, 다른 플레이어 등불은 그림자 없이 (또는 설정에서 고르게). 그림자 아틀라스는 작게(2048), `distance_fade` 로 먼 광원은 끈다.
-- 어둠 연출은 비싼 볼류메트릭 안개 대신 환경 안개 + 낮은 주변광으로 한다. SDFGI/VoxelGI 같은 실시간 GI 는 쓰지 않는다 (Mobile 에서는 지원도 안 됨). 필요하면 LightmapGI(구운 조명)는 정적 방에만.
-- **아직 Steam Deck 실측 전**이다. 첫 시제품(어두운 방 + 등불 2~4개)에서 Deck 프레임을 재서 이 방침을 확정한다.
 
 ## 네트워크 구조
 
@@ -54,7 +44,7 @@
 
 - 전송 방식은 `MultiplayerPeer` 를 만들어 주는 일만 한다 (`transports/transport.gd` 인터페이스: `open_host()`, `open_client(address)`, `close()`). 새 방식(예: 다른 릴레이)은 이 파일 하나만 추가하면 된다.
 - **혼자 하기 = 오프라인 호스트**: `OfflineMultiplayerPeer` 는 항상 서버(ID 1)라서 `multiplayer.is_server()`, RPC, 스포너가 멀티와 똑같이 동작한다. 게임플레이 코드는 "호스트인가" (`Net.is_host()`) 만 보면 된다.
-- **권한**: 호스트가 게임 상태의 주인이다. 스폰·제거와 앞으로 넣을 괴물 AI, 공용 자원(등불 기름), 문·함정 상태는 호스트가 결정하고 클라이언트에 알린다 (호스트 권한 Synchronizer 또는 RPC). 클라이언트는 "기름 붓기" 같은 요청만 보낸다. 플레이어 이동만 각자 자기 캐릭터 권한(클라이언트 권한 이동) — 협동 게임이라 치트 방지보다 조작감을 택했다. 게임플레이 코드는 `Net.is_host()` 로 판정 여부를 가른다 (혼자 하기도 호스트).
+- **권한**: 호스트가 게임 상태의 주인이다. 스폰·제거, 들기·놓기·건네기, 앞으로 넣을 동물 AI·기계 상태는 호스트가 결정하고 클라이언트에 알린다 (호스트 권한 Synchronizer 또는 RPC). 클라이언트는 "이 물건을 들고 싶다" 같은 요청만 보낸다. 호스트의 거리 판정은 화면에 그려진 위치가 아니라 각 플레이어가 마지막으로 보낸 위치(`reported_position()`)로 한다. 플레이어 이동만 각자 자기 캐릭터 권한(클라이언트 권한 이동) — 협동 게임이라 치트 방지보다 조작감을 택했다. 게임플레이 코드는 `Net.is_host()` 로 판정 여부를 가른다 (혼자 하기도 호스트).
 - **시드 난수** (`scripts/core/seeded_rng.gd`): 호스트가 `new_session_seed()` 로 시드를 정해 클라이언트에 보내면, 모든 피어가 `make(seed, "dungeon")` 처럼 흐름 이름별 RNG 로 같은 던전을 만든다. 결정론이 필요한 곳에서 전역 `randi()` 금지. 시드를 세션에 실어 보내는 부분은 첫 시제품에서 넣는다.
 - **스폰**: `PlayerSpawner.spawn_function` 에 스폰 데이터 `{peer_id, slot, position}` 를 넘긴다. 캐릭터 권한이 클라이언트에 있으면 Synchronizer 의 "spawn" 속성을 서버가 보내지 않아서(실제로 클라이언트 쪽 내 캐릭터가 원점에 생기는 문제를 테스트에서 확인), 시작 상태는 스폰 데이터로 보낸다.
 - **순서**: 클라이언트는 월드 씬을 먼저 띄운 뒤 접속한다 (서버가 보내는 스폰을 받을 스포너가 있어야 함). 그래서 `Net` 이 `change_scene_to_file`(한 프레임 늦음) 대신 직접 씬을 바꾼다.
@@ -89,9 +79,7 @@
 | 씬 | 무엇 | 약속 |
 |---|---|---|
 | `scenes/art/player_model.tscn` | 동료 몸 (내 화면에서는 숨김) | 키 약 1.8 m. 색을 받으려면 루트에 `set_player_color(color)` |
-| `scenes/art/lantern_model.tscn` | 큰 등불 | 높이 약 0.3 m. 빛(OmniLight3D)은 게임 쪽이 0.4 m 높이에 둠. 모형 그림자는 자동으로 끔 |
-| `scenes/art/oil_bottle_model.tscn` | 기름병 | 높이 약 0.35 m. 어둠에서 보이게 살짝 빛나는 재질 권장 |
-| `scenes/art/stalker_model.tscn` | 그림자 추적자 | 키 약 2 m (문 높이 2 m). 루트에 `set_state(이름)`: idle/wander/stalk/attack/flee. **attack 때 눈이 빛나야 함** (반응할 틈) |
+| `scenes/art/props/crate_model.tscn` | 임시 상자 (들기 시험용) | 바닥이 원점. 들 수 있는 물건 모형은 모두 같은 약속 |
 | `scenes/art/tiles/floor_tile.tscn` | 바닥 타일 2×2 m | 윗면이 y=0 |
 | `scenes/art/tiles/wall_tile.tscn` | 벽 타일 2×2 m, 두께 0.3 m | 아랫변 가운데가 원점, 두께 방향이 +Z(방 안쪽). 2단으로 쌓아 4 m |
 | `scenes/art/tiles/ceiling_tile.tscn` | 천장 타일 2×2 m | 아랫면이 y=0 (4 m 높이에 놓임) |
@@ -100,7 +88,21 @@
 
 ## 조작
 
-시제품부터 1인칭(GDD 2장). 조작표는 [PROTOTYPE.md](PROTOTYPE.md) 4장.
+위에서 비스듬히 보는 3인칭(오버쿡드식). 카메라는 월드의 고정 카메라 하나(`ShopCamera`)이고, 이동은 카메라 기준(화면 위 = 앞)이다.
+
+| 동작 | 키보드 | 게임패드 |
+|---|---|---|
+| 이동 / 달리기 | WASD / Shift | 왼쪽 스틱 / 왼쪽 스틱 누르기 |
+| 들기 / 내려놓기 | E (한 버튼) 또는 Q 로 내려놓기 | A / B |
+| 건네기 (가까운 빈손 동료에게) | R | Y |
+| 메뉴 / 도움말 | Esc / F1 | Back |
+
+## 들 수 있는 물건 (`Carryable`)
+
+- 물건 씬 루트에 `scripts/game/carryable.gd` 를 붙이고, 자식에 `Model`(겉모습)과 `Sync`(holder_peer·ground_position·ground_yaw, 권한 호스트)를 둔다. 예: `scenes/props/crate.tscn`.
+- 판정은 `scripts/game/carry_rules.gd` (월드의 `CarryRules`): 들기(가까운 물건, 빈손), 내려놓기(몸 앞), 건네기(가까운 빈손 동료). 동시에 집으면 먼저 온 요청만.
+- 나간 사람이 든 물건은 그 자리에 떨어진다.
+- 둘이 같이 드는 물건(대형견)은 다음 작업에서 이 부품에 넣는다.
 
 ## 같은 PC에서 창 두 개로 테스트
 
@@ -120,16 +122,15 @@ godot --path . -- --join=127.0.0.1  # 창 2: 접속
 | `tests/test_offline_session.tscn` | 혼자 하기 → 월드·플레이어 1 생성, 나가기 → 메뉴 |
 | `tests/net/test_enet_two_peers.tscn` | ENet 서버 1 + 클라이언트 1: 스폰 위치, 양방향 이동 동기화, 호스트 퇴장 시 클라이언트 메뉴 복귀 |
 | `tests/test_seeded_rng.tscn` | 시드 난수 결정론, 흐름 분리, 고정값 |
-| `tests/test_balance.tscn` | balance.tres 가 TUNING.md 시제품 값과 같음 |
-| `tests/game/test_lantern_oil.tscn` | 등불 줍기·밝기·내려놓기, 손등, 기름 소모 속도, 기름병, 기름 0 → 심지 → 어둠, F5 |
-| `tests/game/test_stalker.tscn` | 어둠 게이지, 추적 → 준비 → 잡기 → 실패·다시 시작, 빛 경계에서 멈춤, 빛에 덮이면 후퇴 |
-| `tests/net/test_lantern_sync.tscn` | 2인: 기름 일치, 등불 든 사람, 쓰러짐·부활 동기화, 같은 기름병 동시 줍기 (QA LANT-10·11·12·20·21) |
+| `tests/test_balance.tscn` | balance.tres 를 한 파일에서 읽고 수치가 다 있음 |
+| `tests/game/test_carry.tscn` | 혼자: E 로 들기·내려놓기, 거리, 한 번에 하나, 들면 느려짐, 화면 기준 이동 |
+| `tests/net/test_carry_sync.tscn` | 2인(.roles): 든 사람 동기화, 동시 줍기는 한 사람만, 건네기, 위조 요청 무시, 나가면 떨어짐 |
 
 네트워크 테스트는 TESTING.md 의 "한 프로세스에 피어 여러 개" 대신 **클라이언트를 별도 Godot 프로세스**(`tests/net/enet_client_peer.tscn`, `OS.create_process`)로 띄운다.
 `Net` 은 루트 MultiplayerAPI 와 씬 전환을 그대로 쓰기 때문에, 실제 게임과 같은 경로로 시험하려는 것이다. 클라이언트 출력은 같은 로그에 찍히고, 클라이언트 실패는 `QA_TEST_FAIL` 줄과 종료 코드로 서버 쪽 테스트 실패가 된다. 포트는 테스트마다 다름 (24611, 24612).
 
 ## 알려진 한계 / 다음 할 일
 
-- 다른 플레이어·추적자 위치는 받은 값 쪽으로 부드럽게 따라가는 단순 보간만 한다 (지연 보정 없음).
+- 다른 플레이어 위치는 받은 값 쪽으로 부드럽게 따라가는 단순 보간만 한다 (지연 보정 없음).
 - 글꼴은 Pretendard 원본(OFL)만 넣었다. FONT.md 의 Noto Sans CJK 대체 글꼴은 아직 없다 (파일이 커서 스팀 닉네임을 표시할 때 같이 넣음).
 - 메뉴 문자열은 아직 한국어 하드코딩. 영어 지원 때 번역 키로 옮긴다.
