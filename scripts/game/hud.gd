@@ -130,15 +130,16 @@ func _ready() -> void:
 			label.add_theme_color_override("font_shadow_color", Color.TRANSPARENT)
 	world.get_node("WashStation").screen_foam.connect(overlay.show_foam)
 	_card_home = $Card.position
+	# 성격 한 줄은 카드 바로 아래에 (세로 카드 그림의 6칸 줄을 밀지 않게)
 	card_trait = Label.new()
 	card_trait.name = "Trait"
+	card_trait.theme = get_tree().root.theme
 	card_trait.theme_type_variation = &"PromptLabel"
-	# 세로 카드 그림(밝은 종이) 위에서는 진한 파랑, 없으면 밝은 하늘색
-	card_trait.add_theme_color_override("font_color", Color("2f5f8a") if UiArt.texture("card_vertical") != null else Color(0.75, 0.9, 1.0))
-	card_trait.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	card_trait.custom_minimum_size = Vector2(230, 0)
-	$Card/Box.add_child(card_trait)
-	$Card/Box.move_child(card_trait, card_request.get_index() + 1)
+	card_trait.add_theme_color_override("font_color", Color(0.8, 0.92, 1.0))
+	card_trait.add_theme_color_override("font_outline_color", Color(0.1, 0.15, 0.25))
+	card_trait.add_theme_constant_override("outline_size", 8)
+	add_child(card_trait)
+	move_child(card_trait, overlay.get_index())
 	# 대기 손님 참을성 원: HUD 맨 밑 층 (요청 카드·도구걸이가 그 위)
 	var patience_layer := Control.new()
 	patience_layer.name = "PatienceLayer"
@@ -199,7 +200,8 @@ func _process(_delta: float) -> void:
 	if station.is_cat():
 		card_title.text += " · 고양이"
 	var trait_index: int = station.personality()
-	card_trait.visible = trait_index != WashStation.Personality.NONE
+	card_trait.visible = trait_index != WashStation.Personality.NONE and $Card.visible
+	card_trait.position = Vector2($Card.position.x + 8.0, $Card.position.y + $Card.size.y * $Card.scale.y + 4.0)
 	card_trait.text = "%s — %s" % [WashStation.PERSONALITY_NAMES[trait_index], WashStation.PERSONALITY_TIPS[trait_index]]
 	for i in _step_labels.size():
 		var done: bool = i < station.stage
