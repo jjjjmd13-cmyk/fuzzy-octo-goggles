@@ -1,4 +1,4 @@
-[gd_scene load_steps=21 format=3 uid="uid://b7washstat01"]
+[gd_scene load_steps=22 format=3 uid="uid://b7washstat01"]
 
 [ext_resource type="Script" path="res://scripts/sim/wash_station.gd" id="1_station"]
 
@@ -10,6 +10,7 @@
 [ext_resource type="PackedScene" uid="uid://b7simturnmdl1" path="res://scenes/art/sim/turntable_model.tscn" id="6_turntable"]
 [ext_resource type="PackedScene" path="res://scenes/art/tiles/wall_tile.tscn" id="7_wall"]
 [ext_resource type="Script" path="res://scripts/sim/waiting_area.gd" id="8_waiting"]
+[ext_resource type="PackedScene" uid="uid://b7simplantmd1" path="res://scenes/art/sim/plant_model.tscn" id="9_plant"]
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_station"]
 properties/0/path = NodePath(".:dog_info")
@@ -152,3 +153,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.9, 0, 1.2)
 
 [node name="WaitingArea" type="Node3D" parent="."]
 script = ExtResource("8_waiting")
+
+[node name="Plant" parent="." instance=ExtResource("9_plant")]
+transform = Transform3D(0.6, 0, 0, 0, 0.6, 0, 0, 0, 0.6, -0.66, 0.9, -0.42)
+visible = false

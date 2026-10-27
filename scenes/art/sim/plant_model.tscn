@@ -1,0 +1,49 @@
+[gd_scene load_steps=7 format=3 uid="uid://b7simplantmd1"]
+
+[sub_resource type="StandardMaterial3D" id="Mat_pot"]
+resource_name = "Pot"
+albedo_color = Color(0.78, 0.45, 0.32, 1)
+roughness = 0.8
+
+[sub_resource type="CylinderMesh" id="Mesh_pot"]
+material = SubResource("Mat_pot")
+top_radius = 0.16
+bottom_radius = 0.12
+height = 0.3
+
+[sub_resource type="StandardMaterial3D" id="Mat_leaf"]
+resource_name = "Leaf"
+albedo_color = Color(0.35, 0.68, 0.38, 1)
+roughness = 0.7
+
+[sub_resource type="SphereMesh" id="Mesh_leaf"]
+material = SubResource("Mat_leaf")
+radius = 0.14
+height = 0.28
+
+[sub_resource type="CapsuleMesh" id="Mesh_stem"]
+material = SubResource("Mat_leaf")
+radius = 0.02
+height = 0.4
+
+[node name="PlantModel" type="Node3D"]
+
+[node name="Pot" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.15, 0)
+mesh = SubResource("Mesh_pot")
+
+[node name="Stem" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+mesh = SubResource("Mesh_stem")
+
+[node name="Leaf1" type="MeshInstance3D" parent="."]
+transform = Transform3D(1.2, 0, 0, 0, 0.8, 0, 0, 0, 1.2, 0, 0.66, 0)
+mesh = SubResource("Mesh_leaf")
+
+[node name="Leaf2" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.7, 0, 0, 0, 1, 0.12, 0.52, 0.04)
+mesh = SubResource("Mesh_leaf")
+
+[node name="Leaf3" type="MeshInstance3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 0.7, 0, 0, 0, 1, -0.11, 0.55, -0.03)
+mesh = SubResource("Mesh_leaf")

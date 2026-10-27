@@ -61,6 +61,12 @@ properties/2/replication_mode = 2
 properties/3/path = NodePath(".:shampoo")
 properties/3/spawn = true
 properties/3/replication_mode = 2
+properties/4/path = NodePath(".:wide_shower")
+properties/4/spawn = true
+properties/4/replication_mode = 2
+properties/5/path = NodePath(".:plant")
+properties/5/spawn = true
+properties/5/replication_mode = 2
 
 [sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_day"]
 properties/0/path = NodePath(".:day")
@@ -102,6 +108,15 @@ properties/11/replication_mode = 2
 properties/12/path = NodePath(".:queue_kinds")
 properties/12/spawn = true
 properties/12/replication_mode = 2
+properties/13/path = NodePath(".:morning")
+properties/13/spawn = true
+properties/13/replication_mode = 2
+properties/14/path = NodePath(".:tips")
+properties/14/spawn = true
+properties/14/replication_mode = 2
+properties/15/path = NodePath(".:best_guest")
+properties/15/spawn = true
+properties/15/replication_mode = 2
 
 [node name="World" type="Node3D"]
 script = ExtResource("1_world")

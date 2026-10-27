@@ -64,7 +64,7 @@ func _draw() -> void:
 		for spot in _foam_spots:
 			draw_circle(Vector2(spot.x, spot.y), spot.z, color)
 			draw_circle(Vector2(spot.x + spot.z * 0.6, spot.y - spot.z * 0.4), spot.z * 0.6, color)
-	if at_bath and not hud.is_paused():
+	if at_bath and not hud.is_paused() and not hud.is_menu_open():
 		_draw_cursor(station, world.cursor)
 
 
@@ -288,15 +288,25 @@ func _draw_arrows(station: WashStation) -> void:
 func _draw_cursor(station: WashStation, pos: Vector2) -> void:
 	var outline := Color(0, 0, 0, 0.8)
 	var picture := UiArt.texture(TOOL_ART[station.tool])
+	# 넓은 샤워기 (컴퓨터에서 산 업그레이드): 큰 샤워기 머리 + 물 뿌리는 넓이 원.
+	# 그림이 있으면 assets/ui/tool_shower_wide.png
+	var wide: bool = station.tool == WashStation.Tool.SHOWER and hud.world.store.wide_shower
+	if wide:
+		draw_arc(pos, 30.0 * Tuning.data.slice_wide_shower_mult, 0, TAU, 32, Color(0.6, 0.85, 1.0, 0.6), 3.0)
+		var wide_picture := UiArt.texture("tool_shower_wide")
+		if wide_picture != null:
+			picture = wide_picture
 	if picture != null and station.tool != WashStation.Tool.BOTTLE:
-		draw_texture_rect(picture, Rect2(pos + Vector2(-8, -56), Vector2(56, 56)), false)
+		var icon_size := 80.0 if wide else 56.0
+		draw_texture_rect(picture, Rect2(pos + Vector2(-8, -icon_size), Vector2(icon_size, icon_size)), false)
 	else:
 		match station.tool:
 			WashStation.Tool.SHOWER:
 				var water := Color(0.4, 0.6, 1.0).lerp(Color(1.0, 0.45, 0.35), station.temperature)
-				draw_circle(pos + Vector2(26, -26), 16, Color(0.75, 0.78, 0.82))
-				draw_arc(pos + Vector2(26, -26), 16, 0, TAU, 24, outline, 2.0)
-				draw_circle(pos + Vector2(26, -26), 7, water)
+				var head := 24.0 if wide else 16.0
+				draw_circle(pos + Vector2(26, -26), head, Color(0.75, 0.78, 0.82))
+				draw_arc(pos + Vector2(26, -26), head, 0, TAU, 24, outline, 2.0)
+				draw_circle(pos + Vector2(26, -26), head * 0.45, water)
 			WashStation.Tool.BOTTLE:
 				# 누르는 동안 병이 찌그러진다
 				var squash := 0.0

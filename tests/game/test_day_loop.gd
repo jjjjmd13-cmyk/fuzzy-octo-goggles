@@ -82,7 +82,7 @@ func run_test() -> void:
 	check(day.closed, "오늘 손님이 다 오고 다 끝나면 영업 끝")
 	check(is_equal_approx(day.hour(), 18.0), "벽시계가 6시")
 	check_eq(day.served + day.walked_out, day.guests_today(), "씻긴 손님 + 떠난 손님 = 오늘 손님")
-	check(world.hud._closed_panel.visible, "영업 끝 알림")
+	check(world.hud.settle_panel.visible, "영업 끝 → 정산 화면")
 
 	# --- 6시가 지나면 새 손님은 안 옴 (목욕 중인 손님은 끝까지)
 	data.day_open_minutes_real = 0.05

@@ -92,3 +92,7 @@ proto_cat_pour_head_mood = -0.2
 proto_timid_eye_mult = 2.0
 proto_ticklish_time = 0.6
 proto_ticklish_mood = -0.05
+slice_price_wide_shower = 150
+slice_wide_shower_mult = 1.5
+slice_price_plant = 80
+slice_plant_patience_mult = 1.2

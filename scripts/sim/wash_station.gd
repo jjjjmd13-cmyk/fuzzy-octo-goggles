@@ -119,6 +119,8 @@ var turns := 0
 @onready var coin_root: Node3D = $Coins
 @onready var owner_model: Node3D = $Owner
 @onready var waiting_area: Node3D = $WaitingArea
+## 꾸미기: 창가 화분 (컴퓨터에서 사면 보임)
+@onready var plant: Node3D = $Plant
 
 var _built_serial := -1
 var _seen_stage := -1
@@ -487,14 +489,24 @@ func _use_shower(screen_pos: Vector2, hit: Variant, held: bool, delta: float) ->
 	if dog.is_face(hit):
 		_eye_hit()
 	if stage == Stage.WET:
-		dog.paint("wet", hit, data.tool_shower_radius, data.tool_shower_rate * delta)
+		dog.paint("wet", hit, shower_radius(), data.tool_shower_rate * delta)
 		if dog.mask.mud_at(dog.dir_of(hit)) > 0.2:
 			dog.drip(hit)
 		else:
 			dog.stop_drip()
 	else:
 		# 다른 단계에 물을 뿌리면 거품만 씻겨 나간다
-		dog.rinse_foam(hit, data.tool_shower_radius, delta * 4.0)
+		dog.rinse_foam(hit, shower_radius(), delta * 4.0)
+
+
+## 샤워기 붓 반경 (m). 넓은 샤워기를 사면 커짐
+func shower_radius() -> float:
+	return Tuning.data.tool_shower_radius * _wide_mult()
+
+
+## 넓은 샤워기 배수 (적시기 샤워기·헹구기 바가지 띠)
+func _wide_mult() -> float:
+	return Tuning.data.slice_wide_shower_mult if store != null and store.wide_shower else 1.0
 
 
 ## 물 색: 차가우면 파랑, 좋으면 연한 하늘색, 뜨거우면 빨강
@@ -641,7 +653,7 @@ func _pour_band(screen_x: float) -> void:
 	var model: Node3D = dog.model
 	var center: Vector3 = model.to_global(model.body_center)
 	# 띠 폭을 화면 픽셀로 (강아지 깊이에서)
-	var half := absf(camera.unproject_position(center + camera.global_basis.x * data.rinse_pour_band_width * 0.5).x - camera.unproject_position(center).x)
+	var half := absf(camera.unproject_position(center + camera.global_basis.x * data.rinse_pour_band_width * _wide_mult() * 0.5).x - camera.unproject_position(center).x)
 	var top := camera.unproject_position(center + Vector3(0, 0.45, 0)).y
 	var bottom := camera.unproject_position(center - Vector3(0, 0.35, 0)).y
 	var head_hit := false
@@ -749,6 +761,8 @@ func _stop_loops() -> void:
 # --- 매 프레임
 
 func _process(delta: float) -> void:
+	if store != null:
+		plant.visible = store.plant
 	if dog_info.x != _built_serial:
 		_build_dog()
 	if dog.model == null:
@@ -1108,7 +1122,7 @@ func _pay() -> void:
 		var total := 0
 		for value in values:
 			total += value
-		day.guest_paid(total)
+		day.guest_paid(total, total - values[0], mood, guest_kind.x)
 
 
 @rpc("any_peer", "call_local", "reliable")

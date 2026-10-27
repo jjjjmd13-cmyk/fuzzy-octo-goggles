@@ -153,10 +153,10 @@
 | `slice_cat_price` | 45 | 돈 | ✅ | 고양이 요금 (강아지 `money_wash_price` 30) |
 | `slice_cat_temp_good` | [0.45, 0.6] | 0~1 | ✅ | 고양이 온도 '좋음' 범위 |
 | `slice_timid_temp_good` | [0.5, 0.6] | 0~1 | ✅ | 겁쟁이 온도 '좋음' 범위 |
-| `slice_price_wide_shower` | 150 | 돈 | 단면 | 넓은 샤워기 |
-| `slice_wide_shower_mult` | 1.5 | 배 | 단면 | 적시기·헹구기 붓 반경 |
-| `slice_price_plant` | 80 | 돈 | 단면 | 창가 화분 |
-| `slice_plant_patience_mult` | 1.2 | 배 | 단면 | |
+| `slice_price_wide_shower` | 150 | 돈 | ✅ | 넓은 샤워기 |
+| `slice_wide_shower_mult` | 1.5 | 배 | ✅ | 적시기·헹구기 붓 반경 (헹구기는 바가지라 쏟는 띠 폭에 곱함) |
+| `slice_price_plant` | 80 | 돈 | ✅ | 창가 화분 |
+| `slice_plant_patience_mult` | 1.2 | 배 | ✅ | |
 
 ## 바꾼 기록
 
@@ -172,3 +172,4 @@
 | 2026-10-26 | 9장 `slice_*` (새로, 초안) | — | 수직 단면 범위 (MILESTONE_V3_SLICE) |
 | 2026-10-27 | 9장 `slice_days`·`slice_guests_per_day`·`slice_queue_seats`·`slice_owner_patience` ✅, 7장 `proto_guest_spacing` (새로) | 값은 초안 그대로 / 0.85 | 수직 단면 1장 하루 영업 (개발팀) |
 | 2026-10-27 | 9장 `slice_cat_price`·`slice_cat_temp_good`·`slice_timid_temp_good` ✅, 7장 `proto_cat_*`·`proto_trait_chance`·`proto_timid_eye_mult`·`proto_ticklish_*` (새로) | 값은 초안 그대로 / 새 값 | 수직 단면 3장 고양이·성격 (개발팀) |
+| 2026-10-27 | 9장 `slice_price_wide_shower`·`slice_wide_shower_mult`·`slice_price_plant`·`slice_plant_patience_mult` ✅ | 값은 초안 그대로 | 수직 단면 4장 정산·쇼핑·다음 날 (개발팀) |

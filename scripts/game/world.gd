@@ -45,6 +45,7 @@ func _ready() -> void:
 	station.waiting_area.day = day
 	day.station = station
 	day.sfx = sfx
+	day.store = store
 	camera.fov = Tuning.data.seat_camera_fov
 	camera.global_transform = station.camera_point.global_transform
 	cursor = get_viewport().get_visible_rect().size / 2.0
@@ -100,7 +101,7 @@ func get_spawn_marker(slot: int) -> Node3D:
 
 
 func _unhandled_input(event: InputEvent) -> void:
-	if hud.is_paused():
+	if hud.is_paused() or hud.is_menu_open():
 		return
 	if event is InputEventMouseMotion:
 		cursor = event.position
@@ -132,7 +133,7 @@ func _process(delta: float) -> void:
 	var seat := local_seat()
 	if seat != _seat_shown:
 		_show_seat(seat)
-	var at_bath: bool = seat == Player.Seat.BATH and not hud.is_paused()
+	var at_bath: bool = seat == Player.Seat.BATH and not hud.is_paused() and not hud.is_menu_open()
 	if at_bath:
 		var stick := Input.get_vector("cursor_left", "cursor_right", "cursor_up", "cursor_down")
 		if stick.length_squared() > 0.0:

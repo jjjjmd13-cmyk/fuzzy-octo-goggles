@@ -146,6 +146,12 @@ extends Resource
 ## 고양이 / 겁쟁이 물 온도 '좋음' 범위 (0~1)
 @export var slice_cat_temp_good := PackedFloat32Array([0.45, 0.6])
 @export var slice_timid_temp_good := PackedFloat32Array([0.5, 0.6])
+## 넓은 샤워기 (도구 업그레이드): 값, 적시기 샤워기·헹구기 바가지 띠 배수
+@export var slice_price_wide_shower := 150
+@export var slice_wide_shower_mult := 1.5
+## 창가 화분 (꾸미기): 값, 대기 손님 참을성 배수
+@export var slice_price_plant := 80
+@export var slice_plant_patience_mult := 1.2
 
 @export_group("수직 단면 임시 값 (개발팀)")
 ## 2일차부터 손님이 고양이일 비율
