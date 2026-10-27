@@ -55,13 +55,13 @@
           "code": "UNUSED_OBJECT",
           "message": "This object may be unused.",
           "severity": 2,
-          "pointer": "/meshes/15/primitives/0/attributes/TEXCOORD_0"
+          "pointer": "/meshes/16/primitives/0/attributes/TEXCOORD_0"
         },
         {
           "code": "UNUSED_OBJECT",
           "message": "This object may be unused.",
           "severity": 2,
-          "pointer": "/meshes/15/primitives/1/attributes/TEXCOORD_0"
+          "pointer": "/meshes/16/primitives/1/attributes/TEXCOORD_0"
         }
       ],
       "truncated": false

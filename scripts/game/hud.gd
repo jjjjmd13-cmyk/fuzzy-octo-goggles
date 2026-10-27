@@ -39,6 +39,10 @@ var _step_checks: Array[TextureRect] = []
 
 
 func _ready() -> void:
+	# CanvasLayer의 자식 Control은 Window 테마를 자동 상속하지 않으므로 명시한다.
+	for child in get_children():
+		if child is Control:
+			child.theme = get_tree().root.theme
 	$PauseMenu/Box/Resume.pressed.connect(_set_paused.bind(false))
 	$PauseMenu/Box/Leave.pressed.connect(Net.leave_session)
 	invite_button.pressed.connect(Net.invite_friends)

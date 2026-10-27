@@ -1,0 +1,37 @@
+[
+  {
+    "source": "art/incoming/chair/chair.glb",
+    "runtime": "assets/models/chair/chair.glb",
+    "sha256": "0a4ccc965398f9b5105fb2b39bf6d43fc3f60f807c6a7752d36cca997dd81c9f"
+  },
+  {
+    "source": "art/incoming/dog/dog.glb",
+    "runtime": "assets/models/dog/dog.glb",
+    "sha256": "a448521f16a9b42fcb76d26c0e77ed0ccb548e40b85873bf556a2566a28b3e87"
+  },
+  {
+    "source": "art/incoming/owner/owner.glb",
+    "runtime": "assets/models/owner/owner.glb",
+    "sha256": "29d2ede3334ada7fb6e28cda402646d6ac911e17b4e8dac8d559b3f5eb42c0b4"
+  },
+  {
+    "source": "art/incoming/tiles/floor.glb",
+    "runtime": "assets/models/tiles/floor.glb",
+    "sha256": "52af0c6608163f540ee12599eecee007aedc000a42a3e05b48c692f0358e4f91"
+  },
+  {
+    "source": "art/incoming/tiles/wall.glb",
+    "runtime": "assets/models/tiles/wall.glb",
+    "sha256": "75e46ab28ede92377242d79270b36cccc54e601a1069690a212286c4d61122db"
+  },
+  {
+    "source": "art/incoming/tub/tub.glb",
+    "runtime": "assets/models/tub/tub.glb",
+    "sha256": "438c1e1f75258ee61c7622d2f907629ac1b1298acc20cb7973e02d7669b49186"
+  },
+  {
+    "source": "art/incoming/turntable/turntable.glb",
+    "runtime": "assets/models/turntable/turntable.glb",
+    "sha256": "e4a26c492f97a90f8aa46407a3e0282b3dad009e6d8715d21162f295495fbe3a"
+  }
+]

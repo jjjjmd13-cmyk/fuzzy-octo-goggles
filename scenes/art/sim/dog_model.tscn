@@ -1,6 +1,11 @@
-[gd_scene load_steps=2 format=3 uid="uid://b7simdogmdl1"]
+[gd_scene load_steps=3 format=3 uid="uid://b7simdogmdl1"]
 
-[ext_resource type="Script" path="res://scripts/sim/toy_dog_model.gd" id="1_model"]
+[ext_resource type="PackedScene" path="res://assets/models/dog/dog.glb" id="1_glb"]
+
+[ext_resource type="Script" path="res://scripts/sim/sim_dog_model.gd" id="2_script"]
 
 [node name="DogModel" type="Node3D"]
-script = ExtResource("1_model")
+script = ExtResource("2_script")
+
+[node name="Art" parent="." instance=ExtResource("1_glb")]
+rotation = Vector3(0, 3.141592653589793, 0)

@@ -1,6 +1,6 @@
 # 개발팀 상태
 
-**지금 하는 일**: 그림 반영 PR (`dev/art-hookup`, #38 위에 쌓음) 검토 대기. 다음: 수직 단면(`docs/design/MILESTONE_V3_SLICE.md`) 체크리스트 순서대로 작은 PR
+**현재 상태**: 사용자 지시로 retail-v2 GLB 실제 게임 연결 완료. 조명·털 셰이더·주인 앉기·한글 HUD 보정, 전체 테스트 14/14 통과. 실행 사진과 검수: `docs/dev/RETAIL_ART_INTEGRATION.md`. 다음 기능은 `docs/design/MILESTONE_V3_SLICE.md` 체크리스트 순서.
 
 **끝낸 일**:
 - 이슈 #39: 단계가 바뀌면 눈에 물 경고를 지워 새 단계 안내가 보이게 함

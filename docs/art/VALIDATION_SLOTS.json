@@ -126,14 +126,14 @@
       ]
     },
     "clean_albedo": "Procedural pigment only; DIFFUSE COLOR pass, no direct/indirect lighting, AO or state effects",
-    "pigment_color_count": 731,
+    "pigment_color_count": 705,
     "art_direction": "retail-v2",
     "result": "PASS"
   },
   {
     "file": "art/incoming/owner/owner.glb",
-    "triangles": 3844,
-    "mesh_nodes": 17,
+    "triangles": 3840,
+    "mesh_nodes": 19,
     "bounds_m": [
       [
         -0.2697720527648926,

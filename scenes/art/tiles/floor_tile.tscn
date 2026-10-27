@@ -1,15 +1,7 @@
-[gd_scene load_steps=3 format=3 uid="uid://b7tilefloor01"]
+[gd_scene load_steps=2 format=3 uid="uid://b7tilefloor01"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_floor"]
-albedo_color = Color(0.78, 0.7, 0.6, 1)
-roughness = 0.95
-
-[sub_resource type="BoxMesh" id="BoxMesh_floor"]
-material = SubResource("StandardMaterial3D_floor")
-size = Vector3(2, 0.2, 2)
+[ext_resource type="PackedScene" path="res://assets/models/tiles/floor.glb" id="1_glb"]
 
 [node name="FloorTile" type="Node3D"]
 
-[node name="Mesh" type="MeshInstance3D" parent="."]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.1, 0)
-mesh = SubResource("BoxMesh_floor")
+[node name="Art" parent="." instance=ExtResource("1_glb")]

@@ -37,7 +37,7 @@
 
 미터·Y-up·−Z 정면, 바닥 원점(회전판은 중앙), 뼈대와 애니메이션 없음. 강아지 필수 이름 14개 및 `Head` 자식 눈·귀, `Tail_1 → Tail_2 → Tail_3` 계층을 유지한다. 털 UV에 겹침이 없으며 눈·코·입·혀는 비털 재질로 분리했다. 털 상태와 클릭 판정은 기존 게임 코드가 담당한다.
 
-주인 비율 변경에 따른 개발팀 연결 항목: 실제 키 1.55m와 엉덩이 관절 높이에 맞춰 말풍선 높이·앉는 자세의 루트 높이를 확인해야 한다. 기존 스크립트의 이름 찾기·색상·관절 회전은 검사했으며, 의자에 앉았을 때의 접지는 연결 씬에서 보정할 항목이다.
+주인 연결을 완료했다. 키 1.55m·말풍선 높이·좌판 0.4m·발바닥 접지를 맞췄고, 추가한 `Knee_L/R` 하위 관절로 앉기와 일어서기를 처리한다. 게임은 `assets/models/`의 동일 GLB를 사용한다. 털 UV 여백에도 해당 부위의 색을 채워 밉맵의 흰색 번짐을 줄였다.
 
 현재 스타일과 원점 값: [ART_DIRECTION.json](ART_DIRECTION.json), [RETAIL_JOINTS.json](RETAIL_JOINTS.json).
 
@@ -46,17 +46,19 @@
 - GLB 7개: 파일 구조·치수·부위·피벗·노멀·비퇴화 삼각형·재질 맵·털 UV 무겹침 검사 PASS. [수치 기록](VALIDATION_SLOTS.json).
 - Khronos glTF Validator: 7개 모두 오류 0 / 경고 0. [원본 기록](VALIDATION_GLTF.json).
 - Godot 4.4.1: 7개 GLB 직접 파싱 및 기존 스크립트 호환 PASS. 털 메시 16개 / 볼록 클릭 판정 16개, 혀 표시와 다리 관절 움직임, Shirt/Hat 6개 색상 변경 확인.
-- 기존 게임 테스트 묶음은 첫 납품 때 13개 모두 통과했다. 이번 변경은 모델과 렌더·검수 도구에 한정되며, 현재 모델에 대해서는 위 전용 호환 검사를 다시 실행했다.
-- 미리보기 6장 모두 PNG 디코딩 및 시각 확인. 모델의 최종 게임 조명·털 표현은 개발팀 연결 후 확인해야 한다.
+- 실제 게임 연결 후 전체 테스트 **14개 통과 / 실패 0**. 목욕 6단계·결제·다음 손님, 관절·앉기 접지·한글 HUD, ENet 다중 접속·동기화·연결 종료를 검사했다. 자동 손동작 기준 63초 (목표 65초).
+- 실제 실행 사진과 실행 조건: [연결 검수 기록](../dev/RETAIL_ART_INTEGRATION.md). Blender 렌더는 에셋 미리보기, 실행 사진은 Godot 화면이다.
 
 제작·권리 기록: [ASSET_PROVENANCE.md](ASSET_PROVENANCE.md). 외부 게임의 모델·텍스처·스크린샷 픽셀은 납품 파일에 포함하지 않았다. 생성 원본: `tools/art/build_retail_slots.py` (기존 `build_slots.py`는 공통 메시 함수와 v1 기록).
 
 ## SHA-256
 
 - `art/incoming/chair/chair.glb`: `0a4ccc965398f9b5105fb2b39bf6d43fc3f60f807c6a7752d36cca997dd81c9f`
-- `art/incoming/dog/dog.glb`: `0cbfda1bcff6796f46bcd790ade14d5cbf2577770cd8b6c14e556b1324468f91`
-- `art/incoming/owner/owner.glb`: `cbaf72ba9b19e52e20bbc1f5cd05f7e87d9ce0dc7586b3d5fdfb00d0b090fcf1`
+- `art/incoming/dog/dog.glb`: `a448521f16a9b42fcb76d26c0e77ed0ccb548e40b85873bf556a2566a28b3e87`
+- `art/incoming/owner/owner.glb`: `29d2ede3334ada7fb6e28cda402646d6ac911e17b4e8dac8d559b3f5eb42c0b4`
 - `art/incoming/tiles/floor.glb`: `52af0c6608163f540ee12599eecee007aedc000a42a3e05b48c692f0358e4f91`
 - `art/incoming/tiles/wall.glb`: `75e46ab28ede92377242d79270b36cccc54e601a1069690a212286c4d61122db`
 - `art/incoming/tub/tub.glb`: `438c1e1f75258ee61c7622d2f907629ac1b1298acc20cb7973e02d7669b49186`
 - `art/incoming/turntable/turntable.glb`: `e4a26c492f97a90f8aa46407a3e0282b3dad009e6d8715d21162f295495fbe3a`
+
+원본과 게임용 복사본의 일치 기록: [RUNTIME_MANIFEST.json](RUNTIME_MANIFEST.json).
