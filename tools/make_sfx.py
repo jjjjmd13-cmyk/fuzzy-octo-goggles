@@ -123,4 +123,9 @@ whine = tone(0.18, 1100, 1500, vol=0.3, release=0.08)
 save("whine", whine + silence(0.08) + tone(0.22, 1200, 900, vol=0.28, release=0.1))
 # 멍!: 주인에게 달려감
 save("bark", tone(0.16, 520, 380, vol=0.55, wave_fn=square, noise=0.3, attack=0.005, release=0.08))
+
+# --- 수직 단면: 하루 영업
+# 딸랑: 손님이 들어올 때 문 종 (밝은 종소리 두 번)
+ring = mix(tone(0.35, 2093, vol=0.3, release=0.3), tone(0.35, 3136, vol=0.15, release=0.25))
+save("bell", ring + mix(tone(0.45, 2349, vol=0.28, release=0.4), tone(0.45, 3520, vol=0.12, release=0.35)))
 print("만듦:", sorted(os.listdir(OUT)))

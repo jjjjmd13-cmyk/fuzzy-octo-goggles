@@ -28,6 +28,8 @@ const HATS: Array[Color] = [
 @export var seat_height := 0.4
 @export var hip_clearance := 0.055
 var height := 1.12
+## 기다림 몸짓 (대기열): 0 가만히 / 1 시계 보기 / 2 발 구르기 / 3 시무룩
+var wait_level := 0
 
 var _body: Node3D
 var _head: Node3D
@@ -44,6 +46,8 @@ var _rest := {}
 var _rest_axes := {}
 var _rest_positions := {}
 
+## 걸어갈 남은 구간 [목표, 시간]
+var _segments: Array = []
 var _from := Vector3.ZERO
 var _to := Vector3.ZERO
 var _move_time := 0.0
@@ -89,10 +93,11 @@ func set_variant(index: int) -> void:
 		_body.visible = picture == null
 
 
-## 강아지를 안고 문에서 목욕통 옆으로
-func enter(door: Vector3, front: Vector3, duration: float) -> void:
+## 강아지를 안고 문(또는 대기 의자)에서 목욕통 옆으로. via = 들르는 곳 (목욕통을 돌아가기)
+func enter(door: Vector3, front: Vector3, duration: float, via: Array = []) -> void:
 	global_position = door
-	_walk(front, duration, "carry")
+	wait_level = 0
+	_walk(front, duration, "carry", via)
 	_react = -1
 
 
@@ -119,18 +124,45 @@ func leave(door: Vector3, duration: float) -> void:
 	_walk(door, duration, "walk")
 
 
-func _walk(target: Vector3, duration: float, end_pose: String) -> void:
-	_from = global_position
-	_to = target
-	_move_time = maxf(duration, 0.01)
-	_move_left = _move_time
+## 대기열 자리로 (의자면 앉고, 문밖 줄이면 서서 기다림)
+func go_wait(spot: Vector3, look: Vector3, duration: float, seated: bool) -> void:
+	_walk(spot, duration, "sit" if seated else "stand")
+	_face_target = look
+	_react = -1
+
+
+## 걷기: via 를 차례로 들러 target 까지 duration 동안 (거리에 따라 나눔)
+func _walk(target: Vector3, duration: float, end_pose: String, via: Array = []) -> void:
+	var points: Array = via + [target]
+	var lengths: Array[float] = []
+	var total := 0.0
+	var at := global_position
+	for point: Vector3 in points:
+		lengths.append(at.distance_to(point))
+		total += lengths[-1]
+		at = point
+	_segments.clear()
+	for i in points.size():
+		_segments.append([points[i], maxf(duration, 0.01) * (lengths[i] / total if total > 0.001 else 1.0 / points.size())])
 	_pose = end_pose
+	_move_left = 0.0
+	_next_segment()
+
+
+func _next_segment() -> void:
+	var segment: Array = _segments.pop_front()
+	_from = global_position
+	_to = segment[0]
+	_move_time = maxf(segment[1], 0.01)
+	_move_left = _move_time
 
 
 func _process(delta: float) -> void:
 	_t += delta
-	var moving := _move_left > 0.0
-	if moving:
+	if _move_left <= 0.0 and not _segments.is_empty():
+		_next_segment()
+	var moving := _move_left > 0.0 or not _segments.is_empty()
+	if _move_left > 0.0:
 		_move_left = maxf(_move_left - delta, 0.0)
 		var k := 1.0 - _move_left / _move_time
 		global_position = _from.lerp(_to, smoothstep(0.0, 1.0, k))
@@ -144,7 +176,7 @@ func _process(delta: float) -> void:
 	var sitting := _pose == "sit" and not moving
 	# 걸을 때 통통, 앉으면 높이 맞춤, 한숨이면 살짝 움츠림
 	if _body != null:
-		var squash := 1.0 - minf(_react_time, 0.6) * 0.08 if _react == 0 else 1.0
+		var squash := 1.0 - minf(_react_time, 0.6) * 0.08 if _react == 0 else (0.95 if wait_level == 3 else 1.0)
 		_set_pose(_body, Vector3.ZERO, Vector3(0, (absf(sin(_t * 10.0)) * 0.04 if moving else 0.0) + (_seated_body_offset if sitting else 0.0), 0), Vector3(1, squash, 1))
 	height = standing_height * (_body.scale.y if _body != null else 1.0) + (_seated_body_offset if sitting else 0.0)
 	if _hearts != null:
@@ -152,7 +184,9 @@ func _process(delta: float) -> void:
 	var jointed := _knees.size() == _legs.size() and not _knees.is_empty()
 	for i in _legs.size():
 		var bend := -PI / 2.0 if jointed else -1.3
-		_set_pose(_legs[i], Vector3(bend if sitting else sin(_t * 10.0 + i * PI) * 0.5 * float(moving), 0, 0))
+		# 발 구르기: 한쪽 다리를 빠르게 까딱
+		var tap := sin(_t * 16.0) * 0.12 if wait_level == 2 and i == 0 and not moving else 0.0
+		_set_pose(_legs[i], Vector3((bend if sitting else sin(_t * 10.0 + i * PI) * 0.5 * float(moving)) + tap, 0, 0))
 		if jointed:
 			_set_pose(_knees[i], Vector3(PI / 2.0 if sitting else 0.0, 0, 0), Vector3.ZERO, Vector3(1, _knee_scales[i] if sitting else 1.0, 1))
 	# 팔: 안고 올 때 앞으로, 반응 때 박수
@@ -164,8 +198,11 @@ func _process(delta: float) -> void:
 			swing = Vector3(-1.2, 0, 0)
 		elif _react == 2:
 			swing = Vector3(-1.3, 0, side * (0.25 + absf(sin(_react_time * 12.0)) * 0.35))
-		elif _react == 0:
+		elif _react == 0 or wait_level == 3:
 			swing = Vector3(0, 0, side * 0.05)
+		elif wait_level == 1 and i == 0 and _watch_glance():
+			# 시계 보기: 손목을 눈앞으로
+			swing = Vector3(-1.5, 0, -side * 0.5)
 		_set_pose(_arms[i], swing)
 	# 머리: 끄덕 / 한숨(고개 숙임) / 가만히 숨쉬기
 	if _head != null:
@@ -174,7 +211,16 @@ func _process(delta: float) -> void:
 			nod = absf(sin(_react_time * 6.0)) * 0.35 if _react_time < 1.6 else 0.0
 		elif _react == 0:
 			nod = minf(_react_time * 1.5, 0.45)
+		elif wait_level == 3:
+			nod = 0.45
+		elif wait_level == 1 and _watch_glance():
+			nod = 0.3
 		_set_pose(_head, Vector3(nod, 0, 0))
+
+
+## 시계 보기는 4초마다 1.5초씩
+func _watch_glance() -> bool:
+	return fmod(_t, 4.0) < 1.5
 
 
 func _set_pose(node: Node3D, euler: Vector3, offset: Vector3 = Vector3.ZERO, scale_value: Vector3 = Vector3.ONE) -> void:

@@ -1,9 +1,11 @@
 # 개발팀 상태
 
-**현재 상태**: 사용자 지시로 retail-v2 GLB 실제 게임 연결 완료. 조명·털 셰이더·주인 앉기·한글 HUD 보정, 전체 테스트 14/14 통과. 실행 사진과 검수: `docs/dev/RETAIL_ART_INTEGRATION.md`. 다음 기능은 `docs/design/MILESTONE_V3_SLICE.md` 체크리스트 순서.
+**지금 하는 일**: 수직 단면 1장 "하루 영업" PR (`dev/day-loop`). 다음: 2장(손동작 점검) → 3장(고양이·성격) → 4장(정산·쇼핑·다음 날) 순서로 작은 PR
 
 **끝낸 일**:
 - 이슈 #44: 새 GLB 강아지의 머리·다리가 움직이면 진흙·젖음 무늬가 미끄러지던 것 고침 (털 셰이더가 부위마다 처음 자세 위치로 마스크를 찾음). 진흙 색을 받은 그림의 갈색 귀와 헷갈리지 않게 어두운 회갈색으로
+- 수직 단면 1장 하루 영업: 벽시계(9시→6시, 8분), 차례로 오는 손님(1·2·3일차 4·5·6명), 대기 의자 3개·문밖 줄, 기다림 몸짓(시계 보기 → 발 구르기 → 시무룩), 오래 기다리면 떠남(0원), 접수(말풍선 → 요청 카드가 날아와 걸림), 6시 뒤 새 손님 없음, 영업 끝 알림. 문 종 "딸랑". 이슈 #40: 첫 손님이 시작하자마자 들어옴
+- retail-v2 GLB 실제 게임 연결 (사용자 지시, #43): 조명·털 셰이더·주인 앉기·한글 HUD 보정. 실행 사진과 검수: `docs/dev/RETAIL_ART_INTEGRATION.md`
 - 이슈 #39: 단계가 바뀌면 눈에 물 경고를 지워 새 단계 안내가 보이게 함
 - 그림 반영: 받은 2D(도구 아이콘 4·요청 아이콘·✓·기분 얼굴 3·동전·간판)를 `tools/cut_ui_art.py` 로 잘라 `assets/ui/` 에 넣고 HUD·말풍선·벽 간판에 연결. 외부 작업자용 명세 `docs/art/ART_SLOTS.md` (GLB 기본, 노드 이름·피벗·재질 규칙). 강아지·주인 모형을 "노드 이름 약속" 방식으로 바꿔 GLB 를 끼우면 바로 움직이게 함. 목욕통·회전판·의자를 각각 교체 씬으로 분리. 임시 강아지 색을 받은 그림에 맞춤 (#F5DEB3, 한쪽 귀 갈색)
 - V3 시제품 1-2 (GDD_V3 8.1-2 완료 조건 1~6): 단계마다 다른 손동작 6개(누르고 조준·누르는 시간·원 그리기·쓸어내리기·연타·휠 거리), 도구 저절로·강아지 저절로 돌기·회전판 화살표로 마우스 하나로 끝, 주인 손님(맡김·말풍선·대기 의자·반응 3종·동전·강아지가 달려감), 2D 그림 교체 지점 `assets/ui/`. 사람 흉내 손 기준 한 마리 61초 (목표 65)
@@ -14,14 +16,16 @@
 - 멍냥 목욕탕 첫 시제품 (V2, #24), 협동 멀티플레이 기반 (Net, 오프라인·ENet·Steam, 메뉴, 테스트 체계), 이슈 #10
 
 **자동 테스트** (손동작 흉내는 `tests/game/wash_hands.gd`): `GODOT=/path/to/Godot_v4.4.1-stable_linux.x86_64 tests/run_tests.sh`
-- 개발팀: `test_offline_session`, `test_seeded_rng`, `test_balance`(TUNING_V3 표를 직접 읽음), `test_paint_mask`, `game/test_wash_flow`, `game/test_wash_pace`(사람 흉내 손으로 단계 시간), `net/test_enet_two_peers`, `net/test_station_sync`(.roles)
+- 개발팀: `test_offline_session`, `test_seeded_rng`, `test_balance`(TUNING_V3 표를 직접 읽음), `test_paint_mask`, `game/test_wash_flow`, `game/test_wash_pace`(사람 흉내 손으로 단계 시간), `game/test_day_loop`(하루 영업: 시계·대기열·떠남·6시 마감), `net/test_enet_two_peers`, `net/test_station_sync`(.roles)
 
 **막힌 것**:
 - 스팀 경로 실기 확인 불가 (컨테이너에 스팀 없음, codeberg.org 막힘). SteamMultiplayerPeer 포함 여부 **미확인**.
 
 **다른 부서에 요청**:
+- 대표(그래픽 요청 → ChatGPT): retail-v2 강아지 GLB 에 `Cheek_L`·`Cheek_R`(볼 가운데 원점, 선택 부위)이 없어 드라이어를 얼굴에 댈 때 볼이 펄럭이지 않습니다. 다음 납품 때 넣어 주세요 (`docs/art/ART_SLOTS.md` 1장 표). 나머지 약속(노드 이름·계층·털/비털 메시·Shirt·Hat 재질)은 맞습니다. 주인의 새 `Knee_L/R` 관절은 명세서에 적었습니다.
 - 기획팀: TUNING_V3 8장 키를 리소스에 넣으며 ✅ 로 바꿨고 값은 초안 그대로입니다. 목표 시간에 맞추려고 `tool_shower_radius` 0.18 → 0.24, `tool_scrub_radius` 0.15 → 0.2 로 바꿨고, 7장에 개발팀 임시 키 5개(`proto_owner_arrive_time` 2.5, `proto_owner_leave_time` 1.5, `proto_temp_wheel_step` 0.1, `proto_dryer_start_distance` 0.32, `proto_turn_step` 90)를 넣었습니다 (바꾼 기록 줄 추가). 확인 부탁합니다.
-- 기획팀: 손동작이 바뀌어 `tool_shampoo_dose`, `tool_rinse_rate`, `tool_towel_rate`, `proto_dose_coverage`, `proto_next_dog_delay` 는 지금 쓰지 않습니다. 지울지 정해 주세요.
+- 기획팀: 손동작이 바뀌어 `tool_shampoo_dose`, `tool_rinse_rate`, `tool_towel_rate`, `proto_dose_coverage` 는 지금 쓰지 않습니다. 지울지 정해 주세요. (`proto_next_dog_delay` 는 하루 영업에서 다시 씁니다: 목욕대가 비고 기다리는 손님이 없으면 이만큼 뒤 다음 손님이 앞당겨 옴)
+- 기획팀: 하루 영업 수치 — 9장 `slice_days`·`slice_guests_per_day`·`slice_queue_seats`·`slice_owner_patience` 를 리소스에 넣고 ✅, 7장에 `proto_guest_spacing` 0.85 (손님 도착 간격 = 영업 시간 × 0.85 ÷ 손님 수) 를 새로 넣었습니다. 손님을 다 받으면 6시 전이라도 영업이 끝납니다 (빈 시간에 할 일이 없어서). 확인 부탁합니다.
 - 대표(사람 대표 → ChatGPT): 아직 필요한 2D 5개 — 장갑 손 아이콘, 바가지 아이콘, 세로 요청 카드(6줄), 말풍선, 목욕대 뒤 배경 그림 (`docs/art/ART_SLOTS.md` 7장). 받은 09 의 가로 카드(빈칸 4개)는 세로 6단계 카드와 모양이 달라 쓰지 않았습니다.
 - 대표·기획팀: 받은 그림(`art/incoming/`)은 게임에서 바로 쓰지 않고 참고용이라 Godot 가 가져오지 않도록 `.gdignore` 를 넣었습니다 (CI 임포트 시간 절약). 아이콘·카드·얼굴·간판은 잘라서 `assets/ui/` 이름표대로 넣는 다음 PR 에서 연결합니다.
 - QA: 걷기 대신 자리 동기화로 바꾼 `test_enet_two_peers` 와 헤드리스 효과음 기록(`sfx.gd`)은 #29 때 그대로입니다.
