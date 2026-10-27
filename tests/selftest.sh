@@ -59,6 +59,40 @@ fi
 echo "잡아냄"
 
 echo
+echo "#### Godot 4.4.1 GLTF 썸네일 오류 필터 (tools/filter_godot_441_import.py): 그 두 줄만 지우는지"
+FILTER="$HERE/../tools/filter_godot_441_import.py"
+FIX="$WORK/filter"
+mkdir -p "$FIX"
+BUG_ERR='ERROR: Parameter "t" is null.'
+BUG_AT='   at: texture_2d_get (servers/rendering/dummy/storage/texture_storage.h:107)'
+# 이름, Godot 버전, 지워져야 하나(1/0), 로그 내용
+filter_case() {
+  local name="$1" version="$2" expect_removed="$3" log="$FIX/$1/import.log"
+  mkdir -p "$FIX/$name"
+  printf '%s\n' "${@:4}" >"$log"
+  cp "$log" "$log.orig"
+  python3 -I "$FILTER" "$log" "$version" >/dev/null
+  if [ "$expect_removed" -eq 1 ] && grep -q '^ERROR:' "$log"; then
+    echo "::error::자체 검사 실패: 필터 [$name] 지워야 할 줄이 남음"; exit 1
+  fi
+  # 남겨야 하는 경우는 한 줄도 바뀌면 안 된다.
+  if [ "$expect_removed" -eq 0 ] && ! cmp -s "$log" "$log.orig"; then
+    echo "::error::자체 검사 실패: 필터 [$name] 진짜 오류를 숨김"; diff "$log.orig" "$log"; exit 1
+  fi
+  echo "   $name: 통과"
+}
+filter_case "알려진 버그 (지움)" "4.4.1.stable.official" 1 \
+  "	reimport: step 40: tub.glb" "	import: step 104: Saving..." "$BUG_ERR" "$BUG_AT" "import: end"
+filter_case "GLB 가 아닌 파일 (남김)" "4.4.1.stable.official" 0 \
+  "	reimport: step 3: icon.png" "	import: step 104: Saving..." "$BUG_ERR" "$BUG_AT" "import: end"
+filter_case "GLB 의 다른 오류 (남김)" "4.4.1.stable.official" 0 \
+  "	reimport: step 40: tub.glb" "	import: step 104: Saving..." "ERROR: Failed loading resource: res://tub.glb." "$BUG_AT" "import: end"
+filter_case "다른 Godot 버전 (남김)" "4.5.stable.official" 0 \
+  "	reimport: step 40: tub.glb" "	import: step 104: Saving..." "$BUG_ERR" "$BUG_AT" "import: end"
+filter_case "뒤에 다른 오류가 이어짐 (남김)" "4.4.1.stable.official" 0 \
+  "	reimport: step 40: tub.glb" "	import: step 104: Saving..." "$BUG_ERR" "$BUG_AT" "ERROR: Cannot save scene."
+
+echo
 echo "#### project.godot 없는 폴더는 건너뜀"
 mkdir -p "$WORK/empty"
 "$HERE/run_tests.sh" "$WORK/empty" | grep -q "프로젝트 없음" || { echo "::error::건너뛰기 실패"; exit 1; }
