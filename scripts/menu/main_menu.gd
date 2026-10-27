@@ -1,5 +1,6 @@
 extends Control
-## 메인 메뉴: 혼자 하기 / 친구와 하기(스팀) / 개발용 IP 접속.
+## 메인 메뉴: 이어하기 / 새로 하기(혼자) / 친구와 하기(스팀) / 개발용 IP 접속.
+## 이어하기는 자동 저장(SaveGame)이 있고 3일차를 아직 안 끝냈을 때만 보인다 (MILESTONE_V3_SLICE 5장).
 ##
 ## 개발용 실행 옵션 (godot ... -- <옵션>):
 ##   --host [--port=N]               바로 ENet 호스트
@@ -16,13 +17,30 @@ extends Control
 @onready var quit_button: Button = %QuitButton
 @onready var message_label: Label = %MessageLabel
 
+const SaveGame := preload("res://scripts/core/save_game.gd")
+
 static var _autostart_done := false
+
+## 이어하기 (저장이 있을 때만 보임)
+var continue_button: Button
 
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-	solo_button.pressed.connect(Net.start_offline)
-	steam_button.pressed.connect(Net.host_steam)
+	solo_button.pressed.connect(_start_new)
+	steam_button.pressed.connect(func() -> void:
+		SaveGame.continue_requested = false
+		Net.host_steam())
+	continue_button = Button.new()
+	continue_button.name = "ContinueButton"
+	continue_button.custom_minimum_size = Vector2(0, 52)
+	solo_button.get_parent().add_child(continue_button)
+	solo_button.get_parent().move_child(continue_button, solo_button.get_index())
+	continue_button.pressed.connect(_continue)
+	continue_button.visible = SaveGame.can_continue()
+	if continue_button.visible:
+		continue_button.text = "이어하기 (%d일차 아침부터)" % SaveGame.continue_day()
+		solo_button.text = "새로 하기 (혼자)"
 	host_button.pressed.connect(func() -> void: Net.host_enet(_port()))
 	join_button.pressed.connect(func() -> void: Net.join_enet(address_edit.text.strip_edges(), _port()))
 	quit_button.pressed.connect(get_tree().quit)
@@ -35,8 +53,18 @@ func _ready() -> void:
 		else "스팀을 쓸 수 없음: %s" % SteamService.init_message
 	)
 	message_label.text = Net.last_end_reason
-	solo_button.grab_focus()
+	(continue_button if continue_button.visible else solo_button).grab_focus()
 	_autostart()
+
+
+func _start_new() -> void:
+	SaveGame.continue_requested = false
+	Net.start_offline()
+
+
+func _continue() -> void:
+	SaveGame.continue_requested = true
+	Net.start_offline()
 
 
 func _port() -> int:

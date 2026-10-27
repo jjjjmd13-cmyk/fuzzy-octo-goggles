@@ -7,6 +7,8 @@ extends Node
 ## 손님 번호(id)는 첫날부터 끝날까지 하나씩 늘어난다 (목욕대의 강아지 번호와 같음).
 
 signal day_ended
+## 다음 날 아침 화면이 됨 (호스트, 자동 저장용)
+signal morning_started
 
 const WashStation := preload("res://scripts/sim/wash_station.gd")
 ## 손님을 일찍 다 받으면 벽시계를 6시까지 빠르게 돌리는 시간 (s)
@@ -28,6 +30,9 @@ var tips := 0
 var best_guest := Vector2(-1, 0)
 ## 다음 날 아침 화면 (영업 전). day 는 이미 새 날
 var morning := false
+## 첫날부터 합계 (끝 화면)
+var total_served := 0
+var total_earned := 0
 ## 오늘 첫 손님 번호 (요청 카드 "N번째 손님" 용)
 var first_guest := 1
 ## 대기열 (앞에서부터): 손님 번호 · 주인 모양 · 손님 종류(동물 + 성격 × 4, kind_of 로 풂) · 기다리기 시작한 시각 (clock)
@@ -142,6 +147,36 @@ static func morning_news(day_number: int) -> String:
 	return ""
 
 
+## 저장할 값: 이어하면 시작할 날(그날 아침) · 3일 합계 · 다 끝냈는가
+func to_save() -> Dictionary:
+	return {
+		"next_day": day + 1 if closed else day,
+		"total_served": total_served,
+		"total_earned": total_earned,
+		"finished": closed and is_last_day(),
+	}
+
+
+## 호스트: 저장에서 되살림 → 그날 아침 화면
+func load_save(data: Dictionary) -> void:
+	if not Net.is_host():
+		return
+	day = maxi(int(data.get("next_day", 1)), 1)
+	total_served = int(data.get("total_served", 0))
+	total_earned = int(data.get("total_earned", 0))
+	_next_id = total_served + 100
+	first_guest = _next_id
+	morning = true
+	closed = false
+	closing = false
+	clock = 0.0
+	served = 0
+	walked_out = 0
+	earned = 0
+	tips = 0
+	best_guest = Vector2(-1, 0)
+
+
 ## "다음 날" 버튼 (아무나 누르면 호스트가 넘김): 정산이 끝난 날 → 다음 날 아침 화면
 func send_next_day() -> void:
 	_request_next_day.rpc_id(1)
@@ -161,6 +196,7 @@ func _request_next_day() -> void:
 	closed = false
 	closing = false
 	clock = 0.0
+	morning_started.emit()
 
 
 @rpc("any_peer", "call_local", "reliable")
@@ -223,6 +259,8 @@ func guest_paid(total: int, tip: int = 0, mood: float = 0.0, species: int = 0) -
 		return
 	served += 1
 	earned += total
+	total_served += 1
+	total_earned += total
 	tips += tip
 	if mood > best_guest.x:
 		best_guest = Vector2(mood, species)
