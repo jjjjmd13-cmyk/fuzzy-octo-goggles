@@ -63,12 +63,18 @@ var _face_marker: Node3D
 var _rest := {}
 var _rest_axes := {}
 var _rest_positions := {}
+## 털 메시 → 처음 자세에서 모형 기준 변환 (마스크·진흙을 부위에 붙이는 데 씀, 이슈 #44)
+var _fur_rest := {}
 
 
 func _ready() -> void:
 	_find_parts()
 	if fur_meshes.is_empty():
 		_collect_fur(self)
+	var to_model := global_transform.affine_inverse()
+	for mesh in fur_meshes:
+		if mesh != null:
+			_fur_rest[mesh] = to_model * mesh.global_transform
 	if auto_hit_shapes:
 		_build_hit_shapes()
 
@@ -121,6 +127,12 @@ func apply_fur_material(template: ShaderMaterial) -> Array[ShaderMaterial]:
 				materials.append(copy)
 			material = by_texture[texture]
 		mesh.material_override = material
+		# 셰이더가 마스크를 처음 자세 위치로 찾게 한다: 머리·다리가 움직여도 무늬가 부위에 붙어 있음.
+		# 클릭 판정 모양도 처음 자세로 구워져 있어서 칠하는 곳과 보이는 곳이 같다.
+		var rest: Transform3D = _fur_rest.get(mesh, Transform3D.IDENTITY)
+		mesh.set_instance_shader_parameter("rest_row_x", Vector4(rest.basis.x.x, rest.basis.y.x, rest.basis.z.x, rest.origin.x))
+		mesh.set_instance_shader_parameter("rest_row_y", Vector4(rest.basis.x.y, rest.basis.y.y, rest.basis.z.y, rest.origin.y))
+		mesh.set_instance_shader_parameter("rest_row_z", Vector4(rest.basis.x.z, rest.basis.y.z, rest.basis.z.z, rest.origin.z))
 	return materials
 
 

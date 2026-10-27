@@ -401,7 +401,6 @@ func _process(_delta: float) -> void:
 		return
 	var grow: float = (Tuning.data.tool_dryer_fluff_scale - 1.0) * FLUFF_VISUAL_SHARE * Tuning.data.fluff_shader_amount
 	model.scale = Vector3.ONE * (1.0 + grow * fluff)
-	_set_param("world_to_dog", Projection(model.global_transform.affine_inverse()))
 	mask.flush()
 
 
