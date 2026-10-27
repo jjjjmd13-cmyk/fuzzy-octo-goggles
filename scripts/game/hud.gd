@@ -118,10 +118,14 @@ func _ready() -> void:
 		var style := StyleBoxTexture.new()
 		style.texture = card_picture
 		style.content_margin_left = 24
-		style.content_margin_top = 20
+		style.content_margin_top = 12
 		style.content_margin_right = 24
 		style.content_margin_bottom = 20
 		$Card.add_theme_stylebox_override("panel", style)
+		card_title.add_theme_font_size_override("font_size", 22)
+		for label: Label in [card_title, card_request] + _step_labels:
+			label.add_theme_color_override("font_color", Color("253b40"))
+			label.add_theme_color_override("font_shadow_color", Color.TRANSPARENT)
 	world.get_node("WashStation").screen_foam.connect(overlay.show_foam)
 	_card_home = $Card.position
 	# 대기 손님 참을성 원: HUD 맨 밑 층 (요청 카드·도구걸이가 그 위)
@@ -187,7 +191,11 @@ func _process(_delta: float) -> void:
 		var has_check_picture: bool = _step_checks[i].texture != null
 		_step_labels[i].text = "%s %s" % [("" if has_check_picture else "✓") if done else ("▶" if current else "·"), WashStation.STAGE_NAMES[i]]
 		_step_checks[i].visible = done and has_check_picture
-		_step_labels[i].modulate = Color(0.55, 1, 0.6) if done else (Color(1, 1, 1) if current else Color(0.7, 0.7, 0.7))
+		if UiArt.texture("card_vertical") != null:
+			_step_labels[i].modulate = Color.WHITE
+			_step_labels[i].add_theme_color_override("font_color", Color("227451") if done else (Color("213b43") if current else Color("65777a")))
+		else:
+			_step_labels[i].modulate = Color(0.55, 1, 0.6) if done else (Color(1, 1, 1) if current else Color(0.7, 0.7, 0.7))
 
 	tool_bar.visible = at_bath and station.is_washing()
 	for i in _tool_buttons.size():

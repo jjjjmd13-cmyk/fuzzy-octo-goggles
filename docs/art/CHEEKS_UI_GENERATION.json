@@ -1,0 +1,56 @@
+{
+  "date": "2026-10-27",
+  "method": "built-in image_gen",
+  "assets": [
+    {
+      "path": "assets/ui/tool_hand.png",
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "3029e718facc7f243c329cd179f25b9cb3fc5ae49bdefffad58455e59d0e2513",
+      "transparent_background": true,
+      "prompt": "A single yellow rubber cleaning glove hand icon, palm visible, five fingers gently curved for scrubbing. Diagonal pose, full glove and cuff visible. Thick smooth dark charcoal outline, flat pastel yellow fills with simple soft cel shading. Match the existing cyan shower icon of a cozy puppy bath game. Centered isolated icon occupying 85% of square canvas. No text, no watermark, no bubbles, no background."
+    },
+    {
+      "path": "assets/ui/tool_bucket.png",
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "63b6f37739fe05a92df131cdf15e9354d5852b87b77a985b691789e1986bb1da",
+      "transparent_background": true,
+      "prompt": "Single pastel coral pink bath scoop dipper icon, small rounded bowl containing pale blue water and a short sturdy handle, three-quarter view. Full silhouette visible. Thick smooth charcoal outline, flat pastel fills, simple soft cel shading, consistent with a cyan shower icon for a cozy puppy bath game. Centered isolated icon occupying 85% square canvas. No letters, no logo, no background."
+    },
+    {
+      "path": "assets/ui/card_vertical.png",
+      "size": [
+        512,
+        768
+      ],
+      "sha256": "f85afe2cb801b2c2d1d0530ad803907f18f7bb3422ec6f13e207716352d7ce03",
+      "transparent_background": true,
+      "prompt": "Game UI artwork: ONE tall portrait white bath-service request card, aspect ratio 2:3, transparent outside. Clean warm ivory rounded rectangular paper with restrained slate outline and very subtle shadow. Slim mint header tab at top, EMPTY title area. Below title, EXACTLY SIX evenly spaced spacious blank horizontal writing rows, extremely faint separators and pale translucent alternating ivory shading. Rows empty with no checkboxes, no text, no icons, no symbols. White center must have high contrast for dark game-rendered text. Simple flat pastel 2D illustrated UI matching cozy dog bath game. All six rows visible, uncropped."
+    },
+    {
+      "path": "assets/ui/bubble.png",
+      "size": [
+        768,
+        384
+      ],
+      "sha256": "3c5cca27ac0ccf044f5782c52721a99ca5f2695bb14a76a04cac77cc7946191b",
+      "transparent_background": true,
+      "prompt": "Game UI asset, ONE wide empty white speech balloon with smoothly rounded rectangular body and a small downward tail slightly left of center. Aspect ratio 2:1. Thick smooth dark slate outline, subtle pastel mint inner edging, white opaque interior with plenty of empty room for game-rendered request icons. Flat clean cartoon style matching a pastel cyan shower tool icon. Transparent outside, no text, no letters, no dots, no icons, no characters, no scenery."
+    },
+    {
+      "path": "assets/ui/bath_backdrop.png",
+      "size": [
+        1200,
+        900
+      ],
+      "sha256": "08f580f31479ad97562762812731efd89a51857817f903cf38bc213d34797e05",
+      "transparent_background": false,
+      "prompt": "Game background illustration, landscape 4:3, stylized retail dog grooming salon back wall. Straight-on view, clean cream ceramic wall tiles with subtle warm gray grout. Large simple window with pale cyan daylight in upper right, a small neat shelf in upper left holding unlabeled pastel shampoo bottles and neatly folded towels. Restrained sage mint, ivory, warm pale wood, desaturated cyan palette; attractive polished hand-painted 2D with gentle dimensional shading and crisp edges. Center and bottom half mostly calm empty tiled wall behind 3D dog and bathtub. No tub, no dog, no person, no floor, no furniture foreground, no text, no signage, no logo, no watermark, no dramatic shadows. Fills complete rectangular image."
+    }
+  ]
+}

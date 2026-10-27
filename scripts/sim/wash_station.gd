@@ -161,6 +161,8 @@ func _ready() -> void:
 	if backdrop != null:
 		var wall_material := StandardMaterial3D.new()
 		wall_material.albedo_texture = backdrop
+		# Illustration already contains its own shading; keep its painted colors.
+		wall_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
 		$Wall/Backdrop.material_override = wall_material
 		$Wall/Backdrop.visible = true
 		$Wall/Tiles.visible = false

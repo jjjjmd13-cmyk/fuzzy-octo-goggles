@@ -12,8 +12,8 @@ ChatGPT 로 받은 그림(`docs/art/ORDER_V3.md` 5장)을 **아래 이름의 PNG
 |---|---|---|
 | `tool_shower.png` | 샤워기 아이콘 | 오른쪽 아래 도구걸이, 커서 |
 | `tool_bottle.png` | 샴푸 병 아이콘 | 〃 |
-| `tool_hand.png` | 손(고무장갑) 아이콘 — **아직 없음** | 〃 |
-| `tool_bucket.png` | 바가지 아이콘 — **아직 없음** | 〃 |
+| `tool_hand.png` | 손(고무장갑) 아이콘 | 〃 |
+| `tool_bucket.png` | 바가지 아이콘 | 〃 |
 | `tool_towel.png` | 수건 아이콘 | 〃 |
 | `tool_dryer.png` | 드라이어 아이콘 | 〃 |
 | `card_vertical.png` | 요청 카드 바탕 (**세로로 긴** 흰 카드, 6줄이 들어감. 받은 09 의 가로 카드는 모양이 달라 안 씀) | 왼쪽 위 요청 카드 |
@@ -23,7 +23,9 @@ ChatGPT 로 받은 그림(`docs/art/ORDER_V3.md` 5장)을 **아래 이름의 PNG
 | `icon_drop.png` | 물방울 그림 | (예비: 성격 '겁쟁이' 표시 등) |
 | `icon_bath.png` | 목욕 요청 그림 (거품 욕조) | 주인 말풍선 |
 | `icon_peach.png` | 복숭아 향 요청 그림 | 주인 말풍선, 요청 카드 |
-| `bubble.png` | 말풍선 바탕 — **아직 없음** | 주인 머리 위 |
+| `bubble.png` | 말풍선 바탕 | 주인 머리 위 |
 | `sign.png` | 가게 간판 (가운데 이름 칸이 빈 것) | 목욕대 뒤 벽 (이름은 게임이 글자로 올림) |
-| `bath_backdrop.png` | 목욕대 뒤 배경 그림 (가로 4:3, 노란 타일 벽·창문) — **아직 없음** | 목욕대 뒤 벽 전체 (없으면 타일 셰이더 벽) |
-| `owner_0.png` ~ `owner_5.png` | 주인 판자 그림 6명 (서 있는 전신, 정면) — **아직 없음** (3D GLB 가 오면 그쪽이 먼저) | 주인 (도형 대신 판자처럼 세움) |
+| `bath_backdrop.png` | 목욕대 뒤 배경 그림 (가로 4:3, 노란 타일 벽·창문) | 목욕대 뒤 벽 전체 (없으면 타일 셰이더 벽) |
+| `owner_0.png` ~ `owner_5.png` | 주인 판자 그림 6명 (서 있는 전신, 정면) (3D GLB 가 오면 그쪽이 먼저) | 주인 (도형 대신 판자처럼 세움) |
+
+2026-10-27: `tool_hand`, `tool_bucket`, `card_vertical`(6줄), `bubble`, `bath_backdrop`를 제작·연결했다. 제작 프롬프트·출처·검수는 `docs/art/CHEEKS_UI_DELIVERY.md` 참고.
