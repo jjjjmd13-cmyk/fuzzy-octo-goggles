@@ -184,7 +184,9 @@ func _process(_delta: float) -> void:
 	for i in _tool_buttons.size():
 		_tool_buttons[i].button_pressed = i == station.tool
 	var hint: String = station.next_hint() if at_bath else ""
-	if at_bath and phase == WashStation.OwnerPhase.EMPTY and not day.is_open():
+	if at_bath and phase == WashStation.OwnerPhase.EMPTY and day.closing:
+		hint = "오늘 손님을 다 받았어요! 가게 문을 닫아요"
+	elif at_bath and phase == WashStation.OwnerPhase.EMPTY and not day.is_open():
 		hint = "6시! 오늘 영업이 끝나 가요"
 	if at_bath and not station.is_operator() and station.stage < WashStation.Stage.PAY:
 		hint = "다른 사람이 씻기는 중이에요 (구경 중)"

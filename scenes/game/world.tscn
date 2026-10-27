@@ -96,6 +96,9 @@ properties/9/replication_mode = 2
 properties/10/path = NodePath(".:closed")
 properties/10/spawn = true
 properties/10/replication_mode = 2
+properties/11/path = NodePath(".:closing")
+properties/11/spawn = true
+properties/11/replication_mode = 2
 
 [node name="World" type="Node3D"]
 script = ExtResource("1_world")

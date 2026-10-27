@@ -1,6 +1,7 @@
 extends Control
 ## HUD 위에 직접 그리는 것: 도구 커서, 기분 얼굴(😊😐😣), 물 온도·드라이어 거리 다이얼, 회전판 화살표,
-## 주인 말풍선, 몸 털기 거품, 벽시계(9시 → 6시, 숫자 없이 바늘)와 며칠째.
+## 주인 말풍선, 몸 털기 거품, 벽시계(9시 → 6시, 바늘 + 12·3·6·9, 마감 칸 빨강)와 며칠째,
+## 대기 손님 머리 위 남은 참을성 (줄어드는 원).
 ## 그림은 임시 도형. assets/ui/ 에 그림이 있으면 그 그림을 쓴다 (face_*, bubble, icon_*, tool_*).
 
 const WashStation := preload("res://scripts/sim/wash_station.gd")
@@ -44,6 +45,8 @@ func _draw() -> void:
 	var at_bath: bool = world.local_seat() == 0
 	_draw_face(station.mood_face())
 	_draw_clock(world.day)
+	if at_bath:
+		_draw_patience(world.day, station)
 	if at_bath and station.owner_bubble_visible():
 		_draw_bubble(station)
 	if at_bath and station.is_washing():
@@ -149,9 +152,20 @@ func _draw_clock(day: Node) -> void:
 		for k in 12:
 			var dir := Vector2.from_angle(k * TAU / 12.0)
 			draw_line(center + dir * (radius - 6.0), center + dir * (radius - 2.0), Color(0.3, 0.3, 0.35), 2.0)
+	# 마감 칸: 5시 → 6시를 빨갛게 (6시에 문 닫음)
+	var wedge := PackedVector2Array([center])
+	for k in 9:
+		wedge.append(center + _clock_dir(5.0 + k / 8.0) * (radius - 3.0))
+	draw_colored_polygon(wedge, Color(0.95, 0.4, 0.35, 0.45))
+	var number_font := get_theme_default_font()
+	for hour_mark in [12, 3, 6, 9]:
+		var at := center + _clock_dir(hour_mark) * (radius - 10.0)
+		var text := str(hour_mark)
+		var text_size := number_font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 11)
+		draw_string(number_font, at + Vector2(-text_size.x / 2.0, text_size.y / 2.0 - 2.0), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 11, Color(0.3, 0.3, 0.35))
 	draw_arc(center, radius, 0, TAU, 40, Color(0.9, 0.3, 0.3) if not day.is_open() else Color(0.25, 0.25, 0.3), 3.0)
 	var hour: float = day.hour()
-	var hour_dir := Vector2.from_angle(fmod(hour, 12.0) / 12.0 * TAU - PI / 2.0)
+	var hour_dir := _clock_dir(hour)
 	var minute_dir := Vector2.from_angle(fmod(hour, 1.0) * TAU - PI / 2.0)
 	draw_line(center, center + hour_dir * radius * 0.5, Color(0.15, 0.15, 0.2), 4.0)
 	draw_line(center, center + minute_dir * radius * 0.8, Color(0.15, 0.15, 0.2), 2.5)
@@ -159,6 +173,39 @@ func _draw_clock(day: Node) -> void:
 	var font := get_theme_default_font()
 	draw_string_outline(font, center + Vector2(radius + 10.0, 8.0), "%d일차" % day.day, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, 6, Color(0.1, 0.1, 0.15))
 	draw_string(font, center + Vector2(radius + 10.0, 8.0), "%d일차" % day.day, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(1, 1, 1))
+
+
+
+## 시계판에서 그 시각(시)의 방향 (12시 = 위)
+func _clock_dir(hour: float) -> Vector2:
+	return Vector2.from_angle(fmod(hour, 12.0) / 12.0 * TAU - PI / 2.0)
+
+
+## 대기 손님 머리 위: 남은 참을성이 줄어드는 원 (초록 → 노랑 → 빨강). HUD 에 가려진 손님도 알아보게
+func _draw_patience(day: Node, station: WashStation) -> void:
+	var camera: Camera3D = hud.world.camera
+	var ids: PackedInt32Array = day.queue_ids
+	for i in ids.size():
+		var owner: Node3D = station.waiting_area.owners.get(ids[i])
+		if owner == null:
+			continue
+		var top: Vector3 = owner.global_position + Vector3(0, float(owner.get("height")) + 0.06, 0)
+		if camera.is_position_behind(top):
+			continue
+		var center := camera.unproject_position(top)
+		# 꽉 찬 원은 처음·끝 점이 겹쳐 다각형이 깨지므로 조금 덜 채움
+		var left := minf(1.0 - float(day.patience_ratio(i)), 0.999)
+		var color := Color(0.4, 0.85, 0.45).lerp(Color(0.98, 0.8, 0.3), clampf((0.6 - left) / 0.3, 0.0, 1.0))
+		if left < 0.3:
+			color = Color(0.95, 0.4, 0.35)
+		draw_circle(center, 14.0, Color(1, 1, 1, 0.85))
+		if left > 0.0:
+			var pie := PackedVector2Array([center])
+			var steps := maxi(int(left * 24.0), 1)
+			for k in steps + 1:
+				pie.append(center + Vector2.from_angle(-PI / 2.0 + TAU * left * k / steps) * 11.0)
+			draw_colored_polygon(pie, color)
+		draw_arc(center, 14.0, 0, TAU, 24, Color(0.25, 0.25, 0.3), 2.0)
 
 
 ## 그림(assets/ui/<name>.png)이 있으면 그 그림, 없으면 fallback 으로 그린다
