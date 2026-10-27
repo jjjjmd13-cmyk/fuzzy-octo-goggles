@@ -67,10 +67,38 @@ func run_test() -> void:
 		check(shader != null and shader.get_shader_parameter("albedo_tex") != null, "Fur shader keeps imported ear albedo")
 		var eye := model.find_child("Eye_" + tag, true, false) as MeshInstance3D
 		check(eye.material_override == null, "Eye does not get fur shader")
-	check_eq(world.station.owner_model.scale, Vector3.ONE, "Owner keeps metre scale")
+	# 이슈 #44: 진흙·마스크는 처음 자세 위치로 찾으므로 머리가 움직여도 부위에 붙어 있다
+	var head_fur: MeshInstance3D = null
+	var head_node := model.find_child("Head", true, false) as Node3D
+	for mesh: MeshInstance3D in model.get("fur_meshes"):
+		if (mesh == head_node or head_node.is_ancestor_of(mesh)) and not mesh.name.begins_with("Ear"):
+			head_fur = mesh
+			break
+	if check(head_fur != null, "Head has a fur mesh"):
+		var vertex: Vector3 = head_fur.get_aabb().get_center() + head_fur.get_aabb().size * 0.4
+		var start := _rest_lookup(head_fur, vertex)
+		var posed_before: Vector3 = model.global_transform.affine_inverse() * head_fur.global_transform * vertex
+		check(start.distance_to(posed_before) < 0.03, "Mask lookup starts at the head's place on the body")
+		model.watch(model.to_global(Vector3(0.8, 0.2, 0.4)), false)
+		for i in 30:
+			await get_tree().process_frame
+		var posed_after: Vector3 = model.global_transform.affine_inverse() * head_fur.global_transform * vertex
+		check(posed_before.distance_to(posed_after) > 0.01, "Head actually turned (%.3f m)" % posed_before.distance_to(posed_after))
+		check(_rest_lookup(head_fur, vertex).distance_to(start) < 0.0001, "Fur mask lookup stays on the head while it turns")
+	# 걷다가 몸을 돌리면 회전을 다시 짜면서 크기에 아주 작은 오차가 생긴다 (0.9999999)
+	check(world.station.owner_model.scale.is_equal_approx(Vector3.ONE), "Owner keeps metre scale (%s)" % world.station.owner_model.scale)
 	check(world.hud.card_title.get_theme_font("font").has_char(0xD55C), "HUD font renders Korean")
 	check(world.hud.card_title.get_theme_font_size("font_size") >= 22, "HUD uses shared readable theme")
 	await Net.leave_session()
+
+## 셰이더와 같은 식: 처음 자세 행렬(instance uniform 세 줄)로 정점 → 모형 기준 위치
+func _rest_lookup(mesh: MeshInstance3D, vertex: Vector3) -> Vector3:
+	var v := Vector4(vertex.x, vertex.y, vertex.z, 1.0)
+	var rows: Array[Vector4] = []
+	for row in ["rest_row_x", "rest_row_y", "rest_row_z"]:
+		rows.append(mesh.get_instance_shader_parameter(row))
+	return Vector3(rows[0].dot(v), rows[1].dot(v), rows[2].dot(v))
+
 
 func lowest_y(mesh: MeshInstance3D) -> float:
 	var box := mesh.get_aabb()

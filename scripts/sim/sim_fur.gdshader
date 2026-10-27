@@ -5,11 +5,15 @@ shader_type spatial;
 
 uniform sampler2D mask : filter_linear, repeat_enable;
 uniform sampler2D mud : filter_linear, repeat_enable;
-// 월드 → 강아지 기준 좌표 (회전판이 돌아도 마스크가 몸에 붙어 있게). 스크립트가 매 프레임 넣는다.
-uniform mat4 world_to_dog = mat4(1.0);
+// 이 메시의 정점 → 강아지 모형 기준 좌표 (처음 자세). 3×4 행렬의 세 줄. sim_dog_model.gd 가 메시마다 넣는다.
+// 처음 자세로 찾으므로 회전판이 돌거나 머리·다리가 움직여도 마스크·진흙이 부위에 붙어 있다 (이슈 #44).
+instance uniform vec4 rest_row_x = vec4(1.0, 0.0, 0.0, 0.0);
+instance uniform vec4 rest_row_y = vec4(0.0, 1.0, 0.0, 0.0);
+instance uniform vec4 rest_row_z = vec4(0.0, 0.0, 1.0, 0.0);
 uniform vec3 center = vec3(0.0, 0.3, 0.0);
 uniform vec4 fur_color : source_color = vec4(0.961, 0.871, 0.702, 1.0); // #F5DEB3 (받은 그림)
-uniform vec4 mud_color : source_color = vec4(0.42, 0.27, 0.12, 1.0);
+// 받은 그림의 갈색 귀·점과 헷갈리지 않게 어두운 회갈색 (이슈 #44)
+uniform vec4 mud_color : source_color = vec4(0.27, 0.22, 0.17, 1.0);
 uniform float wet_amount = 1.0;
 // 부위별 색 (귀·꼬리 끝 등). 털 색에 곱한다. MeshInstance 마다 set_instance_shader_parameter("tint", 색)
 instance uniform vec4 tint : source_color = vec4(1.0);
@@ -34,9 +38,9 @@ vec2 dir_to_uv(vec3 d) {
 }
 
 void vertex() {
-	// 부위(몸·머리·다리)가 따로 된 메시라도 같은 마스크를 쓰도록 강아지 기준 좌표로 바꾼다.
-	vec3 world = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
-	local_pos = (world_to_dog * vec4(world, 1.0)).xyz;
+	// 부위(몸·머리·다리)가 따로 된 메시라도 같은 마스크를 쓰도록 강아지 기준 좌표(처음 자세)로 바꾼다.
+	vec4 v = vec4(VERTEX, 1.0);
+	local_pos = vec3(dot(rest_row_x, v), dot(rest_row_y, v), dot(rest_row_z, v));
 	local_dir = local_pos - center;
 }
 
