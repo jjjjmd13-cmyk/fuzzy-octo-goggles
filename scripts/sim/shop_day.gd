@@ -160,7 +160,7 @@ func _arrive() -> void:
 	arrived += 1
 	_idle_time = 0.0
 	var variant := _pick_variant()
-	var kind := roll_kind(day, _rng)
+	var kind := roll_kind(day, _rng, arrived)
 	_guest_arrived.rpc()
 	if station.owner_phase == WashStation.OwnerPhase.EMPTY and queue_ids.is_empty():
 		station.take_guest(guest, variant, false, kind)
@@ -179,8 +179,10 @@ func _arrive() -> void:
 	queue_since = since
 
 
-## 그날 손님 종류 (MILESTONE_V3_SLICE 3장): 1일차는 강아지만·성격 없음, 2일차부터 고양이·간지럼쟁이, 3일차부터 겁쟁이
-static func roll_kind(day_number: int, rng: RandomNumberGenerator) -> Vector2i:
+## 그날 손님 종류 (MILESTONE_V3_SLICE 3장): 1일차는 강아지만·성격 없음, 2일차부터 고양이·간지럼쟁이, 3일차부터 겁쟁이.
+## 새 손님을 꼭 보게 (기획팀 #51 검토): 2일차 2번째 = 고양이, 3번째 = 간지럼쟁이, 3일차 2번째 = 겁쟁이. 나머지는 무작위.
+## guest_today = 그날 몇 번째 손님인가 (1부터)
+static func roll_kind(day_number: int, rng: RandomNumberGenerator, guest_today := 0) -> Vector2i:
 	var data: Resource = Tuning.data
 	var species := WashStation.Species.DOG
 	if day_number >= 2 and rng.randf() < data.proto_cat_chance:
@@ -193,6 +195,12 @@ static func roll_kind(day_number: int, rng: RandomNumberGenerator) -> Vector2i:
 	var personality := WashStation.Personality.NONE
 	if not open_traits.is_empty() and rng.randf() < data.proto_trait_chance:
 		personality = open_traits[rng.randi_range(0, open_traits.size() - 1)]
+	if day_number == 2 and guest_today == 2:
+		species = WashStation.Species.CAT
+	elif day_number == 2 and guest_today == 3:
+		personality = WashStation.Personality.TICKLISH
+	elif day_number == 3 and guest_today == 2:
+		personality = WashStation.Personality.TIMID
 	return Vector2i(species, personality)
 
 

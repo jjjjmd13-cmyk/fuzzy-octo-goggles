@@ -135,9 +135,12 @@ func _ready() -> void:
 	card_trait.name = "Trait"
 	card_trait.theme = get_tree().root.theme
 	card_trait.theme_type_variation = &"PromptLabel"
-	card_trait.add_theme_color_override("font_color", Color(0.8, 0.92, 1.0))
-	card_trait.add_theme_color_override("font_outline_color", Color(0.1, 0.15, 0.25))
-	card_trait.add_theme_constant_override("outline_size", 8)
+	# 장면 위에 바로 놓이므로 흰 글자 + 두꺼운 진한 파랑 테두리, 낱말 단위 줄바꿈 (QA #51)
+	card_trait.add_theme_color_override("font_color", Color(1, 1, 1))
+	card_trait.add_theme_color_override("font_outline_color", Color("1f3f66"))
+	card_trait.add_theme_constant_override("outline_size", 10)
+	card_trait.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	card_trait.custom_minimum_size = Vector2(300, 0)
 	add_child(card_trait)
 	move_child(card_trait, overlay.get_index())
 	# 대기 손님 참을성 원: HUD 맨 밑 층 (요청 카드·도구걸이가 그 위)

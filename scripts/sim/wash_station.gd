@@ -991,6 +991,9 @@ func _build_dog() -> void:
 	_was_operator = false
 	turning_left = 0.0
 	dryer_distance = Tuning.data.proto_dryer_start_distance
+	# 물 온도는 이 손님의 '좋음' 범위 가운데에서 시작 (QA #51: 겁쟁이 범위 끝에서 시작하면 불공정)
+	var good := temp_good()
+	temperature = (good[0] + good[1]) / 2.0
 	turns = 0
 	if _built_serial > 0 and sfx != null:
 		sfx.play("splat")

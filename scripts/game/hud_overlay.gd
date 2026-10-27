@@ -187,7 +187,8 @@ func _draw_trait(station: WashStation) -> void:
 	if not card.visible or trait_index == WashStation.Personality.NONE:
 		return
 	var rect := card.get_global_rect()
-	var center := Vector2(rect.end.x - 26.0, rect.position.y + 26.0)
+	# 카드 오른쪽 위 모서리에 반쯤 걸쳐서 (제목 글자를 덮지 않게, QA #51)
+	var center := Vector2(rect.end.x + 2.0, rect.position.y + 6.0)
 	draw_circle(center, 20.0, Color(1, 1, 1, 0.9))
 	draw_arc(center, 20.0, 0, TAU, 24, Color(0.3, 0.35, 0.45), 2.0)
 	if trait_index == WashStation.Personality.TICKLISH:

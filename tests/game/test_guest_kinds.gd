@@ -30,6 +30,13 @@ func run_test() -> void:
 	check(seen[1].size() == 2 and seen[1].has("s0") and seen[1].has("p0"), "1일차 = 강아지만, 성격 없음 %s" % [seen[1].keys()])
 	check(seen[2].has("s1") and seen[2].has("p1") and not seen[2].has("p2"), "2일차 = 고양이·간지럼쟁이, 겁쟁이 아직 %s" % [seen[2].keys()])
 	check(seen[3].has("p2"), "3일차 = 겁쟁이도 옴")
+	# 새 손님을 꼭 보게: 2일차 2번째 고양이·3번째 간지럼쟁이, 3일차 2번째 겁쟁이 (시드가 달라도 항상)
+	for seed_value in 30:
+		rng.seed = seed_value
+		check_eq(ShopDay.roll_kind(2, rng, 2).x, WashStation.Species.CAT, "2일차 2번째 손님은 고양이 (시드 %d)" % seed_value)
+		check_eq(ShopDay.roll_kind(2, rng, 3).y, WashStation.Personality.TICKLISH, "2일차 3번째 손님은 간지럼쟁이 (시드 %d)" % seed_value)
+		check_eq(ShopDay.roll_kind(3, rng, 2).y, WashStation.Personality.TIMID, "3일차 2번째 손님은 겁쟁이 (시드 %d)" % seed_value)
+		check_eq(ShopDay.roll_kind(1, rng, 2), Vector2i.ZERO, "1일차는 보장 없이 강아지만 (시드 %d)" % seed_value)
 
 	get_tree().current_scene = null
 	Net.start_offline()
@@ -49,6 +56,7 @@ func run_test() -> void:
 	check(world.hud.card_title.text.contains("고양이"), "요청 카드에 고양이")
 	check(station.next_hint().contains("고양이") or station.owner_phase != WashStation.OwnerPhase.ARRIVE, "안내도 고양이")
 	check_eq(station.temp_good(), data.slice_cat_temp_good, "고양이 온도 '좋음' 범위가 좁음")
+	check(is_equal_approx(station.temperature, (data.slice_cat_temp_good[0] + data.slice_cat_temp_good[1]) / 2.0), "물 온도는 이 손님 범위 가운데에서 시작 (%.3f)" % station.temperature)
 	station._advance()
 	await _frames(2)
 	var mood_before: float = station.mood
