@@ -23,9 +23,10 @@ var walked_out := 0
 var earned := 0
 ## 오늘 첫 손님 번호 (요청 카드 "N번째 손님" 용)
 var first_guest := 1
-## 대기열 (앞에서부터): 손님 번호 · 주인 모양 · 기다리기 시작한 시각 (clock)
+## 대기열 (앞에서부터): 손님 번호 · 주인 모양 · 손님 종류(동물 + 성격 × 4, kind_of 로 풂) · 기다리기 시작한 시각 (clock)
 var queue_ids := PackedInt32Array()
 var queue_variants := PackedInt32Array()
+var queue_kinds := PackedInt32Array()
 var queue_since := PackedFloat32Array()
 ## 오늘 영업이 끝났음 (6시가 지났거나 손님이 다 왔고, 목욕대·대기열이 빔)
 var closed := false
@@ -58,6 +59,7 @@ func start_day(number: int) -> void:
 	first_guest = _next_id
 	queue_ids = PackedInt32Array()
 	queue_variants = PackedInt32Array()
+	queue_kinds = PackedInt32Array()
 	queue_since = PackedFloat32Array()
 	closed = false
 	closing = false
@@ -132,8 +134,9 @@ func _process(delta: float) -> void:
 	if idle and not queue_ids.is_empty():
 		var guest := queue_ids[0]
 		var variant := queue_variants[0]
+		var kind := kind_of(queue_kinds[0])
 		_remove_from_queue(0)
-		station.take_guest(guest, variant, true)
+		station.take_guest(guest, variant, true, kind)
 		idle = false
 	if idle and queue_ids.is_empty() and (arrived >= guests_today() or not is_open()):
 		if is_open():
@@ -157,19 +160,45 @@ func _arrive() -> void:
 	arrived += 1
 	_idle_time = 0.0
 	var variant := _pick_variant()
+	var kind := roll_kind(day, _rng)
 	_guest_arrived.rpc()
 	if station.owner_phase == WashStation.OwnerPhase.EMPTY and queue_ids.is_empty():
-		station.take_guest(guest, variant, false)
+		station.take_guest(guest, variant, false, kind)
 		return
 	var ids := queue_ids.duplicate()
 	var variants := queue_variants.duplicate()
+	var kinds := queue_kinds.duplicate()
 	var since := queue_since.duplicate()
 	ids.append(guest)
 	variants.append(variant)
+	kinds.append(kind.x + kind.y * 4)
 	since.append(clock)
 	queue_ids = ids
 	queue_variants = variants
+	queue_kinds = kinds
 	queue_since = since
+
+
+## 그날 손님 종류 (MILESTONE_V3_SLICE 3장): 1일차는 강아지만·성격 없음, 2일차부터 고양이·간지럼쟁이, 3일차부터 겁쟁이
+static func roll_kind(day_number: int, rng: RandomNumberGenerator) -> Vector2i:
+	var data: Resource = Tuning.data
+	var species := WashStation.Species.DOG
+	if day_number >= 2 and rng.randf() < data.proto_cat_chance:
+		species = WashStation.Species.CAT
+	var open_traits: Array[int] = []
+	if day_number >= 2:
+		open_traits.append(WashStation.Personality.TICKLISH)
+	if day_number >= 3:
+		open_traits.append(WashStation.Personality.TIMID)
+	var personality := WashStation.Personality.NONE
+	if not open_traits.is_empty() and rng.randf() < data.proto_trait_chance:
+		personality = open_traits[rng.randi_range(0, open_traits.size() - 1)]
+	return Vector2i(species, personality)
+
+
+## 대기열의 손님 종류 값 → (동물, 성격)
+static func kind_of(packed: int) -> Vector2i:
+	return Vector2i(packed % 4, packed / 4)
 
 
 ## 주인 모양: 지금 가게에 있는 손님(목욕대·대기열)과 겹치지 않게 고른다 (다 쓰였으면 아무거나)
@@ -192,12 +221,15 @@ func _pick_variant() -> int:
 func _remove_from_queue(index: int) -> void:
 	var ids := queue_ids.duplicate()
 	var variants := queue_variants.duplicate()
+	var kinds := queue_kinds.duplicate()
 	var since := queue_since.duplicate()
 	ids.remove_at(index)
 	variants.remove_at(index)
+	kinds.remove_at(index)
 	since.remove_at(index)
 	queue_ids = ids
 	queue_variants = variants
+	queue_kinds = kinds
 	queue_since = since
 
 

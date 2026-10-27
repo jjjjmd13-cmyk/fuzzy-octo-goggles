@@ -9,6 +9,8 @@ extends Node3D
 const OWNER_SCENE := preload("res://scenes/art/sim/owner_model.tscn")
 const CHAIR_SCENE := preload("res://scenes/art/sim/chair_model.tscn")
 const DOG_SCENE := preload("res://scenes/art/sim/dog_model.tscn")
+const CAT_SCENE := preload("res://scenes/art/sim/cat_model.tscn")
+const ShopDay := preload("res://scripts/sim/shop_day.gd")
 ## 안은 강아지 크기와 자리 (주인 기준: 앉으면 무릎 위, 서면 가슴 앞)
 ## (무릎 위: 발이 의자 앞·다리 사이로 삐져나오지 않게 몸 쪽으로, QA #50)
 const HELD_DOG_SCALE := 0.6
@@ -91,7 +93,8 @@ func _process(delta: float) -> void:
 			holder.name = "HeldDog"
 			holder.scale = Vector3.ONE * HELD_DOG_SCALE
 			owner.add_child(holder)
-			var held := DOG_SCENE.instantiate() as Node3D
+			var kind := ShopDay.kind_of(day.queue_kinds[i]) if i < day.queue_kinds.size() else Vector2i.ZERO
+			var held := (CAT_SCENE if kind.x == ShopDay.WashStation.Species.CAT else DOG_SCENE).instantiate() as Node3D
 			# 안은 강아지는 보이기만 한다 (클릭 판정 모양 없음)
 			held.set("auto_hit_shapes", false)
 			holder.add_child(held)

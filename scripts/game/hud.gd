@@ -19,6 +19,8 @@ Tab(패드 LB·RB) 자리 바꾸기 · Esc 메뉴 · F1 이 도움말"""
 @onready var seat_button: Button = $SeatButton
 @onready var card_title: Label = $Card/Box/Title
 @onready var card_request: Label = $Card/Box/Request
+## 성격 한 줄 (요청 카드). 성격 그림은 Overlay 가 카드 오른쪽 위 구석에 그림
+var card_trait: Label
 @onready var card_steps: VBoxContainer = $Card/Box/Steps
 @onready var money_label: Label = $Money
 @onready var tool_bar: HBoxContainer = $ToolBar
@@ -124,6 +126,14 @@ func _ready() -> void:
 		$Card.add_theme_stylebox_override("panel", style)
 	world.get_node("WashStation").screen_foam.connect(overlay.show_foam)
 	_card_home = $Card.position
+	card_trait = Label.new()
+	card_trait.name = "Trait"
+	card_trait.theme_type_variation = &"PromptLabel"
+	card_trait.add_theme_color_override("font_color", Color(0.75, 0.9, 1.0))
+	card_trait.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	card_trait.custom_minimum_size = Vector2(230, 0)
+	$Card/Box.add_child(card_trait)
+	$Card/Box.move_child(card_trait, card_request.get_index() + 1)
 	# 대기 손님 참을성 원: HUD 맨 밑 층 (요청 카드·도구걸이가 그 위)
 	var patience_layer := Control.new()
 	patience_layer.name = "PatienceLayer"
@@ -181,6 +191,11 @@ func _process(_delta: float) -> void:
 		_seen_phase = phase
 	card_title.text = "%d번째 손님" % maxi(day.guest_number_today(station.dog_number()), 1)
 	card_request.visible = station.wants_peach()
+	if station.is_cat():
+		card_title.text += " · 고양이"
+	var trait_index: int = station.personality()
+	card_trait.visible = trait_index != WashStation.Personality.NONE
+	card_trait.text = "%s — %s" % [WashStation.PERSONALITY_NAMES[trait_index], WashStation.PERSONALITY_TIPS[trait_index]]
 	for i in _step_labels.size():
 		var done: bool = i < station.stage
 		var current: bool = i == station.stage

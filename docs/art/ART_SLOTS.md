@@ -68,6 +68,13 @@ L/R(왼쪽·오른쪽)은 **캐릭터 자신의** 왼쪽·오른쪽입니다. / 
 - 털 UV 는 겹치지 않게. 눈·코·혀는 각자 재질 (털 아님). Fur UVs must not overlap; eyes/nose/tongue keep their own materials.
 - 마우스 판정은 털 오브젝트마다 볼록 껍질로 자동 생성 → 몸통이 크게 오목하면 2~3 조각으로 나눠 주세요. Hit shapes are convex hulls per fur object; split strongly concave parts into 2–3 pieces.
 
+### 2-1. `cat` 고양이 (2일차부터 / from day 2)
+
+- **강아지와 같은 약속** — 노드 이름·원점·털/비털 메시·깨끗한 털 색 규칙이 모두 2장과 같습니다. Same contract as the dog (section 2).
+- **크기 Size**: 앉은 키 약 0.5 m, 강아지보다 조금 작고 날씬하게. 귀는 **위로 선 삼각형** (안쪽 분홍은 `NoFur…` 이름의 따로 된 메시), 꼬리는 길고 가늘게 (`Tail_1→2→3`, 위로 감아 올림). ~0.5 m sitting; upright pointed ears; long thin tail.
+- **납품 / Deliver**: `assets/models/cat/cat.glb` → `scenes/art/sim/cat_model.tscn` (지금은 임시 모형 `scripts/sim/toy_cat_model.gd`).
+- **털 색**: 회색 단색이면 충분 (줄무늬는 텍스처로 그려도 됨, 상태는 그리지 않기). Plain grey is fine.
+
 ## 3. `owner` 주인 손님
 
 - **크기 Size**: 서 있는 키 약 1.55 m, 2등신 장난감 비율, 팔은 아래로. ~1.55 m tall, chunky toy proportions, arms down.

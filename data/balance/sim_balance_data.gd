@@ -141,6 +141,26 @@ extends Resource
 @export var slice_queue_seats := 3
 ## 기다리기 시작해서 떠나기까지 (s)
 @export var slice_owner_patience := 150.0
+## 고양이 요금 (강아지는 money_wash_price)
+@export var slice_cat_price := 45
+## 고양이 / 겁쟁이 물 온도 '좋음' 범위 (0~1)
+@export var slice_cat_temp_good := PackedFloat32Array([0.45, 0.6])
+@export var slice_timid_temp_good := PackedFloat32Array([0.5, 0.6])
+
+@export_group("수직 단면 임시 값 (개발팀)")
+## 2일차부터 손님이 고양이일 비율
+@export var proto_cat_chance := 0.4
+## 성격이 열린 날 손님이 성격을 가질 비율
+@export var proto_trait_chance := 0.5
+## 고양이: 젖어 있는 동안 (적시기 ~ 수건) 초당 기분
+@export var proto_cat_wet_mood := -0.004
+## 고양이: 바가지를 머리에 쏟으면 기분
+@export var proto_cat_pour_head_mood := -0.2
+## 겁쟁이: 눈에 물 벌점 배수
+@export var proto_timid_eye_mult := 2.0
+## 간지럼쟁이: 배·발을 이만큼 문지르면 다리 찰랑 (s) + 기분
+@export var proto_ticklish_time := 0.6
+@export var proto_ticklish_mood := -0.05
 
 ## 기분 0~1 → 얼굴 단계 0(😣) / 1(😐) / 2(😊)
 func mood_face(mood: float) -> int:

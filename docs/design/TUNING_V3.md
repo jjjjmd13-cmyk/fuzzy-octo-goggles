@@ -106,6 +106,13 @@
 | `proto_dryer_start_distance` | 0.32 | m | ✅ | 드라이어 처음 거리 (휠로 바꿈) |
 | `proto_turn_step` | 90 | ° | ✅ | 저절로·화살표로 한 번에 도는 각도 (보이는 쪽 = 앞·옆·뒤·옆) |
 | `proto_guest_spacing` | 0.85 | 배 | ✅ | 손님 도착 간격 = 영업 시간 × 이 값 ÷ 그날 손님 수 (8분·4명이면 약 102초). 목욕대가 비고 기다리는 손님도 없으면 `proto_next_dog_delay` 뒤 다음 손님이 앞당겨 옴 |
+| `proto_cat_chance` | 0.4 | 비율 | ✅ | 2일차부터 손님이 고양이일 비율 |
+| `proto_trait_chance` | 0.5 | 비율 | ✅ | 성격이 열린 날 손님이 성격(간지럼쟁이·겁쟁이 중 열린 것)을 가질 비율 |
+| `proto_cat_wet_mood` | -0.004 | /s | ✅ | 고양이: 젖어 있는 동안(적시기 ~ 수건) 기분 (50초면 −0.2) |
+| `proto_cat_pour_head_mood` | -0.2 | | ✅ | 고양이: 바가지를 머리에 쏟으면 |
+| `proto_timid_eye_mult` | 2.0 | 배 | ✅ | 겁쟁이: 눈에 물 벌점(`mood_eye_hit`) 배수 |
+| `proto_ticklish_time` | 0.6 | s | ✅ | 간지럼쟁이: 배·발을 이만큼 문지르면 다리 찰랑 (보통 `tickle_time` 3초) |
+| `proto_ticklish_mood` | -0.05 | | ✅ | 간지럼쟁이: 배·발 찰랑 한 번마다 |
 
 시제품에서 정한 규칙 (PR #29 PROTOTYPE.md 8장, 기획팀 동의): 요청 카드는 다섯 줄(적시기·거품·헹구기·수건·드라이어), 샤워기는 적시기·헹구기 단계에서만 칠함, 배 밑(몸 표면 약 20%)은 진행 비율에서 뺌, 기분 팁은 계산 때 얼굴로.
 
@@ -143,9 +150,9 @@
 | `slice_guests_per_day` | [4, 5, 6] | 명 | ✅ | 1·2·3일차 |
 | `slice_queue_seats` | 3 | 자리 | ✅ | 대기 의자 |
 | `slice_owner_patience` | 150 | s | ✅ | 의자에 앉아서 떠나기까지 (창가 화분 있으면 ×1.2) |
-| `slice_cat_price` | 45 | 돈 | 단면 | 고양이 요금 (강아지 `money_wash_price` 30) |
-| `slice_cat_temp_good` | [0.45, 0.6] | 0~1 | 단면 | 고양이 온도 '좋음' 범위 |
-| `slice_timid_temp_good` | [0.5, 0.6] | 0~1 | 단면 | 겁쟁이 온도 '좋음' 범위 |
+| `slice_cat_price` | 45 | 돈 | ✅ | 고양이 요금 (강아지 `money_wash_price` 30) |
+| `slice_cat_temp_good` | [0.45, 0.6] | 0~1 | ✅ | 고양이 온도 '좋음' 범위 |
+| `slice_timid_temp_good` | [0.5, 0.6] | 0~1 | ✅ | 겁쟁이 온도 '좋음' 범위 |
 | `slice_price_wide_shower` | 150 | 돈 | 단면 | 넓은 샤워기 |
 | `slice_wide_shower_mult` | 1.5 | 배 | 단면 | 적시기·헹구기 붓 반경 |
 | `slice_price_plant` | 80 | 돈 | 단면 | 창가 화분 |
@@ -164,3 +171,4 @@
 | 2026-10-26 | 8장 (새로, 초안) | — | 플레이 테스트 3: 단계마다 다른 손동작·한 손 조작·주인 손님 (GDD_V3 0.3) |
 | 2026-10-26 | 9장 `slice_*` (새로, 초안) | — | 수직 단면 범위 (MILESTONE_V3_SLICE) |
 | 2026-10-27 | 9장 `slice_days`·`slice_guests_per_day`·`slice_queue_seats`·`slice_owner_patience` ✅, 7장 `proto_guest_spacing` (새로) | 값은 초안 그대로 / 0.85 | 수직 단면 1장 하루 영업 (개발팀) |
+| 2026-10-27 | 9장 `slice_cat_price`·`slice_cat_temp_good`·`slice_timid_temp_good` ✅, 7장 `proto_cat_*`·`proto_trait_chance`·`proto_timid_eye_mult`·`proto_ticklish_*` (새로) | 값은 초안 그대로 / 새 값 | 수직 단면 3장 고양이·성격 (개발팀) |

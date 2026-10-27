@@ -1,8 +1,9 @@
 # 개발팀 상태
 
-**지금 하는 일**: 하루 영업 다듬기 PR (`dev/day-polish`, QA #45 리뷰 4개 + 기획 제안). 다음: 체크리스트 3장(고양이·성격) → 4장(정산·쇼핑·다음 날)
+**지금 하는 일**: 수직 단면 3장 고양이·성격 PR (`dev/cat-traits`). 다음: 4장(정산·쇼핑·다음 날·아침 화면) → 5장(3일·저장)
 
 **끝낸 일**:
+- 수직 단면 3장 손님 2종·성격 2개: 고양이(2일차~, 임시 장난감 모형·온도 범위 좁음·젖어 있으면 기분 −·머리에 바가지 크게 싫어함·요금 45), 간지럼쟁이(2일차~, 배·발 0.6초 만에 찰랑 + 기분 −), 겁쟁이(3일차~, 온도 범위 더 좁음·눈에 물 벌점 2배). 요청 카드 구석에 성격 그림 + 한 줄, 물 온도 막대가 손님 범위로. 대기 손님은 자기 동물을 안음
 - 하루 영업 다듬기 (QA #45 리뷰·기획 제안): 대기 의자를 HUD 에 덜 가리게 안쪽으로 + 머리 위 남은 참을성 원, 대기 손님이 강아지를 안고 있음, 같이 있는 손님끼리 옷이 겹치지 않음, 벽시계에 12·3·6·9 와 마감 칸(5~6시) 빨강, 손님을 일찍 다 받으면 시계를 6시까지 빠르게 돌리고 "영업 끝"
 - 이슈 #44: 새 GLB 강아지의 머리·다리가 움직이면 진흙·젖음 무늬가 미끄러지던 것 고침 (털 셰이더가 부위마다 처음 자세 위치로 마스크를 찾음). 진흙 색을 받은 그림의 갈색 귀와 헷갈리지 않게 어두운 회갈색으로
 - 수직 단면 1장 하루 영업: 벽시계(9시→6시, 8분), 차례로 오는 손님(1·2·3일차 4·5·6명), 대기 의자 3개·문밖 줄, 기다림 몸짓(시계 보기 → 발 구르기 → 시무룩), 오래 기다리면 떠남(0원), 접수(말풍선 → 요청 카드가 날아와 걸림), 6시 뒤 새 손님 없음, 영업 끝 알림. 문 종 "딸랑". 이슈 #40: 첫 손님이 시작하자마자 들어옴
@@ -23,6 +24,8 @@
 - 스팀 경로 실기 확인 불가 (컨테이너에 스팀 없음, codeberg.org 막힘). SteamMultiplayerPeer 포함 여부 **미확인**.
 
 **다른 부서에 요청**:
+- 대표(그래픽 요청 → ChatGPT): 고양이 GLB (`docs/art/ART_SLOTS.md` 2-1, 강아지와 같은 노드 약속), 2D 성격 그림 `trait_ticklish.png`·`trait_timid.png`, 벽시계 판 `clock.png` (`assets/ui/README.md`). 지금은 임시 모형·도형으로 동작합니다.
+- 기획팀: 3장 수치 — 9장 `slice_cat_price`·`slice_cat_temp_good`·`slice_timid_temp_good` ✅, 7장에 `proto_cat_chance` 0.4·`proto_trait_chance` 0.5·`proto_cat_wet_mood` −0.004/s·`proto_cat_pour_head_mood` −0.2·`proto_timid_eye_mult` 2·`proto_ticklish_time` 0.6 s·`proto_ticklish_mood` −0.05 를 새로 넣었습니다. 확인 부탁합니다.
 - 대표(그래픽 요청 → ChatGPT): retail-v2 강아지 GLB 에 `Cheek_L`·`Cheek_R`(볼 가운데 원점, 선택 부위)이 없어 드라이어를 얼굴에 댈 때 볼이 펄럭이지 않습니다. 다음 납품 때 넣어 주세요 (`docs/art/ART_SLOTS.md` 1장 표). 나머지 약속(노드 이름·계층·털/비털 메시·Shirt·Hat 재질)은 맞습니다. 주인의 새 `Knee_L/R` 관절은 명세서에 적었습니다.
 - 기획팀: TUNING_V3 8장 키를 리소스에 넣으며 ✅ 로 바꿨고 값은 초안 그대로입니다. 목표 시간에 맞추려고 `tool_shower_radius` 0.18 → 0.24, `tool_scrub_radius` 0.15 → 0.2 로 바꿨고, 7장에 개발팀 임시 키 5개(`proto_owner_arrive_time` 2.5, `proto_owner_leave_time` 1.5, `proto_temp_wheel_step` 0.1, `proto_dryer_start_distance` 0.32, `proto_turn_step` 90)를 넣었습니다 (바꾼 기록 줄 추가). 확인 부탁합니다.
 - 기획팀: 손동작이 바뀌어 `tool_shampoo_dose`, `tool_rinse_rate`, `tool_towel_rate`, `proto_dose_coverage` 는 지금 쓰지 않습니다. 지울지 정해 주세요. (`proto_next_dog_delay` 는 하루 영업에서 다시 씁니다: 목욕대가 비고 기다리는 손님이 없으면 이만큼 뒤 다음 손님이 앞당겨 옴)
