@@ -14,8 +14,8 @@ def render(slot,filename=None,view='hero'):
     bpy.ops.import_scene.gltf(filepath=str(p))
     scene=bpy.context.scene;scene.render.engine='CYCLES';scene.cycles.samples=32
     scene.cycles.use_denoising=True;scene.render.resolution_x=900;scene.render.resolution_y=900;scene.render.resolution_percentage=100
-    scene.world.use_nodes=True;scene.world.node_tree.nodes['Background'].inputs['Color'].default_value=(.83,.9,1,1);scene.world.node_tree.nodes['Background'].inputs['Strength'].default_value=.35
-    scene.view_settings.view_transform='AgX';scene.view_settings.look='AgX - Medium High Contrast';scene.view_settings.exposure=.45;scene.render.image_settings.file_format='PNG'
+    scene.world.use_nodes=True;scene.world.node_tree.nodes['Background'].inputs['Color'].default_value=(.83,.9,1,1);scene.world.node_tree.nodes['Background'].inputs['Strength'].default_value=.25
+    scene.view_settings.view_transform='AgX';scene.view_settings.look='AgX - Medium High Contrast';scene.view_settings.exposure=0;scene.render.image_settings.file_format='PNG'
     bounds=[]
     for o in scene.objects:
         if o.type=='MESH':bounds.extend(o.matrix_world@Vector(c) for c in o.bound_box)
@@ -26,7 +26,7 @@ def render(slot,filename=None,view='hero'):
     if slot=='tiles' and filename=='wall':center.z=1
     def area(name,loc,power,width):
         bpy.ops.object.light_add(type='AREA',location=center+Vector(loc)*size);l=bpy.context.object;l.name=name;l.data.energy=power*size*size;l.data.shape='DISK';l.data.size=width*size;l.rotation_euler=(center-l.location).to_track_quat('-Z','Y').to_euler()
-    area('Key',(-2.2, 3,4),500,3);area('Fill',(3,1,2),120,3);area('Rim',(1,-3,3),200,3)
+    area('Key',(-2.2, 3,4),340,2.5);area('Fill',(3,1,2),70,3);area('Rim',(1,-3,3),130,3)
     bpy.ops.object.camera_add();cam=bpy.context.object;scene.camera=cam
     if view=='front':direction=Vector((0,3,.4))
     elif view=='back':direction=Vector((-2,-3,1.3))

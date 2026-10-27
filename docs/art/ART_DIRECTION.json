@@ -1,0 +1,16 @@
+{
+  "version": "retail-v2",
+  "reference_titles": [
+    "Dooms Hair Salon",
+    "Onigiri Shop Simulator"
+  ],
+  "user_request": "그래픽을 참고 게임처럼 바꿔 달라는 요청. 협동 여부는 확정하지 않고 그래픽만 수정.",
+  "technical_contract": "미터·Y-up·-Z 정면·필수 이름·관절 피벗·삼각형 예산·albedo-only 유지",
+  "style_changes": [
+    "강아지 머리·눈 비율 축소 및 연속된 주둥이·볼 형태",
+    "성인에 가까운 주인 비율",
+    "금속 프레임·법랑·고무·비닐 등 재질별 거칠기와 반사 구분",
+    "채도를 낮춘 자연스러운 매장 색상·가구 두께·접지 그림자"
+  ],
+  "provenance": "직접 제작. 게임 스크린샷은 화면 분석에만 사용하고 GLB·텍스처·미리보기에는 복제하지 않음."
+}

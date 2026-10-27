@@ -12,13 +12,13 @@
           "code": "NODE_EMPTY",
           "message": "Empty node encountered.",
           "severity": 2,
-          "pointer": "/nodes/14"
+          "pointer": "/nodes/10"
         },
         {
           "code": "NODE_EMPTY",
           "message": "Empty node encountered.",
           "severity": 2,
-          "pointer": "/nodes/32"
+          "pointer": "/nodes/26"
         }
       ],
       "truncated": false
@@ -30,44 +30,38 @@
     "issues": {
       "numErrors": 0,
       "numWarnings": 0,
-      "numInfos": 6,
+      "numInfos": 5,
       "numHints": 0,
       "messages": [
         {
           "code": "UNUSED_OBJECT",
           "message": "This object may be unused.",
           "severity": 2,
-          "pointer": "/meshes/2/primitives/0/attributes/TEXCOORD_0"
+          "pointer": "/meshes/4/primitives/0/attributes/TEXCOORD_0"
         },
         {
           "code": "UNUSED_OBJECT",
           "message": "This object may be unused.",
           "severity": 2,
-          "pointer": "/meshes/18/primitives/0/attributes/TEXCOORD_0"
+          "pointer": "/meshes/14/primitives/0/attributes/TEXCOORD_0"
         },
         {
           "code": "UNUSED_OBJECT",
           "message": "This object may be unused.",
           "severity": 2,
-          "pointer": "/meshes/18/primitives/1/attributes/TEXCOORD_0"
+          "pointer": "/meshes/14/primitives/1/attributes/TEXCOORD_0"
         },
         {
           "code": "UNUSED_OBJECT",
           "message": "This object may be unused.",
           "severity": 2,
-          "pointer": "/meshes/19/primitives/0/attributes/TEXCOORD_0"
+          "pointer": "/meshes/15/primitives/0/attributes/TEXCOORD_0"
         },
         {
           "code": "UNUSED_OBJECT",
           "message": "This object may be unused.",
           "severity": 2,
-          "pointer": "/meshes/19/primitives/1/attributes/TEXCOORD_0"
-        },
-        {
-          "code": "UNUSED_OBJECT",
-          "message": "This object may be unused.",
-          "severity": 2,
-          "pointer": "/meshes/20/primitives/0/attributes/TEXCOORD_0"
+          "pointer": "/meshes/15/primitives/1/attributes/TEXCOORD_0"
         }
       ],
       "truncated": false
@@ -98,13 +92,13 @@
           "code": "UNUSED_OBJECT",
           "message": "This object may be unused.",
           "severity": 2,
-          "pointer": "/meshes/3/primitives/0/attributes/TEXCOORD_0"
+          "pointer": "/meshes/0/primitives/2/attributes/TEXCOORD_0"
         },
         {
           "code": "UNUSED_OBJECT",
           "message": "This object may be unused.",
           "severity": 2,
-          "pointer": "/meshes/3/primitives/1/attributes/TEXCOORD_0"
+          "pointer": "/meshes/3/primitives/0/attributes/TEXCOORD_0"
         }
       ],
       "truncated": false
@@ -128,7 +122,7 @@
     "issues": {
       "numErrors": 0,
       "numWarnings": 0,
-      "numInfos": 13,
+      "numInfos": 6,
       "numHints": 0,
       "messages": [
         {
@@ -147,19 +141,7 @@
           "code": "UNUSED_OBJECT",
           "message": "This object may be unused.",
           "severity": 2,
-          "pointer": "/meshes/2/primitives/0/attributes/TEXCOORD_0"
-        },
-        {
-          "code": "UNUSED_OBJECT",
-          "message": "This object may be unused.",
-          "severity": 2,
           "pointer": "/meshes/3/primitives/0/attributes/TEXCOORD_0"
-        },
-        {
-          "code": "UNUSED_OBJECT",
-          "message": "This object may be unused.",
-          "severity": 2,
-          "pointer": "/meshes/4/primitives/0/attributes/TEXCOORD_0"
         },
         {
           "code": "UNUSED_OBJECT",
@@ -171,43 +153,13 @@
           "code": "UNUSED_OBJECT",
           "message": "This object may be unused.",
           "severity": 2,
-          "pointer": "/meshes/6/primitives/0/attributes/TEXCOORD_0"
-        },
-        {
-          "code": "UNUSED_OBJECT",
-          "message": "This object may be unused.",
-          "severity": 2,
-          "pointer": "/meshes/7/primitives/0/attributes/TEXCOORD_0"
-        },
-        {
-          "code": "UNUSED_OBJECT",
-          "message": "This object may be unused.",
-          "severity": 2,
           "pointer": "/meshes/8/primitives/0/attributes/TEXCOORD_0"
         },
         {
           "code": "UNUSED_OBJECT",
           "message": "This object may be unused.",
           "severity": 2,
-          "pointer": "/meshes/9/primitives/0/attributes/TEXCOORD_0"
-        },
-        {
-          "code": "UNUSED_OBJECT",
-          "message": "This object may be unused.",
-          "severity": 2,
           "pointer": "/meshes/10/primitives/0/attributes/TEXCOORD_0"
-        },
-        {
-          "code": "UNUSED_OBJECT",
-          "message": "This object may be unused.",
-          "severity": 2,
-          "pointer": "/meshes/11/primitives/0/attributes/TEXCOORD_0"
-        },
-        {
-          "code": "UNUSED_OBJECT",
-          "message": "This object may be unused.",
-          "severity": 2,
-          "pointer": "/meshes/12/primitives/0/attributes/TEXCOORD_0"
         }
       ],
       "truncated": false

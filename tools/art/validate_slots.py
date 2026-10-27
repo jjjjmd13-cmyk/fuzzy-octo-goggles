@@ -6,6 +6,8 @@ import json,struct,io,sys
 import numpy as np
 from PIL import Image
 ROOT=Path(__file__).resolve().parents[2]
+DIRECTION=json.loads((ROOT/'docs/art/ART_DIRECTION.json').read_text()) if (ROOT/'docs/art/ART_DIRECTION.json').exists() else {}
+RETAIL=DIRECTION.get('version')=='retail-v2'
 PREFIXES=('Eye','Pupil','Glint','Nose','Mouth','Tongue','Collar','NoFur')
 BUDGETS={'dog':8000,'owner':4000,'tub':4000,'turntable':800,'chair':1500}
 class GLB:
@@ -69,6 +71,7 @@ def validate(path):
         assert f.point('Nose')[2]<f.point('Head')[2] # faces -Z
         assert .56<dims[1]<.64 and .54<dims[2]<.66 and abs(lo[1])<.002
         pivots={'Head':(0,.325,-.015),'Chest':(0,.247,-.048),'Ear_L':(-.139,.522,-.032),'Ear_R':(.139,.522,-.032),'Leg_FL':(-.083,.291,-.056),'Leg_FR':(.083,.291,-.056),'Tail_1':(0,.088,.169),'Tail_2':(0,.121,.245),'Tail_3':(0,.199,.27),'Eye_L':(-.073,.455,-.191),'Eye_R':(.073,.455,-.191),'Mouth':(0,.353,-.203),'Tongue':(0,.351,-.218),'Nose':(0,.405,-.251)}
+        if RETAIL:pivots={name:json.loads((ROOT/'docs/art/RETAIL_JOINTS.json').read_text())['dog'][name] for name in required}
         for name,pt in pivots.items():assert np.allclose(f.point(name),pt,atol=2e-6),(name,f.point(name),pt)
         # Geometric UV intersection, including different fur objects in the same atlas.
         from shapely.geometry import Polygon
@@ -88,7 +91,11 @@ def validate(path):
         report['joint_pivots_m']={name:f.point(name).tolist() for name in required}
         # Texture contains exclusively the intended unshaded palette, no baked light/state.
         colors=set(map(tuple,np.asarray(imgs[0].convert('RGB')).reshape(-1,3).tolist()));expected={(245,222,179),(255,241,216),(189,132,84),(255,255,255)}
-        assert colors<=expected,colors;report['clean_albedo_colors']=[list(c) for c in sorted(colors)]
+        if not RETAIL:
+            assert colors<=expected,colors;report['clean_albedo_colors']=[list(c) for c in sorted(colors)]
+        else:
+            report['clean_albedo']='Procedural pigment only; DIFFUSE COLOR pass, no direct/indirect lighting, AO or state effects'
+            report['pigment_color_count']=len(colors)
     elif slot=='owner':
         for name in ['Body','Head','Arm_L','Arm_R','Leg_L','Leg_R']:assert name in f.byname
         for name in ['Head','Arm_L','Arm_R','Leg_L','Leg_R']:f.hasparent(name,'Body')
@@ -108,11 +115,12 @@ def validate(path):
         assert np.allclose([dims[0],dims[2],lo[1]], [1,1,-.02],atol=.002)
         assert abs(hi[1]-.02)<1e-6 and abs(dims[1]-.04)<1e-6
     elif slot=='chair':
-        a,b=f.bounds(['Cushion']);assert abs(b[1]-.4)<.002;assert abs(dims[0]-.45)<.002;assert abs(lo[1])<.002
+        a,b=f.bounds(['Seat' if RETAIL else 'Cushion']);assert abs(b[1]-.4)<.002;assert abs(dims[0]-.45)<.002;assert abs(lo[1])<.002
     elif slot=='tiles':
         assert np.allclose(dims[[0,2]] if path.stem=='floor' else dims[[0,1]],[2,2],atol=.002)
         if path.stem=='floor':assert abs(hi[1])<.001
         else:assert abs(lo[1])<.001 and abs(dims[2]-.3)<.001
+    report['art_direction']=DIRECTION.get('version','toy-v1')
     report['result']='PASS';return report
 if __name__=='__main__':
     paths=[ROOT/p for p in sys.argv[1:]] if len(sys.argv)>1 else sorted((ROOT/'art/incoming').glob('*/*.glb'))

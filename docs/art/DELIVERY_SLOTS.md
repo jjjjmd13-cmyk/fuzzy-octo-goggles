@@ -1,59 +1,62 @@
-# 3D 아트 납품 · 2026-10-27
+# 3D 아트 납품 · 두 번째 그래픽 방향
 
-현재 명세: [ART_SLOTS.md](ART_SLOTS.md). 완료 순서: dog → owner → tub → turntable → chair → tiles.
+2026-10-27 사용자 요청: **Dooms Hair Salon / Onigiri Shop Simulator처럼 보이는 그래픽**. 게임 방식의 복제나 협동 확정 요청으로 처리하지 않았다. 협동 가능성은 열려 있으며 이번 변경은 그래픽 파일에 한정한다.
 
-## 납품 파일
+기존 장난감 버전에서 형태·비율·재질을 바꾼 **1차 수정본**이다. 원본 모델에 실제 변경을 적용했고, 미리보기는 새 GLB를 다시 불러와 렌더했다. 현재 게임에 연결된 화면이나 AI로 생성한 완성 예상도가 아니다.
 
-| 슬롯 | GLB | 삼각형 | 실제 전체 치수 X × Y × Z (m) |
+## 파일
+
+| 슬롯 | GLB | 삼각형 | X × Y × Z (m) |
 |---|---|---:|---|
-| `dog` | [dog.glb](../../art/incoming/dog/dog.glb) | 7,486 | 0.529 × 0.601 × 0.568 |
-| `owner` | [owner.glb](../../art/incoming/owner/owner.glb) | 3,844 | 0.712 × 1.550 × 0.570 |
-| `tub` | [tub.glb](../../art/incoming/tub/tub.glb) | 3,532 | 1.600 × 1.320 × 1.240 |
-| `turntable` | [turntable.glb](../../art/incoming/turntable/turntable.glb) | 512 | 1.000 × 0.040 × 1.000 |
-| `chair` | [chair.glb](../../art/incoming/chair/chair.glb) | 1,406 | 0.451 × 0.685 × 0.417 |
-| `tiles/floor` | [floor.glb](../../art/incoming/tiles/floor.glb) | 3,020 | 2.000 × 0.060 × 2.000 |
+| `dog` | [dog.glb](../../art/incoming/dog/dog.glb) | 7,692 | 0.364 × 0.601 × 0.558 |
+| `owner` | [owner.glb](../../art/incoming/owner/owner.glb) | 3,844 | 0.540 × 1.550 × 0.269 |
+| `tub` | [tub.glb](../../art/incoming/tub/tub.glb) | 3,908 | 1.600 × 1.291 × 1.240 |
+| `turntable` | [turntable.glb](../../art/incoming/turntable/turntable.glb) | 480 | 1.000 × 0.040 × 1.000 |
+| `chair` | [chair.glb](../../art/incoming/chair/chair.glb) | 1,384 | 0.450 × 0.748 × 0.420 |
+| `tiles/floor` | [floor.glb](../../art/incoming/tiles/floor.glb) | 3,020 | 2.000 × 0.055 × 2.000 |
 | `tiles/wall` | [wall.glb](../../art/incoming/tiles/wall.glb) | 3,020 | 2.000 × 2.000 × 0.300 |
 
-각 슬롯 폴더에 `<slot>_preview.png` 한 장씩 있다. 강아지는 같은 GLB의 3/4·정면·후면을 한 장에 담았다. 타일은 바닥·벽을 한 장에 담았다.
+- [기존/수정 비교](style_comparison_v2.png): 왼쪽 기존, 오른쪽 수정.
+- [현재 전체 에셋](slots_overview.png): dog · owner · tub / turntable · chair · tiles 순서.
+- [현재 매장 조합 렌더](slots_scene_preview.png): 같은 GLB들과 바닥·벽 타일 모듈을 반복 배치한 검토 장면.
+- [강아지 사선·정면·후면](../../art/incoming/dog/dog_preview.png).
+- 각 슬롯 폴더에는 여전히 미리보기 PNG 한 장씩만 납품한다. 기존 이미지는 Git 이력과 [기존 전체 사진](reference_history/slots_overview_v1.png)에 남아 있다.
 
-- [강아지 미리보기](../../art/incoming/dog/dog_preview.png)
-- [전체 에셋 미리보기](slots_overview.png): 위쪽 dog · owner · tub, 아래쪽 turntable · chair · tiles.
-- [조합 렌더](slots_scene_preview.png): 납품 GLB를 임시 렌더 장면에 조합한 이미지. 게임 실행 화면은 아니다.
-- [제작 출처·이용 기록](ASSET_PROVENANCE.md): 외부 모델·텍스처 사용 없음.
+## 바뀐 부분
 
-## 명세 확인
+- 강아지: 눈·머리의 과장된 비율 축소, 연속된 볼·주둥이·턱 메시, 가는 앞다리와 발목. 머리는 목, 눈은 눈 가운데, 귀는 귀 뿌리, 다리는 어깨, 꼬리는 각 마디 뿌리가 피벗이다.
+- 깨끗한 털 색은 1024² PNG 한 장에 들어 있다. 작은 색소 차이로만 털결을 표현했다. `DIFFUSE`의 **COLOR만** 알베도로 옮겼으며 DIRECT·INDIRECT·AO·노멀·오염·거품·젖음은 텍스처에 포함하지 않았다. 상태 효과는 계속 게임 셰이더가 담당한다.
+- 주인: 작은 머리와 길어진 몸·팔다리의 비율. **기존 2등신 스타일은 이번 그래픽 요청에 맞춰 변경**했다. 키 1.55m, 필수 이름·관절·흰색 `Shirt`·`Hat` 및 6가지 색 변경은 유지한다.
+- 욕조: 얇은 스테인리스 프레임, 조절 발, 단단한 상판, 광택이 다른 법랑 내·외부, 작은 배수 마개, 금속 도구걸이.
+- 회전판: 장식 발바닥 대신 고무 상판과 금속 테두리. 지름 1m·두께 0.04m·중심 피벗·윗면 +0.02m 유지.
+- 의자: 얇은 금속 다리와 채도를 낮춘 비닐 좌판·등판. 폭 0.45m, 앉는 면 0.4m 유지.
+- 타일: 실제 모듈 간격을 따르는 줄눈과 작은 색 차이. 바닥·벽 2×2m, 바닥 윗면 0, 벽 두께 0.3m·방 안쪽 +Z 유지.
+- 단색 이외의 재질 차이는 PBR의 거칠기·금속성 **상수**로 표현한다. 추가 맵은 사용하지 않는다.
 
-- glTF 2.0 GLB, 1 단위 = 1m, Y-up. 캐릭터 정면 −Z. 전체 모델의 기본 원점은 바닥 중심, 회전판만 중앙.
-- 뼈대·스킨·애니메이션 없음. 움직이는 오브젝트의 정점 위치를 관절 피벗 기준으로 저장하고 오브젝트 변환은 회전 0·크기 1로 내보냄.
-- 강아지 필수 이름 14개 모두 대소문자까지 일치. `Eye_L/R`, `Ear_L/R`는 `Head`의 자식. `Tail_1 → Tail_2 → Tail_3`. 코·입·혀도 머리를 따라감. `FaceCenter`, `BodyCenter`, `Cheek_L/R`도 포함.
-- 캐릭터 자신의 왼쪽은 원본 −Z 정면 기준 −X. 갈색 귀는 `Ear_L`. 색은 #F5DEB3 / 밝은 크림 / 연갈색이며, 상태 효과나 조명은 알베도에 넣지 않음.
-- 강아지 알베도: 내장 PNG 1024² 한 장. 모든 털 삼각형에 독립된 여백 있는 UV 섬을 배정하고 기하학적 교집합으로 겹침 0을 확인. 눈·코·혀는 별도 비털 재질. 마우스 판정은 게임이 털 메시별로 생성.
-- 주인: 높이 1.55m, 약 2등신. `Body` 아래 목·양어깨·양엉덩이 피벗. `Shirt`, `Hat`은 흰색 재질이며 색상 변경 가능.
-- 욕조: `Stand`, `Tub`, `Plug`, `ToolRack`. 받침 1.6 × 1.1m, 윗면 y=0.9. 반지름 0.62m의 열린 원형 통, 안쪽 바닥 y=0.906, 뒤 테두리 y=1.06 / 앞 테두리 약 0.99. 앞쪽 −Z에서 보았을 때 도구걸이는 오른쪽. 받침과 바닥의 동일 평면 겹침을 피하도록 안쪽 바닥을 6mm 높임.
-- 회전판: `Plate` 한 오브젝트, 원점 (0,0,0), 지름 1m, 두께 0.04m, 윗면 y=+0.02. 발바닥은 내장 512² 알베도에만 있고 돌출 geometry 없음.
-- 의자: 폭 약 0.45m, 앉는 면 y≈0.4m, 등받이는 +Z.
-- 타일: 바닥 2 × 2m, 윗면 y=0. 벽 2 × 2m, 두께 0.3m, 아랫변 중앙이 원점, 방 안쪽 +Z. 벽은 y를 2m씩 올려 쌓을 수 있고 타일 간격은 반복 시 맞물림.
+## 유지한 기술 약속
 
-## 검수 결과
+미터·Y-up·−Z 정면, 바닥 원점(회전판은 중앙), 뼈대와 애니메이션 없음. 강아지 필수 이름 14개 및 `Head` 자식 눈·귀, `Tail_1 → Tail_2 → Tail_3` 계층을 유지한다. 털 UV에 겹침이 없으며 눈·코·입·혀는 비털 재질로 분리했다. 털 상태와 클릭 판정은 기존 게임 코드가 담당한다.
 
-| 검수 | 결과 |
-|---|---|
-| 파일 구조·수치·피벗·재질·UV | GLB 7개 PASS — [수치 기록](VALIDATION_SLOTS.json) |
-| Khronos glTF Validator 2.0.0-dev.3.10 | 7개 모두 오류 0 / 경고 0 — [기록](VALIDATION_GLTF.json). 강아지의 선택 마커 두 개는 정보 수준 `NODE_EMPTY`로만 표시됨 |
-| Godot 4.4.1 실제 GLB 파싱·장면 생성 | 7개 성공 |
-| 기존 강아지 스크립트 | 필수 부위 발견, 털 메시 18개 / 볼록 클릭 판정 18개, 텍스처 유지, 혀 표시 전환·다리 관절 움직임 확인 |
-| 기존 주인 스크립트 | 필수 부위 발견, Shirt 색상 6개 전환 확인 |
-| 기존 테스트 묶음 `tests/run_tests.sh` | 통과 13 / 실패 0 |
-| 시각 확인 | 실제 GLB 재임포트 후 렌더. 털의 부피·광택·오염 등 최종 상태 표현은 게임 셰이더 연결 후 결정됨 |
+주인 비율 변경에 따른 개발팀 연결 항목: 실제 키 1.55m와 엉덩이 관절 높이에 맞춰 말풍선 높이·앉는 자세의 루트 높이를 확인해야 한다. 기존 스크립트의 이름 찾기·색상·관절 회전은 검사했으며, 의자에 앉았을 때의 접지는 연결 씬에서 보정할 항목이다.
 
-재현 절차는 [tools/art/README.md](../../tools/art/README.md)에 있다. 프로덕션 씬·게임 스크립트는 이 납품에서 수정하지 않았다. 개발팀이 `ART_SLOTS.md` 8장의 래퍼와 경로로 연결하면 된다.
+현재 스타일과 원점 값: [ART_DIRECTION.json](ART_DIRECTION.json), [RETAIL_JOINTS.json](RETAIL_JOINTS.json).
 
-## 파일 무결성 (SHA-256)
+## 검수
 
-- `art/incoming/chair/chair.glb`: `1be461e56ffac5bf7703a4b634399a06ac47860ef8254e48f8dac1662d9eebbf`
-- `art/incoming/dog/dog.glb`: `edd9be7fbb98d38cd7d012ee8eeb724c2c8b42610c11684a1fc30ca83545d41e`
-- `art/incoming/owner/owner.glb`: `e68a1252b4c1b91abed231ed5fce2e3a1242735db4685aecddbf743c94fb5165`
-- `art/incoming/tiles/floor.glb`: `a4851b82c41b63c942388b656c75e9bacd5e7659fef4960143e69c87ca9745c9`
-- `art/incoming/tiles/wall.glb`: `f4fec0880ab8f4b78012d34adb376613382abc9822c66345e219bce1329d329a`
-- `art/incoming/tub/tub.glb`: `8c9e08e00f958e13b395f20382d609579ce0479df2efb63472f3ea1112e1c9c6`
-- `art/incoming/turntable/turntable.glb`: `f944791ec87da9091c54b94753db84770cab20735197f5d27fd4238268484236`
+- GLB 7개: 파일 구조·치수·부위·피벗·노멀·비퇴화 삼각형·재질 맵·털 UV 무겹침 검사 PASS. [수치 기록](VALIDATION_SLOTS.json).
+- Khronos glTF Validator: 7개 모두 오류 0 / 경고 0. [원본 기록](VALIDATION_GLTF.json).
+- Godot 4.4.1: 7개 GLB 직접 파싱 및 기존 스크립트 호환 PASS. 털 메시 16개 / 볼록 클릭 판정 16개, 혀 표시와 다리 관절 움직임, Shirt/Hat 6개 색상 변경 확인.
+- 기존 게임 테스트 묶음은 첫 납품 때 13개 모두 통과했다. 이번 변경은 모델과 렌더·검수 도구에 한정되며, 현재 모델에 대해서는 위 전용 호환 검사를 다시 실행했다.
+- 미리보기 6장 모두 PNG 디코딩 및 시각 확인. 모델의 최종 게임 조명·털 표현은 개발팀 연결 후 확인해야 한다.
+
+제작·권리 기록: [ASSET_PROVENANCE.md](ASSET_PROVENANCE.md). 외부 게임의 모델·텍스처·스크린샷 픽셀은 납품 파일에 포함하지 않았다. 생성 원본: `tools/art/build_retail_slots.py` (기존 `build_slots.py`는 공통 메시 함수와 v1 기록).
+
+## SHA-256
+
+- `art/incoming/chair/chair.glb`: `0a4ccc965398f9b5105fb2b39bf6d43fc3f60f807c6a7752d36cca997dd81c9f`
+- `art/incoming/dog/dog.glb`: `0cbfda1bcff6796f46bcd790ade14d5cbf2577770cd8b6c14e556b1324468f91`
+- `art/incoming/owner/owner.glb`: `cbaf72ba9b19e52e20bbc1f5cd05f7e87d9ce0dc7586b3d5fdfb00d0b090fcf1`
+- `art/incoming/tiles/floor.glb`: `52af0c6608163f540ee12599eecee007aedc000a42a3e05b48c692f0358e4f91`
+- `art/incoming/tiles/wall.glb`: `75e46ab28ede92377242d79270b36cccc54e601a1069690a212286c4d61122db`
+- `art/incoming/tub/tub.glb`: `438c1e1f75258ee61c7622d2f907629ac1b1298acc20cb7973e02d7669b49186`
+- `art/incoming/turntable/turntable.glb`: `e4a26c492f97a90f8aa46407a3e0282b3dad009e6d8715d21162f295495fbe3a`

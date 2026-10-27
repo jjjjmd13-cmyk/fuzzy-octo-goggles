@@ -1,9 +1,9 @@
 # 3D 아트 재현·검수
 
-모든 작업은 저장소 루트에서 실행한다. Blender 4.5.3 LTS, Python 3 (`numpy`, `Pillow`, `shapely`), Node.js 및 검사용 `gltf-validator`가 필요하다. 에셋을 만드는 데 유료 서비스·API·다운로드 모델은 필요하지 않다. Blender와 검사용 라이브러리는 작업 도구이며 GLB 안에 포함하지 않는다.
+현재 그래픽 방향은 `retail-v2`다. 모든 작업은 저장소 루트에서 실행한다. Blender 4.5.3 LTS, Python 3 (`numpy`, `Pillow`, `shapely`), Node.js 및 검사용 `gltf-validator`가 필요하다. 에셋을 만드는 데 유료 서비스·API·다운로드 모델은 필요하지 않다. Blender와 검사용 라이브러리는 작업 도구이며 GLB 안에 포함하지 않는다.
 
 ```bash
-blender -b --factory-startup --python tools/art/build_slots.py -- dog owner tub turntable chair tiles
+blender -b --factory-startup --python tools/art/build_retail_slots.py -- dog owner tub turntable chair tiles
 python tools/art/validate_slots.py
 blender -b --factory-startup --python tools/art/render_slots.py -- all
 python tools/art/compose_previews.py
@@ -32,3 +32,5 @@ GODOT=godot bash tests/run_tests.sh
 `art/incoming/.gdignore`는 유지한다. `GLTFDocument`로 파일을 직접 읽는 검수이며, 프로덕션 씬에 최종 연결하는 작업은 개발팀 범위다. 저장소의 Godot 고정 버전은 **4.4.1**이다.
 
 출처: `docs/art/ASSET_PROVENANCE.md`. 납품 수치와 검수 기록: `docs/art/DELIVERY_SLOTS.md`.
+
+`build_slots.py`는 v1 생성 기록과 공통 메시 함수를 제공한다. v1을 재현하려면 그래픽 변경 전 Git 커밋의 명세·검수 도구도 함께 사용한다. 현재 생성기는 `ART_DIRECTION.json`의 시각 방향과 `RETAIL_JOINTS.json`의 관절 정보를 따른다.
