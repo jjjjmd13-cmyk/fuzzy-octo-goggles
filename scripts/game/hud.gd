@@ -5,6 +5,7 @@ extends CanvasLayer
 
 const WashStation := preload("res://scripts/sim/wash_station.gd")
 const UiArt := preload("res://scripts/game/ui_art.gd")
+const Store := preload("res://scripts/sim/store.gd")
 const TOOL_ART := ["tool_shower", "tool_bottle", "tool_hand", "tool_bucket", "tool_towel", "tool_dryer"]
 const HELP_TEXT := """[조작 — 마우스 하나로]
 왼쪽 버튼(패드 RT) 도구 쓰기 — 단계마다 쓰는 법이 달라요
@@ -40,9 +41,27 @@ var _step_labels: Array[Label] = []
 var _step_checks: Array[TextureRect] = []
 var _seen_phase := -1
 var _card_home := Vector2.ZERO
-## 영업 끝 알림 (정산 화면이 생기기 전까지)
-var _closed_panel: PanelContainer
-var _closed_label: Label
+## 정산 화면 (영업이 끝나면, 목욕대 자리) / 아침 화면 (다음 날 영업 전)
+var settle_panel: PanelContainer
+var settle_stats: Label
+var settle_face: TextureRect
+var settle_best: Label
+## 남은 샴푸 N마리분 / 내일 손님 M명 (모자라면 빨강)
+var settle_supply: Label
+var settle_shop_button: Button
+var next_day_button: Button
+var settle_end_label: Label
+var morning_panel: PanelContainer
+var morning_title: Label
+var morning_news: Label
+var open_button: Button
+## 컴퓨터 쇼핑 4칸 (산 업그레이드·꾸미기)
+var buy_wide_shower: Button
+var buy_plant: Button
+## 컴퓨터 자리에서 영업이 끝났을 때 "다음 날"
+var shop_next_day: Button
+var _shop_effects := {}
+var _menu_was_open := false
 
 
 func _ready() -> void:
@@ -152,19 +171,18 @@ func _ready() -> void:
 	move_child(patience_layer, 0)
 	overlay.patience_layer = patience_layer
 	patience_layer.draw.connect(overlay.draw_patience)
-	_closed_panel = PanelContainer.new()
-	_closed_panel.theme = get_tree().root.theme
-	_closed_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
-	_closed_label = Label.new()
-	_closed_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_closed_panel.add_child(_closed_label)
-	add_child(_closed_panel)
-	move_child(_closed_panel, overlay.get_index())
-	_closed_panel.hide()
+	_build_settle_panel()
+	_build_morning_panel()
+	_build_shop_grid()
 
 
 func is_paused() -> bool:
 	return pause_menu.visible
+
+
+## 정산·아침 화면이 떠 있음 (목욕대 도구를 쓰지 않고 마우스 커서를 보여 줌)
+func is_menu_open() -> bool:
+	return settle_panel.visible or morning_panel.visible
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -231,23 +249,186 @@ func _process(_delta: float) -> void:
 	var warning: bool = at_bath and station.eye_warning_left > 0.0 and station.overflow_left <= 0.0
 	if warning:
 		hint = "앗, 눈에 물이 들어갔어요! 얼굴(눈)은 피해서 씻어 주세요"
+	if day.closed or day.morning:
+		hint = ""
 	hint_label.add_theme_color_override("font_color", Color(1, 0.5, 0.45) if warning else Color(1, 0.92, 0.55))
 	hint_label.text = hint
 	hint_label.visible = not hint.is_empty()
 
-	_closed_panel.visible = day.closed
-	if day.closed:
-		_closed_label.text = "%d일차 영업 끝!\n씻긴 손님 %d명 · 기다리다 떠난 손님 %d명\n번 돈 %d" % [day.day, day.served, day.walked_out, day.earned]
-	shop_panel.visible = not at_bath
+	_update_settle(day, at_bath)
+	_update_morning(day)
+	shop_panel.visible = not at_bath and not day.morning
 	if shop_panel.visible:
 		shop_info.text = "돈 %d · 기본 샴푸 %d마리분 · 복숭아 샴푸 %d마리분" % [store.money, store.basic_uses, store.peach_uses]
-		buy_basic.text = "기본 샴푸 한 병 (%d마리) — %d" % [Tuning.data.tool_shampoo_uses_per_bottle, store.price("basic")]
-		buy_peach.text = "복숭아 샴푸 한 병 (분홍 거품, 향 팁) — %d" % store.price("peach")
-		buy_basic.disabled = not store.can_buy("basic")
-		buy_peach.disabled = not store.can_buy("peach")
+		for kind: String in _shop_effects:
+			var button: Button = _shop_effects[kind]
+			button.disabled = not store.can_buy(kind)
+			button.text = "샀어요 ✓" if store.owns(kind) else "사기 — %d" % store.price(kind)
 		use_basic.button_pressed = store.shampoo == "basic"
 		use_peach.button_pressed = store.shampoo == "peach"
 		use_peach.disabled = store.peach_uses <= 0 and store.shampoo != "peach"
+		shop_next_day.visible = day.closed and not day.is_last_day()
+	# 정산·아침 화면이 뜨면 목욕대 자리에서도 마우스 커서를 보여 준다
+	var menu_open := is_menu_open()
+	if menu_open != _menu_was_open:
+		_menu_was_open = menu_open
+		if at_bath and not is_paused():
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if menu_open else Input.MOUSE_MODE_HIDDEN
+
+
+## 정산 화면: 씻긴 손님 · 떠난 손님 · 번 돈(요금 + 팁) · 오늘 가장 기뻐한 손님 얼굴 → 쇼핑 / 다음 날
+func _update_settle(day: Node, at_bath: bool) -> void:
+	settle_panel.visible = day.closed and at_bath
+	if not settle_panel.visible:
+		return
+	settle_panel.get_node("Box/Title").text = "%d일차 정산" % day.day
+	settle_stats.text = "씻긴 손님 %d명 · 기다리다 떠난 손님 %d명\n번 돈 %d (요금 %d + 팁 %d)" % [day.served, day.walked_out, day.earned, day.earned - day.tips, day.tips]
+	var best: Vector2 = day.best_guest
+	settle_face.visible = best.x >= 0.0
+	settle_best.visible = best.x >= 0.0
+	if best.x >= 0.0:
+		settle_face.texture = UiArt.texture(["face_unhappy", "face_neutral", "face_happy"][Tuning.data.mood_face(best.x)])
+		settle_best.text = "오늘 가장 기뻐한 손님 (%s)" % WashStation.SPECIES_NAMES[int(best.y)]
+	var store: Node = world.store
+	var shampoo_left: int = store.basic_uses + store.peach_uses
+	var tomorrow: int = day.guests_on(day.day + 1)
+	settle_supply.visible = not day.is_last_day()
+	var short := shampoo_left < tomorrow
+	settle_supply.text = "남은 샴푸 %d마리분 / 내일 손님 %d명%s" % [shampoo_left, tomorrow, "\n모자라요! 컴퓨터에서 샴푸를 사 두세요 (없으면 물로만 씻어요)" if short else ""]
+	settle_supply.add_theme_color_override("font_color", Color(1, 0.45, 0.4) if short else Color(0.75, 1, 0.75))
+	next_day_button.visible = not day.is_last_day()
+	settle_end_label.visible = day.is_last_day()
+
+
+## 아침 화면: 오늘 새로 열린 것 → 영업 시작
+func _update_morning(day: Node) -> void:
+	morning_panel.visible = day.morning
+	if day.morning:
+		morning_title.text = "%d일차 아침" % day.day
+		morning_news.text = day.morning_news(day.day)
+
+
+func _build_settle_panel() -> void:
+	settle_panel = _center_panel("Settle", "정산")
+	var box: VBoxContainer = settle_panel.get_node("Box")
+	settle_stats = Label.new()
+	settle_stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(settle_stats)
+	settle_supply = Label.new()
+	settle_supply.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(settle_supply)
+	var best_row := HBoxContainer.new()
+	best_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	box.add_child(best_row)
+	settle_face = TextureRect.new()
+	settle_face.custom_minimum_size = Vector2(64, 64)
+	settle_face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	settle_face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	best_row.add_child(settle_face)
+	settle_best = Label.new()
+	best_row.add_child(settle_best)
+	var buttons := HBoxContainer.new()
+	buttons.alignment = BoxContainer.ALIGNMENT_CENTER
+	buttons.add_theme_constant_override("separation", 16)
+	box.add_child(buttons)
+	settle_shop_button = _menu_button(buttons, "컴퓨터에서 쇼핑하기")
+	settle_shop_button.pressed.connect(func() -> void: world.switch_seat())
+	next_day_button = _menu_button(buttons, "다음 날 →")
+	next_day_button.pressed.connect(func() -> void: world.day.send_next_day())
+	settle_end_label = Label.new()
+	settle_end_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	settle_end_label.text = "수직 단면은 여기까지! 고마워요"
+	box.add_child(settle_end_label)
+
+
+func _build_morning_panel() -> void:
+	morning_panel = _center_panel("Morning", "아침")
+	var box: VBoxContainer = morning_panel.get_node("Box")
+	morning_title = box.get_node("Title")
+	morning_news = Label.new()
+	morning_news.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(morning_news)
+	open_button = _menu_button(box, "영업 시작!")
+	open_button.pressed.connect(func() -> void: world.day.send_open())
+
+
+## 컴퓨터 쇼핑: 화면 하나, 탭 없이 4칸 (샴푸 2 · 도구 업그레이드 1 · 꾸미기 1)
+func _build_shop_grid() -> void:
+	var box: VBoxContainer = $Shop/Box
+	$Shop/Box/Title.text = "가게 컴퓨터 — 쇼핑"
+	var grid := GridContainer.new()
+	grid.name = "Grid"
+	grid.columns = 2
+	grid.add_theme_constant_override("h_separation", 16)
+	grid.add_theme_constant_override("v_separation", 12)
+	box.add_child(grid)
+	box.move_child(grid, buy_basic.get_index())
+	buy_wide_shower = Button.new()
+	buy_wide_shower.pressed.connect(func() -> void: world.store.send_buy("wide_shower"))
+	buy_plant = Button.new()
+	buy_plant.pressed.connect(func() -> void: world.store.send_buy("plant"))
+	var uses: int = Tuning.data.tool_shampoo_uses_per_bottle
+	var cells := [
+		["basic", buy_basic, "%d마리분. 다 쓰면 거품이 안 나요" % uses],
+		["peach", buy_peach, "%d마리분 · 분홍 거품 · 복숭아 손님 팁 +" % uses],
+		["wide_shower", buy_wide_shower, "도구: 적시기·헹구기가 %.1f배 넓게" % Tuning.data.slice_wide_shower_mult],
+		["plant", buy_plant, "꾸미기: 기다리는 손님이 더 오래 참아요"],
+	]
+	for cell: Array in cells:
+		var kind: String = cell[0]
+		var button: Button = cell[1]
+		var cell_box := VBoxContainer.new()
+		cell_box.custom_minimum_size = Vector2(280, 0)
+		grid.add_child(cell_box)
+		var name_label := Label.new()
+		name_label.theme_type_variation = &"PromptLabel"
+		name_label.text = Store.NAMES[kind]
+		cell_box.add_child(name_label)
+		var effect := Label.new()
+		effect.text = cell[2]
+		effect.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		effect.add_theme_font_size_override("font_size", 16)
+		cell_box.add_child(effect)
+		if button.get_parent() != null:
+			button.get_parent().remove_child(button)
+		button.focus_mode = Control.FOCUS_NONE
+		cell_box.add_child(button)
+		_shop_effects[kind] = button
+	shop_next_day = _menu_button(box, "다음 날 →")
+	shop_next_day.pressed.connect(func() -> void: world.day.send_next_day())
+
+
+## 화면 가운데 판 (정산·아침): Box/Title 이 있는 PanelContainer
+func _center_panel(panel_name: String, title: String) -> PanelContainer:
+	var panel := PanelContainer.new()
+	panel.name = panel_name
+	panel.theme = get_tree().root.theme
+	var box := VBoxContainer.new()
+	box.name = "Box"
+	box.add_theme_constant_override("separation", 12)
+	panel.add_child(box)
+	var title_label := Label.new()
+	title_label.name = "Title"
+	title_label.theme_type_variation = &"PromptLabel"
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_label.text = title
+	box.add_child(title_label)
+	add_child(panel)
+	move_child(panel, overlay.get_index())
+	panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER, Control.PRESET_MODE_MINSIZE)
+	panel.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	panel.grow_vertical = Control.GROW_DIRECTION_BOTH
+	panel.hide()
+	return panel
+
+
+func _menu_button(parent: Control, text: String) -> Button:
+	var button := Button.new()
+	button.text = text
+	button.focus_mode = Control.FOCUS_NONE
+	button.custom_minimum_size = Vector2(200, 52)
+	parent.add_child(button)
+	return button
 
 
 ## 접수: 요청 카드가 주인 말풍선 자리에서 작게 시작해 왼쪽 위 자리로 날아가 걸린다

@@ -1,13 +1,16 @@
 extends Node
-## 가게 돈과 샴푸 병 (GDD_V3 5장 시제품 범위: 기본 샴푸, 복숭아 샴푸).
+## 가게 돈과 컴퓨터 쇼핑 (MILESTONE_V3_SLICE 4장): 기본 샴푸, 복숭아 샴푸, 넓은 샤워기(도구 업그레이드 1),
+## 창가 화분(꾸미기 1). 샤워기·화분은 한 번만 산다.
 ##
 ## 값은 호스트가 정하고 StoreSync 로 모두에게 보낸다. 다른 사람은 send_* 로 요청만 한다.
 ## 샴푸 한 병 = tool_shampoo_uses_per_bottle 마리. 시작할 때 기본 샴푸 한 병이 있다.
 
 signal bought(kind: String)
 
-const KINDS := ["basic", "peach"]
-const NAMES := {"basic": "기본 샴푸", "peach": "복숭아 샴푸"}
+const KINDS := ["basic", "peach", "wide_shower", "plant"]
+const NAMES := {"basic": "기본 샴푸", "peach": "복숭아 샴푸", "wide_shower": "넓은 샤워기", "plant": "창가 화분"}
+## 한 번만 사는 것 (업그레이드·꾸미기)
+const ONCE := ["wide_shower", "plant"]
 
 # --- StoreSync (호스트가 씀)
 var money := 0
@@ -15,6 +18,9 @@ var basic_uses := 0
 var peach_uses := 0
 ## 지금 쓰는 샴푸
 var shampoo := "basic"
+## 산 업그레이드·꾸미기
+var wide_shower := false
+var plant := false
 
 
 func reset() -> void:
@@ -24,10 +30,25 @@ func reset() -> void:
 	basic_uses = Tuning.data.tool_shampoo_uses_per_bottle
 	peach_uses = 0
 	shampoo = "basic"
+	wide_shower = false
+	plant = false
 
 
 func price(kind: String) -> int:
-	return Tuning.data.shop_price_peach_shampoo if kind == "peach" else Tuning.data.shop_price_basic_shampoo
+	var data: Resource = Tuning.data
+	match kind:
+		"peach":
+			return data.shop_price_peach_shampoo
+		"wide_shower":
+			return data.slice_price_wide_shower
+		"plant":
+			return data.slice_price_plant
+	return data.shop_price_basic_shampoo
+
+
+## 업그레이드·꾸미기를 이미 샀는가
+func owns(kind: String) -> bool:
+	return (kind == "wide_shower" and wide_shower) or (kind == "plant" and plant)
 
 
 func uses(kind: String) -> int:
@@ -35,7 +56,7 @@ func uses(kind: String) -> int:
 
 
 func can_buy(kind: String) -> bool:
-	return money >= price(kind)
+	return money >= price(kind) and not owns(kind)
 
 
 ## 호스트: 지금 샴푸를 한 마리분 쓴다. 비었으면 "".
@@ -67,12 +88,18 @@ func _request_buy(kind: String) -> void:
 	if not Net.is_host() or not kind in KINDS or not can_buy(kind):
 		return
 	money -= price(kind)
-	if kind == "peach":
-		peach_uses += Tuning.data.tool_shampoo_uses_per_bottle
-	else:
-		basic_uses += Tuning.data.tool_shampoo_uses_per_bottle
-	# 산 샴푸를 바로 쓴다 (새 향을 사면 바로 보고 싶으니까)
-	shampoo = kind
+	match kind:
+		"wide_shower":
+			wide_shower = true
+		"plant":
+			plant = true
+		_:
+			if kind == "peach":
+				peach_uses += Tuning.data.tool_shampoo_uses_per_bottle
+			else:
+				basic_uses += Tuning.data.tool_shampoo_uses_per_bottle
+			# 산 샴푸를 바로 쓴다 (새 향을 사면 바로 보고 싶으니까)
+			shampoo = kind
 	_bought.rpc(kind)
 
 

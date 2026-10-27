@@ -1,5 +1,6 @@
 extends Node
 ## 하루 영업 (MILESTONE_V3_SLICE 1장): 벽시계, 차례로 오는 주인 손님, 대기 의자·문밖 줄, 기다리다 떠남, 6시 마감.
+## 4장: 영업이 끝나면 정산(HUD) → 컴퓨터 쇼핑 → "다음 날" → 아침 화면(새로 열린 것) → 영업 시작.
 ##
 ## 권한: 호스트가 시계·손님 도착·대기열을 정하고 DaySync 로 보낸다. 다른 사람은 읽기만 한다.
 ## 목욕대가 비면 대기열 맨 앞 손님을 WashStation.take_guest() 로 보낸다.
@@ -21,6 +22,12 @@ var arrived := 0
 var served := 0
 var walked_out := 0
 var earned := 0
+## 번 돈 가운데 팁 (정산: 요금 = earned - tips)
+var tips := 0
+## 오늘 가장 기뻐한 손님: x = 기분(0~1, 없으면 −1), y = 동물 (정산 화면 얼굴)
+var best_guest := Vector2(-1, 0)
+## 다음 날 아침 화면 (영업 전). day 는 이미 새 날
+var morning := false
 ## 오늘 첫 손님 번호 (요청 카드 "N번째 손님" 용)
 var first_guest := 1
 ## 대기열 (앞에서부터): 손님 번호 · 주인 모양 · 손님 종류(동물 + 성격 × 4, kind_of 로 풂) · 기다리기 시작한 시각 (clock)
@@ -35,6 +42,8 @@ var closing := false
 
 var station: WashStation
 var sfx: Node
+## 산 꾸미기 (창가 화분 = 참을성 ×slice_plant_patience_mult)
+var store: Node
 
 # 호스트만
 var _next_id := 1
@@ -51,7 +60,10 @@ func start_day(number: int) -> void:
 	if not Net.is_host():
 		return
 	day = number
+	morning = false
 	clock = 0.0
+	tips = 0
+	best_guest = Vector2(-1, 0)
 	arrived = 0
 	served = 0
 	walked_out = 0
@@ -95,7 +107,66 @@ func arrival_time(index: int) -> float:
 
 ## 대기열에서 기다린 비율 (0~1, 1 이면 떠남)
 func patience_ratio(index: int) -> float:
-	return clampf((clock - queue_since[index]) / maxf(Tuning.data.slice_owner_patience, 0.01), 0.0, 1.0)
+	return clampf((clock - queue_since[index]) / maxf(patience(), 0.01), 0.0, 1.0)
+
+
+## 대기 손님이 떠나기까지 (s). 창가 화분이 있으면 길어짐
+func patience() -> float:
+	var data: Resource = Tuning.data
+	var has_plant: bool = store != null and store.plant
+	return data.slice_owner_patience * (data.slice_plant_patience_mult if has_plant else 1.0)
+
+
+## 그날(day_number) 손님 수
+static func guests_on(day_number: int) -> int:
+	var counts: PackedInt32Array = Tuning.data.slice_guests_per_day
+	if counts.is_empty():
+		return 0
+	return counts[clampi(day_number - 1, 0, counts.size() - 1)]
+
+
+## 수직 단면 마지막 날인가 (그 뒤 날은 없음)
+func is_last_day() -> bool:
+	return day >= Tuning.data.slice_days
+
+
+## 아침 화면: 오늘 새로 열린 것
+static func morning_news(day_number: int) -> String:
+	match day_number:
+		1:
+			return "멍냥 목욕탕 첫날이에요! 강아지 손님이 와요"
+		2:
+			return "고양이 손님이 오기 시작했어요!\n간지럼쟁이 손님도 와요 (배·발은 나중에)"
+		3:
+			return "겁쟁이 손님이 와요! (물 온도·얼굴 조심)"
+	return ""
+
+
+## "다음 날" 버튼 (아무나 누르면 호스트가 넘김): 정산이 끝난 날 → 다음 날 아침 화면
+func send_next_day() -> void:
+	_request_next_day.rpc_id(1)
+
+
+## 아침 화면의 "영업 시작"
+func send_open() -> void:
+	_request_open.rpc_id(1)
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _request_next_day() -> void:
+	if not Net.is_host() or not closed or morning or is_last_day():
+		return
+	day += 1
+	morning = true
+	closed = false
+	closing = false
+	clock = 0.0
+
+
+@rpc("any_peer", "call_local", "reliable")
+func _request_open() -> void:
+	if Net.is_host() and morning:
+		start_day(day)
 
 
 ## 오늘 몇 번째 손님인가 (1부터)
@@ -104,7 +175,7 @@ func guest_number_today(guest_id: int) -> int:
 
 
 func _process(delta: float) -> void:
-	if not Net.is_host() or day == 0 or closed:
+	if not Net.is_host() or day == 0 or closed or morning:
 		return
 	if closing:
 		# 일찍 끝난 날: 벽시계를 6시까지 빠르게 돌리고 "영업 끝" (기획팀 제안)
@@ -146,12 +217,15 @@ func _process(delta: float) -> void:
 			_day_closed.rpc()
 
 
-## 호스트: 목욕대가 손님 한 명을 다 씻겨 돈을 받음 (WashStation._pay)
-func guest_paid(total: int) -> void:
+## 호스트: 목욕대가 손님 한 명을 다 씻겨 돈을 받음 (WashStation._pay). tip = 기분 팁 + 향 팁
+func guest_paid(total: int, tip: int = 0, mood: float = 0.0, species: int = 0) -> void:
 	if not Net.is_host():
 		return
 	served += 1
 	earned += total
+	tips += tip
+	if mood > best_guest.x:
+		best_guest = Vector2(mood, species)
 
 
 func _arrive() -> void:

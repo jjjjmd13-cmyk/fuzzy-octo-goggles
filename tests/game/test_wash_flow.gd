@@ -225,17 +225,21 @@ func run_test() -> void:
 	await _collect_all_coins()
 	await _wait(func() -> bool: return station.dog_number() == 3, Tuning.data.owner_reaction_time + 4.0)
 
-	# --- 샴푸가 떨어지면 거품이 안 남
+	# --- 샴푸가 떨어지면 물로만 (진행은 막히지 않고 기분 −, 거품 대신 물방울)
 	store.peach_uses = 0
 	store.basic_uses = 0
 	await hands.wait_washing()
 	await hands.do_stage(WashStation.Stage.WET)
+	var mood_dry: float = station.mood
 	await hands.squeeze(0.5)
 	await _frames(2)
-	check(station.out_of_shampoo, "샴푸가 없음")
-	check_eq(station.dose, 0.0, "샴푸가 없으면 덩이 없음")
-	check_eq(station.stage, WashStation.Stage.SQUEEZE, "샴푸 없이는 다음으로 못 감")
-	check(station.next_hint().contains("샴푸가 떨어졌어요"), "샴푸 사러 가라는 안내")
+	check(station.out_of_shampoo, "샴푸가 없음 → 물로만")
+	check(station.dose > 0.0, "물로만이라도 문지를 수 있음")
+	check(station.dog.foam_color == station.dog.FOAM_WATER, "거품 대신 물방울 색")
+	check(station.mood < mood_dry + Tuning.data.proto_no_shampoo_mood * 0.5, "물로만 씻으면 손님이 아쉬워함")
+	await _wait(func() -> bool: return station.stage == WashStation.Stage.SCRUB, 2.0)
+	check_eq(station.stage, WashStation.Stage.SCRUB, "샴푸 없이도 다음 단계로 (막힘 없음)")
+	check(station.next_hint().contains("물로만"), "샴푸를 사 두라는 안내")
 
 	await Net.leave_session()
 

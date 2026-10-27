@@ -101,6 +101,11 @@ L/R(왼쪽·오른쪽)은 **캐릭터 자신의** 왼쪽·오른쪽입니다. / 
 
 삼각형: 목욕통 4,000 · 회전판 800 · 의자 1,500 이하. 참고: `art/incoming/05_bathtub_turnaround.png`, `01_bath_scene_redraw.png`.
 
+### 4-1. `plant` 창가 화분 (꾸미기, 컴퓨터에서 80에 삼)
+
+- **납품 / Deliver**: `assets/models/plant/plant.glb` → `scenes/art/sim/plant_model.tscn` (지금은 화분 + 잎 구 3개 임시 모형).
+- **크기·원점**: 높이 약 0.8 m (게임이 0.6 배로 목욕대 받침 왼쪽 뒤 모서리에 올림), 원점 = 화분 바닥 가운데. 움직이는 부위 없음, 이름 자유. ~0.8 m tall, origin at pot bottom centre; no moving parts.
+
 ## 5. `tiles` 바닥·벽 타일
 
 - 바닥 2 × 2 m (윗면 y = 0), 벽 2 × 2 m · 두께 0.3 m (아랫변 가운데가 원점, 방 안쪽이 +Z). 벽은 2단으로 쌓아 4 m.

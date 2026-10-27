@@ -15,6 +15,8 @@ const GLOBAL_COMPONENT := {"wet": 0, "scrub": 1, "rinse": 2, "dry": 3}
 const FLUFF_VISUAL_SHARE := 0.3
 const FOAM_WHITE := Color(1, 1, 1)
 const FOAM_PINK := Color(1, 0.62, 0.78)
+## 샴푸 없이 물로만: 투명한 물방울 거품
+const FOAM_WATER := Color(0.75, 0.88, 1.0)
 
 @export var model_scene: PackedScene = preload("res://scenes/art/sim/dog_model.tscn")
 
