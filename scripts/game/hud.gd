@@ -124,6 +124,15 @@ func _ready() -> void:
 		$Card.add_theme_stylebox_override("panel", style)
 	world.get_node("WashStation").screen_foam.connect(overlay.show_foam)
 	_card_home = $Card.position
+	# 대기 손님 참을성 원: HUD 맨 밑 층 (요청 카드·도구걸이가 그 위)
+	var patience_layer := Control.new()
+	patience_layer.name = "PatienceLayer"
+	patience_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	patience_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(patience_layer)
+	move_child(patience_layer, 0)
+	overlay.patience_layer = patience_layer
+	patience_layer.draw.connect(overlay.draw_patience)
 	_closed_panel = PanelContainer.new()
 	_closed_panel.theme = get_tree().root.theme
 	_closed_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)

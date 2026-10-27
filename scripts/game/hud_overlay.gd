@@ -16,6 +16,8 @@ const FACE_COLORS: Array[Color] = [Color(0.95, 0.45, 0.4), Color(0.95, 0.8, 0.35
 var _foam_left := 0.0
 var _foam_spots: Array[Vector3] = []
 var _time := 0.0
+## 참을성 원은 요청 카드·도구걸이 밑 층에 그린다 (QA #50: 카드 글자를 덮지 않게). hud.gd 가 만들어 넣음
+var patience_layer: Control
 
 @onready var hud: CanvasLayer = get_parent()
 
@@ -37,6 +39,8 @@ func _process(delta: float) -> void:
 	_time += delta
 	_foam_left = maxf(_foam_left - delta, 0.0)
 	queue_redraw()
+	if patience_layer != null:
+		patience_layer.queue_redraw()
 
 
 func _draw() -> void:
@@ -45,8 +49,6 @@ func _draw() -> void:
 	var at_bath: bool = world.local_seat() == 0
 	_draw_face(station.mood_face())
 	_draw_clock(world.day)
-	if at_bath:
-		_draw_patience(world.day, station)
 	if at_bath and station.owner_bubble_visible():
 		_draw_bubble(station)
 	if at_bath and station.is_washing():
@@ -181,9 +183,17 @@ func _clock_dir(hour: float) -> Vector2:
 	return Vector2.from_angle(fmod(hour, 12.0) / 12.0 * TAU - PI / 2.0)
 
 
-## 대기 손님 머리 위: 남은 참을성이 줄어드는 원 (초록 → 노랑 → 빨강). HUD 에 가려진 손님도 알아보게
-func _draw_patience(day: Node, station: WashStation) -> void:
-	var camera: Camera3D = hud.world.camera
+## 대기 손님 머리 위: 남은 참을성이 줄어드는 원 (초록 → 노랑 → 빨강). HUD 에 가려진 손님도 알아보게.
+## patience_layer 의 draw 에서 부른다 (그 층에 그림)
+func draw_patience() -> void:
+	var world: Node = hud.world
+	if world.local_seat() != 0:
+		return
+	var day: Node = world.day
+	var station: WashStation = world.station
+	var layer := patience_layer
+	var camera: Camera3D = world.camera
+	var screen := layer.get_viewport_rect().size
 	var ids: PackedInt32Array = day.queue_ids
 	for i in ids.size():
 		var owner: Node3D = station.waiting_area.owners.get(ids[i])
@@ -192,20 +202,21 @@ func _draw_patience(day: Node, station: WashStation) -> void:
 		var top: Vector3 = owner.global_position + Vector3(0, float(owner.get("height")) + 0.06, 0)
 		if camera.is_position_behind(top):
 			continue
-		var center := camera.unproject_position(top)
+		# 화면 끝에서 잘리지 않게 안쪽으로
+		var center := camera.unproject_position(top).clamp(Vector2(18, 18), screen - Vector2(18, 18))
 		# 꽉 찬 원은 처음·끝 점이 겹쳐 다각형이 깨지므로 조금 덜 채움
 		var left := minf(1.0 - float(day.patience_ratio(i)), 0.999)
 		var color := Color(0.4, 0.85, 0.45).lerp(Color(0.98, 0.8, 0.3), clampf((0.6 - left) / 0.3, 0.0, 1.0))
 		if left < 0.3:
 			color = Color(0.95, 0.4, 0.35)
-		draw_circle(center, 14.0, Color(1, 1, 1, 0.85))
+		layer.draw_circle(center, 14.0, Color(1, 1, 1, 0.85))
 		if left > 0.0:
 			var pie := PackedVector2Array([center])
 			var steps := maxi(int(left * 24.0), 1)
 			for k in steps + 1:
 				pie.append(center + Vector2.from_angle(-PI / 2.0 + TAU * left * k / steps) * 11.0)
-			draw_colored_polygon(pie, color)
-		draw_arc(center, 14.0, 0, TAU, 24, Color(0.25, 0.25, 0.3), 2.0)
+			layer.draw_colored_polygon(pie, color)
+		layer.draw_arc(center, 14.0, 0, TAU, 24, Color(0.25, 0.25, 0.3), 2.0)
 
 
 ## 그림(assets/ui/<name>.png)이 있으면 그 그림, 없으면 fallback 으로 그린다

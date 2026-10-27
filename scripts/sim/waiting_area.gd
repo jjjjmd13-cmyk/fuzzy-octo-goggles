@@ -10,12 +10,13 @@ const OWNER_SCENE := preload("res://scenes/art/sim/owner_model.tscn")
 const CHAIR_SCENE := preload("res://scenes/art/sim/chair_model.tscn")
 const DOG_SCENE := preload("res://scenes/art/sim/dog_model.tscn")
 ## 안은 강아지 크기와 자리 (주인 기준: 앉으면 무릎 위, 서면 가슴 앞)
-const HELD_DOG_SCALE := 0.7
-const HELD_ON_LAP := Vector3(0, 0.5, 0.22)
+## (무릎 위: 발이 의자 앞·다리 사이로 삐져나오지 않게 몸 쪽으로, QA #50)
+const HELD_DOG_SCALE := 0.6
+const HELD_ON_LAP := Vector3(0, 0.56, 0.1)
 const HELD_STANDING := Vector3(0, 0.82, 0.26)
 ## 대기 의자 (앞에서부터). 의자 수는 slice_queue_seats 만큼 앞에서부터 씀
 ## (화면 왼쪽 HUD 에 덜 가리게 안쪽·뒤쪽으로, QA #45 리뷰)
-const SEATS: Array[Vector3] = [Vector3(-1.08, 0, -0.78), Vector3(-1.46, 0, -0.78), Vector3(-1.84, 0, -0.78), Vector3(-2.22, 0, -0.78)]
+const SEATS: Array[Vector3] = [Vector3(-0.98, 0, -0.78), Vector3(-1.36, 0, -0.78), Vector3(-1.74, 0, -0.78), Vector3(-2.12, 0, -0.78)]
 ## 의자가 꽉 차면 서서 기다리는 곳 (문 쪽으로 늘어섬)
 const LINE_START := Vector3(-2.2, 0, 0.0)
 const LINE_STEP := Vector3(-0.15, 0, 0.45)
