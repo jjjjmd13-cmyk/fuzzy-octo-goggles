@@ -4,7 +4,7 @@ extends Node3D
 ## 호스트(혼자 하기 포함)가 플레이어를 스폰·제거하고 MultiplayerSpawner 가 복제한다.
 ## 스폰은 spawn_function + 스폰 데이터로 한다. 플레이어 노드의 권한은 조종하는
 ## 클라이언트에게 있어서 Synchronizer 의 "spawn" 속성은 서버가 보내 주지 않는다.
-## 씻기 규칙은 WashStation, 돈·샴푸는 Store, 화면은 HUD. 이 스크립트는 내 입력과 카메라를 맡는다.
+## 씻기 규칙은 WashStation, 하루 영업(시계·손님·대기열)은 Day, 돈·샴푸는 Store, 화면은 HUD. 이 스크립트는 내 입력과 카메라를 맡는다.
 
 const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
 const Player := preload("res://scripts/player/player.gd")
@@ -26,6 +26,7 @@ var _seat_shown := -1
 @onready var spawn_points: Node3D = $SpawnPoints
 @onready var station: WashStation = $WashStation
 @onready var store: Node = $Store
+@onready var day: Node = $Day
 @onready var sfx: Node = $Sfx
 @onready var hud: CanvasLayer = $HUD
 @onready var camera: Camera3D = $Camera
@@ -40,6 +41,10 @@ func _ready() -> void:
 	station.camera = camera
 	station.store = store
 	station.sfx = sfx
+	station.day = day
+	station.waiting_area.day = day
+	day.station = station
+	day.sfx = sfx
 	camera.fov = Tuning.data.seat_camera_fov
 	camera.global_transform = station.camera_point.global_transform
 	cursor = get_viewport().get_visible_rect().size / 2.0
@@ -49,6 +54,7 @@ func _ready() -> void:
 			_spawn_player(peer_id)
 		store.reset()
 		station.reset()
+		day.start_day(1)
 
 
 func get_player(peer_id: int) -> Node3D:

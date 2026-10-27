@@ -80,7 +80,7 @@
 
 | 키 | 값 | 설명 |
 |---|---|---|
-| `day_open_minutes_real` | 8 | 영업 9시~6시 = 실제 8분 |
+| `day_open_minutes_real` | 8 | 영업 9시~6시 = 실제 8분 (수직 단면에서 리소스에 넣음) |
 | `day_total_minutes` | 10 | 준비 + 영업 + 정산·쇼핑 |
 | `party_customers_per_day` | [5, 8, 11, 14] | 하루 손님 (혼자 약 1.6분/마리 업그레이드 뒤 기준) |
 | `shop_level_max` | 8 | Lv8 = 펫 쇼 대회 |
@@ -105,6 +105,7 @@
 | `proto_temp_wheel_step` | 0.1 | | ✅ | 물 온도 휠 한 칸 |
 | `proto_dryer_start_distance` | 0.32 | m | ✅ | 드라이어 처음 거리 (휠로 바꿈) |
 | `proto_turn_step` | 90 | ° | ✅ | 저절로·화살표로 한 번에 도는 각도 (보이는 쪽 = 앞·옆·뒤·옆) |
+| `proto_guest_spacing` | 0.85 | 배 | ✅ | 손님 도착 간격 = 영업 시간 × 이 값 ÷ 그날 손님 수 (8분·4명이면 약 102초). 목욕대가 비고 기다리는 손님도 없으면 `proto_next_dog_delay` 뒤 다음 손님이 앞당겨 옴 |
 
 시제품에서 정한 규칙 (PR #29 PROTOTYPE.md 8장, 기획팀 동의): 요청 카드는 다섯 줄(적시기·거품·헹구기·수건·드라이어), 샤워기는 적시기·헹구기 단계에서만 칠함, 배 밑(몸 표면 약 20%)은 진행 비율에서 뺌, 기분 팁은 계산 때 얼굴로.
 
@@ -138,10 +139,10 @@
 
 | 키 | 값 | 단위 | 시제품 | 설명 |
 |---|---|---|---|---|
-| `slice_days` | 3 | 일 | 단면 | |
-| `slice_guests_per_day` | [4, 5, 6] | 명 | 단면 | 1·2·3일차 |
-| `slice_queue_seats` | 3 | 자리 | 단면 | 대기 의자 |
-| `slice_owner_patience` | 150 | s | 단면 | 의자에 앉아서 떠나기까지 (창가 화분 있으면 ×1.2) |
+| `slice_days` | 3 | 일 | ✅ | |
+| `slice_guests_per_day` | [4, 5, 6] | 명 | ✅ | 1·2·3일차 |
+| `slice_queue_seats` | 3 | 자리 | ✅ | 대기 의자 |
+| `slice_owner_patience` | 150 | s | ✅ | 의자에 앉아서 떠나기까지 (창가 화분 있으면 ×1.2) |
 | `slice_cat_price` | 45 | 돈 | 단면 | 고양이 요금 (강아지 `money_wash_price` 30) |
 | `slice_cat_temp_good` | [0.45, 0.6] | 0~1 | 단면 | 고양이 온도 '좋음' 범위 |
 | `slice_timid_temp_good` | [0.5, 0.6] | 0~1 | 단면 | 겁쟁이 온도 '좋음' 범위 |
@@ -162,3 +163,4 @@
 | 2026-10-27 | 3장 `tool_shower_radius`·`tool_scrub_radius`, 7장 새 키 5개, 8장 ✅ | 0.18 → 0.24, 0.15 → 0.2 (사람 흉내 손으로 단계 목표 시간에 맞춤: 적시기 16초·문지르기 16초, 한 마리 61초 / 목표 65초) | 개발팀 측정 (`tests/game/test_wash_pace`) |
 | 2026-10-26 | 8장 (새로, 초안) | — | 플레이 테스트 3: 단계마다 다른 손동작·한 손 조작·주인 손님 (GDD_V3 0.3) |
 | 2026-10-26 | 9장 `slice_*` (새로, 초안) | — | 수직 단면 범위 (MILESTONE_V3_SLICE) |
+| 2026-10-27 | 9장 `slice_days`·`slice_guests_per_day`·`slice_queue_seats`·`slice_owner_patience` ✅, 7장 `proto_guest_spacing` (새로) | 값은 초안 그대로 / 0.85 | 수직 단면 1장 하루 영업 (개발팀) |

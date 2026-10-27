@@ -1,6 +1,6 @@
 extends Control
 ## HUD 위에 직접 그리는 것: 도구 커서, 기분 얼굴(😊😐😣), 물 온도·드라이어 거리 다이얼, 회전판 화살표,
-## 주인 말풍선, 몸 털기 거품.
+## 주인 말풍선, 몸 털기 거품, 벽시계(9시 → 6시, 숫자 없이 바늘)와 며칠째.
 ## 그림은 임시 도형. assets/ui/ 에 그림이 있으면 그 그림을 쓴다 (face_*, bubble, icon_*, tool_*).
 
 const WashStation := preload("res://scripts/sim/wash_station.gd")
@@ -43,6 +43,7 @@ func _draw() -> void:
 	var station: WashStation = world.station
 	var at_bath: bool = world.local_seat() == 0
 	_draw_face(station.mood_face())
+	_draw_clock(world.day)
 	if at_bath and station.owner_bubble_visible():
 		_draw_bubble(station)
 	if at_bath and station.is_washing():
@@ -132,6 +133,32 @@ func _draw_bubble(station: WashStation) -> void:
 			draw_circle(c, 22, Color(1.0, 0.7, 0.6))
 			draw_circle(c + Vector2(-6, -6), 8, Color(1.0, 0.82, 0.75))
 			draw_colored_polygon(PackedVector2Array([c + Vector2(2, -20), c + Vector2(18, -30), c + Vector2(10, -16)]), Color(0.4, 0.75, 0.4)))
+
+
+## 벽시계: 돈 표시 오른쪽. 짧은 바늘 = 시, 긴 바늘 = 분. 6시가 지나면 테두리가 빨개짐
+func _draw_clock(day: Node) -> void:
+	if day.day <= 0:
+		return
+	var center := Vector2(get_viewport_rect().size.x / 2.0 + 150.0, 36.0)
+	var radius := 26.0
+	var face := UiArt.texture("clock")
+	if face != null:
+		draw_texture_rect(face, Rect2(center - Vector2.ONE * radius, Vector2.ONE * radius * 2.0), false)
+	else:
+		draw_circle(center, radius, Color(1, 0.98, 0.92))
+		for k in 12:
+			var dir := Vector2.from_angle(k * TAU / 12.0)
+			draw_line(center + dir * (radius - 6.0), center + dir * (radius - 2.0), Color(0.3, 0.3, 0.35), 2.0)
+	draw_arc(center, radius, 0, TAU, 40, Color(0.9, 0.3, 0.3) if not day.is_open() else Color(0.25, 0.25, 0.3), 3.0)
+	var hour: float = day.hour()
+	var hour_dir := Vector2.from_angle(fmod(hour, 12.0) / 12.0 * TAU - PI / 2.0)
+	var minute_dir := Vector2.from_angle(fmod(hour, 1.0) * TAU - PI / 2.0)
+	draw_line(center, center + hour_dir * radius * 0.5, Color(0.15, 0.15, 0.2), 4.0)
+	draw_line(center, center + minute_dir * radius * 0.8, Color(0.15, 0.15, 0.2), 2.5)
+	draw_circle(center, 3.0, Color(0.15, 0.15, 0.2))
+	var font := get_theme_default_font()
+	draw_string_outline(font, center + Vector2(radius + 10.0, 8.0), "%d일차" % day.day, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, 6, Color(0.1, 0.1, 0.15))
+	draw_string(font, center + Vector2(radius + 10.0, 8.0), "%d일차" % day.day, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(1, 1, 1))
 
 
 ## 그림(assets/ui/<name>.png)이 있으면 그 그림, 없으면 fallback 으로 그린다
