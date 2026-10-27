@@ -20,6 +20,10 @@ signal dose_failed
 
 enum Stage { WET, SQUEEZE, SCRUB, RINSE, TOWEL, DRY, PAY }
 enum Tool { SHOWER, BOTTLE, HAND, BUCKET, TOWEL, DRYER }
+## 손님 동물 (MILESTONE_V3_SLICE 3장). 고양이는 2일차부터
+enum Species { DOG, CAT }
+## 손님 성격: 간지럼쟁이(2일차~) — 배·발을 문지르면 금방 찰랑 / 겁쟁이(3일차~) — 온도 범위 좁음, 얼굴에 물 크게 싫어함
+enum Personality { NONE, TICKLISH, TIMID }
 ## EMPTY = 손님 없음 (다음 손님을 기다림)
 enum OwnerPhase { ARRIVE, WAIT, REACT, LEAVE, EMPTY }
 
@@ -27,6 +31,12 @@ enum OwnerPhase { ARRIVE, WAIT, REACT, LEAVE, EMPTY }
 const STAGE_CHANNEL := ["wet", "", "scrub", "rinse", "towel", "dry"]
 const STAGE_TOOL := [Tool.SHOWER, Tool.BOTTLE, Tool.HAND, Tool.BUCKET, Tool.TOWEL, Tool.DRYER]
 const STAGE_NAMES := ["적시기", "샴푸 짜기", "문지르기", "헹구기", "수건", "드라이어"]
+const SPECIES_NAMES := ["강아지", "고양이"]
+const PERSONALITY_NAMES := ["", "간지럼쟁이", "겁쟁이"]
+## 성격 한 줄 도움말 (요청 카드)
+const PERSONALITY_TIPS := ["", "등부터 씻어요", "온도·얼굴 조심"]
+## 동물별 교체 씬 (docs/art/ART_SLOTS.md). 강아지는 WashDog.model_scene 그대로
+const CAT_SCENE := preload("res://scenes/art/sim/cat_model.tscn")
 const TOOL_NAMES := ["샤워기", "샴푸", "손", "바가지", "수건", "드라이어"]
 const REPORT_INTERVAL := 0.1
 ## 남은 곳 반짝임은 진행이 (완료 비율 - 이 값) 을 넘으면 되풀이
@@ -65,6 +75,8 @@ var owner_phase := OwnerPhase.EMPTY
 var owner_variant := 0
 ## 주인이 대기 의자에서 왔음 (아니면 문에서)
 var owner_from_queue := false
+## 손님 종류: x = Species, y = Personality
+var guest_kind := Vector2i.ZERO
 
 # --- 내 화면 (동기화하지 않음)
 ## 손에 든 도구 (단계가 바뀌면 저절로 바뀜, 도구걸이 클릭으로 직접 바꿀 수도 있음)
@@ -144,6 +156,7 @@ var _look_owner_left := 0.0
 var _samples := PackedVector3Array()
 var _rng := RandomNumberGenerator.new()
 var _drops_scattered := false
+var _dog_scene: PackedScene
 # 호스트만
 var _dose_paid := false
 var _host_dose_kind := ""
@@ -152,6 +165,7 @@ var _owner_timer := 0.0
 
 func _ready() -> void:
 	_rng.randomize()
+	_dog_scene = dog.model_scene
 	camera_point.look_at($LookTarget.global_position)
 	# 처음엔 비스듬히 (옆모습이 조금 보이게)
 	_local_yaw = 0.6
@@ -204,11 +218,13 @@ func reset() -> void:
 	owner_phase = OwnerPhase.EMPTY
 
 
-## 호스트: 손님이 강아지를 맡기러 옴. guest = 손님 번호(= 강아지 번호), from_queue = 대기 의자에서 옴
-func take_guest(guest: int, variant: int, from_queue: bool) -> void:
+## 호스트: 손님이 동물을 맡기러 옴. guest = 손님 번호(= 동물 번호), from_queue = 대기 의자에서 옴,
+## kind = (Species, Personality)
+func take_guest(guest: int, variant: int, from_queue: bool, kind := Vector2i.ZERO) -> void:
 	if not Net.is_host():
 		return
 	var data: Resource = Tuning.data
+	guest_kind = kind
 	var pattern := _rng.randi_range(0, maxi(data.mask_patterns, 1) - 1)
 	var peach := 1 if _rng.randf() < data.proto_peach_request_chance else 0
 	dog_info = Vector4i(guest, pattern, _rng.randi() & 0x3fffffff, peach)
@@ -223,6 +239,31 @@ func take_guest(guest: int, variant: int, from_queue: bool) -> void:
 	owner_from_queue = from_queue
 	owner_phase = OwnerPhase.ARRIVE
 	_owner_timer = data.proto_owner_arrive_time
+
+
+func is_cat() -> bool:
+	return guest_kind.x == Species.CAT
+
+
+func personality() -> int:
+	return guest_kind.y
+
+
+## 이 손님의 물 온도 '좋음' 범위 (고양이·겁쟁이는 좁음, 둘 다면 겹치는 곳)
+func temp_good() -> PackedFloat32Array:
+	var data: Resource = Tuning.data
+	var good: PackedFloat32Array = data.tool_shower_temp_good
+	var low := good[0]
+	var high := good[1]
+	var narrows: Array[PackedFloat32Array] = []
+	if is_cat():
+		narrows.append(data.slice_cat_temp_good)
+	if personality() == Personality.TIMID:
+		narrows.append(data.slice_timid_temp_good)
+	for narrow in narrows:
+		low = maxf(low, narrow[0])
+		high = minf(high, narrow[1])
+	return PackedFloat32Array([low, maxf(high, low)])
 
 
 func wants_peach() -> bool:
@@ -268,7 +309,7 @@ func next_hint() -> String:
 		OwnerPhase.EMPTY:
 			return "다음 손님을 기다려요"
 		OwnerPhase.ARRIVE:
-			return "손님이 왔어요! 주인이 강아지를 맡겨요"
+			return "손님이 왔어요! 주인이 %s를 맡겨요" % SPECIES_NAMES[guest_kind.x]
 		OwnerPhase.REACT, OwnerPhase.LEAVE:
 			return "주인이 건넨 동전을 눌러 받으세요" if not coins.is_empty() else "고마워요! 다음 손님이 와요"
 	if stage == Stage.PAY:
@@ -431,7 +472,7 @@ func _use_shower(screen_pos: Vector2, hit: Variant, held: bool, delta: float) ->
 		dog.stop_spray()
 		return
 	dog.spray(hit)
-	var good: PackedFloat32Array = data.tool_shower_temp_good
+	var good := temp_good()
 	if temperature < good[0]:
 		water_state = "cold"
 		if _cold_cooldown <= 0.0:
@@ -458,7 +499,7 @@ func _use_shower(screen_pos: Vector2, hit: Variant, held: bool, delta: float) ->
 
 ## 물 색: 차가우면 파랑, 좋으면 연한 하늘색, 뜨거우면 빨강
 func _water_color() -> Color:
-	var good: PackedFloat32Array = Tuning.data.tool_shower_temp_good
+	var good := temp_good()
 	if temperature < good[0]:
 		return Color(0.3, 0.45, 1.0)
 	if temperature > good[1]:
@@ -670,21 +711,28 @@ func _eye_hit() -> void:
 
 
 ## 같은 곳(proto_tickle_radius)을 tickle_time 문지르면 다리 찰랑, shake_time 이면 몸 털기.
+## 간지럼쟁이는 배·발이면 proto_ticklish_time 만에 찰랑하고 기분이 나빠진다 (등부터 해야 함).
 func _update_tickle(hit: Vector3, delta: float) -> void:
 	var data: Resource = Tuning.data
 	var local: Vector3 = dog.to_model(hit)
+	var sensitive := personality() == Personality.TICKLISH and is_belly_or_paw(hit)
 	if _tickle_anchor == null or (_tickle_anchor as Vector3).distance_to(local) > data.proto_tickle_radius:
 		_tickle_anchor = local
 		_tickle_time = 0.0
 		_tickled = false
 	_tickle_time += delta
-	if not _tickled and _tickle_time >= data.tickle_time:
+	if not _tickled and _tickle_time >= (data.proto_ticklish_time if sensitive else data.tickle_time):
 		_tickled = true
-		_report_event.rpc_id(1, dog_info.x, "tickle")
+		_report_event.rpc_id(1, dog_info.x, "tickle_belly" if sensitive else "tickle")
 	if _tickle_time >= data.shake_time:
 		_tickle_time = 0.0
 		_tickled = false
 		_report_event.rpc_id(1, dog_info.x, "shake")
+
+
+## 배(몸 아래쪽) 또는 발(바닥 가까이)인가
+func is_belly_or_paw(hit: Vector3) -> bool:
+	return dog.dir_of(hit).normalized().y < -0.3 or dog.to_model(hit).y < 0.08
 
 
 func _stop_loops() -> void:
@@ -921,6 +969,7 @@ func _update_drops() -> void:
 func _build_dog() -> void:
 	_built_serial = dog_info.x
 	_drops_scattered = false
+	dog.model_scene = CAT_SCENE if is_cat() else _dog_scene
 	dog.setup(Tuning.data.mask_resolution, dog_info.y, dog_info.z)
 	dog.model.visible = false
 	_seen_stage = -1
@@ -942,6 +991,9 @@ func _build_dog() -> void:
 	_was_operator = false
 	turning_left = 0.0
 	dryer_distance = Tuning.data.proto_dryer_start_distance
+	# 물 온도는 이 손님의 '좋음' 범위 가운데에서 시작 (QA #51: 겁쟁이 범위 끝에서 시작하면 불공정)
+	var good := temp_good()
+	temperature = (good[0] + good[1]) / 2.0
 	turns = 0
 	if _built_serial > 0 and sfx != null:
 		sfx.play("splat")
@@ -996,6 +1048,9 @@ func _make_coin() -> Node3D:
 func _host_process(delta: float) -> void:
 	_update_operator()
 	var data: Resource = Tuning.data
+	# 고양이는 젖어 있는 동안 (샴푸 짜기 ~ 수건) 기분이 조금씩 나빠진다: 빨리 끝내야 함
+	if is_cat() and is_washing() and stage >= Stage.SQUEEZE and stage <= Stage.TOWEL:
+		mood = clampf(mood + data.proto_cat_wet_mood * delta, 0.0, 1.0)
 	_owner_timer -= delta
 	match owner_phase:
 		OwnerPhase.ARRIVE:
@@ -1041,7 +1096,7 @@ func _advance() -> void:
 ## 다 씻었다: 요금 + 기분 팁 + 향 팁을 동전으로. 주인이 반응하며 건넨다.
 func _pay() -> void:
 	var data: Resource = Tuning.data
-	var values := PackedInt32Array([data.money_wash_price])
+	var values := PackedInt32Array([data.slice_cat_price if is_cat() else data.money_wash_price])
 	var tip: int = data.money_tip_by_mood[mood_face()]
 	if tip > 0:
 		values.append(tip)
@@ -1077,8 +1132,13 @@ func _report_event(serial: int, kind: String) -> void:
 		"cold":
 			mood += data.mood_cold_water
 		"eye":
-			mood += data.mood_eye_hit
-		"tickle", "shake", "cheek", "pour_head":
+			mood += data.mood_eye_hit * (data.proto_timid_eye_mult if personality() == Personality.TIMID else 1.0)
+		"pour_head":
+			if is_cat():
+				mood += data.proto_cat_pour_head_mood
+		"tickle_belly":
+			mood += data.proto_ticklish_mood
+		"tickle", "shake", "cheek":
 			pass
 		_:
 			return
@@ -1095,7 +1155,7 @@ func _play_event(kind: String) -> void:
 			sfx.play("yelp")
 		"eye":
 			sfx.play("huff")
-		"tickle":
+		"tickle", "tickle_belly":
 			dog.react("wiggle_legs")
 			sfx.play("squeak")
 		"shake", "pour_head":

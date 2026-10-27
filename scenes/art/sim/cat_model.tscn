@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3 uid="uid://b7simcatmdl1"]
+
+[ext_resource type="Script" path="res://scripts/sim/toy_cat_model.gd" id="1_model"]
+
+[node name="CatModel" type="Node3D"]
+script = ExtResource("1_model")

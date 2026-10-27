@@ -49,11 +49,12 @@ func _draw() -> void:
 	var at_bath: bool = world.local_seat() == 0
 	_draw_face(station.mood_face())
 	_draw_clock(world.day)
+	_draw_trait(station)
 	if at_bath and station.owner_bubble_visible():
 		_draw_bubble(station)
 	if at_bath and station.is_washing():
 		if station.tool == WashStation.Tool.SHOWER:
-			_draw_dial(station.temperature)
+			_draw_dial(station.temperature, station.temp_good())
 		elif station.tool == WashStation.Tool.DRYER:
 			_draw_distance(station)
 		_draw_arrows(station)
@@ -94,8 +95,8 @@ func _draw_face(level: int) -> void:
 			draw_arc(mouth + Vector2(0, 12), 14, PI + 0.3, TAU - 0.3, 16, Color.BLACK, 3.0)
 
 
-func _draw_dial(temperature: float) -> void:
-	var good: PackedFloat32Array = Tuning.data.tool_shower_temp_good
+## good = 이 손님의 '좋음' 범위 (고양이·겁쟁이는 좁음)
+func _draw_dial(temperature: float, good: PackedFloat32Array) -> void:
 	draw_rect(DIAL_RECT, Color(0.1, 0.1, 0.15, 0.8))
 	# 아래 = 차가움(파랑), 위 = 뜨거움(빨강), 가운데 초록 = 좋음
 	var bottom := DIAL_RECT.end.y
@@ -176,6 +177,34 @@ func _draw_clock(day: Node) -> void:
 	draw_string_outline(font, center + Vector2(radius + 10.0, 8.0), "%d일차" % day.day, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, 6, Color(0.1, 0.1, 0.15))
 	draw_string(font, center + Vector2(radius + 10.0, 8.0), "%d일차" % day.day, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(1, 1, 1))
 
+
+
+## 요청 카드 오른쪽 위 구석: 성격 그림 (간지럼쟁이 = 깃털, 겁쟁이 = 물방울).
+## 그림이 있으면 assets/ui/trait_ticklish.png · trait_timid.png, 없으면 도형
+func _draw_trait(station: WashStation) -> void:
+	var card: Control = hud.get_node("Card")
+	var trait_index := station.personality()
+	if not card.visible or trait_index == WashStation.Personality.NONE:
+		return
+	var rect := card.get_global_rect()
+	# 카드 오른쪽 위 모서리에 반쯤 걸쳐서 (제목 글자를 덮지 않게, QA #51)
+	var center := Vector2(rect.end.x + 2.0, rect.position.y + 6.0)
+	draw_circle(center, 20.0, Color(1, 1, 1, 0.9))
+	draw_arc(center, 20.0, 0, TAU, 24, Color(0.3, 0.35, 0.45), 2.0)
+	if trait_index == WashStation.Personality.TICKLISH:
+		_draw_icon("trait_ticklish", center, 16.0, func(c: Vector2) -> void:
+			# 깃털: 비스듬한 잎 모양 + 대
+			var points := PackedVector2Array()
+			for k in 13:
+				var t := k / 12.0 * TAU
+				points.append(c + Vector2(cos(t) * 6.0, sin(t) * 14.0).rotated(0.6))
+			draw_colored_polygon(points, Color(0.55, 0.75, 0.95))
+			draw_line(c + Vector2(-9, 12), c + Vector2(8, -11), Color(0.3, 0.4, 0.6), 2.0))
+	else:
+		_draw_icon("trait_timid", center, 16.0, func(c: Vector2) -> void:
+			# 물방울: 아래 원 + 위 뾰족
+			draw_circle(c + Vector2(0, 4), 9.0, Color(0.35, 0.65, 1.0))
+			draw_colored_polygon(PackedVector2Array([c + Vector2(-8, 1), c + Vector2(0, -14), c + Vector2(8, 1)]), Color(0.35, 0.65, 1.0)))
 
 
 ## 시계판에서 그 시각(시)의 방향 (12시 = 위)
