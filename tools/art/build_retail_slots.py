@@ -93,9 +93,11 @@ def dog():
     parts=[]
     for side in [-1,1]:
         parts.append(ball('MuzzleLobe',(side*.033,.431,-.174),(.060,.047,.083),f,p=(0,.357,-.014),seg=20,rings=12))
-        parts.append(ball('CheekVolume',(side*.073,.427,-.083),(.058,.066,.068),f,p=(0,.357,-.014),seg=16,rings=10))
     parts.append(ball('LowerJaw',(0,.403,-.16),(.063,.030,.075),f,p=(0,.357,-.014),seg=20,rings=10))
     sculpt(head,parts,limit=2000)
+    # Separate cheek joints remain embedded in the face for a continuous silhouette.
+    for side,tag in [(-1,'L'),(1,'R')]:
+        ball('Cheek_'+tag,(side*.069,.429,-.081),(.050,.048,.058),f,p=(side*.069,.429,-.081),parent=head,seg=16,rings=10,fur='fur')
     for side,tag in [(-1,'L'),(1,'R')]:
         ball('Ear_'+tag,(side*.129,.446,-.014),(.046,.100,.046),f,p=(side*.099,.548,-.011),parent=head,seg=20,rings=14,fur='brown' if tag=='L' else 'fur',shape=lambda x,y,z:(x*(1-.22*y)+side*.38*(-y),y,z*(1+.07*y)))
         x=side*.064

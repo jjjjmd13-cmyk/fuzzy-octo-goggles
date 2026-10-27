@@ -12,13 +12,13 @@
           "code": "NODE_EMPTY",
           "message": "Empty node encountered.",
           "severity": 2,
-          "pointer": "/nodes/10"
+          "pointer": "/nodes/12"
         },
         {
           "code": "NODE_EMPTY",
           "message": "Empty node encountered.",
           "severity": 2,
-          "pointer": "/nodes/26"
+          "pointer": "/nodes/28"
         }
       ],
       "truncated": false

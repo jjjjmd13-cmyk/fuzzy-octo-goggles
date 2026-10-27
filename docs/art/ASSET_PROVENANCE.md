@@ -54,3 +54,7 @@
 ## 실제 게임 연결 및 실행 사진
 
 `assets/models/`는 직접 제작한 GLB 원본과 바이트가 같은 복사본이다 (`RUNTIME_MANIFEST.json`). 게임 실행 사진은 저장소의 기존 UI·간판·아이콘·Pretendard 폰트를 포함한다. 이번 작업에서 이 기존 자산의 권리 상태를 새로 지정하지 않았다. Pretendard 라이선스는 `assets/fonts/pretendard/LICENSE.txt`에 유지되며, 실행 사진 모음의 한글 캡션도 이 폰트를 사용한다. 외부 모델·텍스처·유료 서비스는 추가하지 않았다.
+
+## 볼 관절·추가 2D 그림 5개
+
+후속 제작물과 AI 이미지 생성 프롬프트·파일 해시는 `CHEEKS_UI_DELIVERY.md`, `CHEEKS_UI_GENERATION.json`에 기록했다. 외부 에셋을 새로 가져오지 않았다.

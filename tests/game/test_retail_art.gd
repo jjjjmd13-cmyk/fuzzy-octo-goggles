@@ -22,6 +22,12 @@ func run_test() -> void:
 	dog.call("_process", 1.0)
 	check(nose.global_position.x > head.global_position.x + 0.04, "Looking right turns imported head right")
 
+	var animated_cheek: Node3D = dog.find_child("Cheek_L", true, false)
+	var cheek_rest := animated_cheek.transform
+	dog.flap_cheeks()
+	dog.call("_process", 0.02)
+	check(not animated_cheek.transform.is_equal_approx(cheek_rest), "Dryer response moves separate cheek")
+
 	var owner := OWNER.instantiate()
 	add_child(owner)
 	owner.set_process(false)
@@ -59,9 +65,13 @@ func run_test() -> void:
 		await get_tree().process_frame
 	var model: Node3D = world.station.dog.model
 	check_eq(model.scene_file_path, "res://scenes/art/sim/dog_model.tscn", "World uses production dog wrapper")
-	check_eq(model.get("fur_meshes").size(), 16, "All 16 imported fur pieces found")
-	check_eq(model.find_children("*", "CollisionShape3D", true, false).size(), 16, "16 convex hit shapes attached")
+	check_eq(model.get("fur_meshes").size(), 18, "All 18 imported fur pieces found")
+	check_eq(model.find_children("*", "CollisionShape3D", true, false).size(), 18, "18 convex hit shapes attached")
+	check_eq(model.get("_cheeks").size(), 2, "Both cheek joints found by animation script")
 	for tag in ["L", "R"]:
+		var cheek := model.find_child("Cheek_" + tag, true, false) as MeshInstance3D
+		check(cheek != null and cheek.get_parent().name == "Head", "Separate cheek is parented to Head: " + tag)
+		check(cheek.material_override is ShaderMaterial, "Cheek gets game fur shader: " + tag)
 		var ear := model.find_child("Ear_" + tag, true, false) as MeshInstance3D
 		var shader := ear.material_override as ShaderMaterial
 		check(shader != null and shader.get_shader_parameter("albedo_tex") != null, "Fur shader keeps imported ear albedo")
