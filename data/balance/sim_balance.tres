@@ -96,3 +96,4 @@ slice_price_wide_shower = 150
 slice_wide_shower_mult = 1.5
 slice_price_plant = 80
 slice_plant_patience_mult = 1.2
+proto_no_shampoo_mood = -0.25

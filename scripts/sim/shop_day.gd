@@ -117,6 +117,14 @@ func patience() -> float:
 	return data.slice_owner_patience * (data.slice_plant_patience_mult if has_plant else 1.0)
 
 
+## 그날(day_number) 손님 수
+static func guests_on(day_number: int) -> int:
+	var counts: PackedInt32Array = Tuning.data.slice_guests_per_day
+	if counts.is_empty():
+		return 0
+	return counts[clampi(day_number - 1, 0, counts.size() - 1)]
+
+
 ## 수직 단면 마지막 날인가 (그 뒤 날은 없음)
 func is_last_day() -> bool:
 	return day >= Tuning.data.slice_days

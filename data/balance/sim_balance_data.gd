@@ -167,6 +167,8 @@ extends Resource
 ## 간지럼쟁이: 배·발을 이만큼 문지르면 다리 찰랑 (s) + 기분
 @export var proto_ticklish_time := 0.6
 @export var proto_ticklish_mood := -0.05
+## 샴푸가 떨어져 물로만 씻으면 기분 (진행은 막히지 않음)
+@export var proto_no_shampoo_mood := -0.25
 
 ## 기분 0~1 → 얼굴 단계 0(😣) / 1(😐) / 2(😊)
 func mood_face(mood: float) -> int:

@@ -90,7 +90,7 @@ var store: Node
 ## 하루 영업 (돈을 받으면 알림)
 var day: Node
 var sfx: Node
-## 샴푸가 비어서 거품이 안 남 (안내용)
+## 샴푸가 비어서 물로만 씻는 중 (거품 대신 물방울, 기분 −, 안내용). 진행은 막히지 않음
 var out_of_shampoo := false
 ## 손에 남은 거품 양 (문지를 수 있는 몸 비율)
 var dose := 0.0
@@ -317,7 +317,7 @@ func next_hint() -> String:
 	if stage == Stage.PAY:
 		return "동전을 눌러 받으세요"
 	if out_of_shampoo and (stage == Stage.SQUEEZE or stage == Stage.SCRUB):
-		return "샴푸가 떨어졌어요! Tab 으로 컴퓨터 자리에 가서 사세요"
+		return "샴푸가 떨어져 물로만 씻어요 (손님이 아쉬워해요). 컴퓨터에서 샴푸를 사 두세요"
 	if overflow_left > 0.0:
 		return "앗, 너무 많이 짰어요! 거품이 넘쳐 샴푸를 더 썼어요"
 	if turning_left != 0.0:
@@ -550,8 +550,6 @@ func _release_squeeze() -> void:
 	var data: Resource = Tuning.data
 	squeezing = false
 	dog.hide_glob()
-	if out_of_shampoo:
-		return
 	var amount := squeeze_amount()
 	if amount < 0.02:
 		return
@@ -591,8 +589,7 @@ func _use_hand(screen_pos: Vector2, held: bool, hit: Variant, speed: float, delt
 	if dose <= 0.0:
 		sfx.set_loop("scrub", 0.0)
 		# 샴푸가 떨어지면 병을 다시 든다 (마우스 하나로 계속)
-		if not out_of_shampoo:
-			tool = Tool.BOTTLE
+		tool = Tool.BOTTLE
 		return
 	var multiplier: float = 1.0 if circling else data.scrub_back_forth_rate
 	var rate := minf(data.tool_scrub_rate_per_speed * speed, data.tool_scrub_rate_max) * multiplier
@@ -880,7 +877,7 @@ func _on_stage_changed() -> void:
 	if stage < Stage.PAY:
 		# 다음 단계 도구가 저절로 손에 들린다
 		tool = STAGE_TOOL[stage]
-	if stage == Stage.SCRUB and dose <= 0.0 and not out_of_shampoo:
+	if stage == Stage.SCRUB and dose <= 0.0:
 		tool = Tool.BOTTLE
 	if stage == Stage.TOWEL:
 		# 헹구기가 끝나면 남은 거품은 물에 씻겨 내려간다
@@ -1200,8 +1197,9 @@ func _request_dose(serial: int, uses: int) -> void:
 	if not _dose_paid:
 		var kind: String = store.use_shampoo()
 		if kind.is_empty():
-			_dose_result.rpc_id(sender, false, "")
-			return
+			# 샴푸가 없으면 물로만 (진행은 막히지 않고 손님 기분이 나빠짐, 기획 #54 검토)
+			kind = "water"
+			mood = clampf(mood + Tuning.data.proto_no_shampoo_mood, 0.0, 1.0)
 		_dose_paid = true
 		_host_dose_kind = kind
 		used_peach = kind == "peach"
@@ -1211,7 +1209,7 @@ func _request_dose(serial: int, uses: int) -> void:
 @rpc("authority", "call_local", "reliable")
 func _dose_result(ok: bool, kind: String) -> void:
 	_dose_pending = false
-	out_of_shampoo = not ok
+	out_of_shampoo = kind == "water"
 	if not ok:
 		squeezing = false
 		dose = 0.0
@@ -1220,7 +1218,7 @@ func _dose_result(ok: bool, kind: String) -> void:
 		dose_failed.emit()
 		return
 	_squeeze_paid = true
-	dog.set_foam_color(dog.FOAM_PINK if kind == "peach" else dog.FOAM_WHITE)
+	dog.set_foam_color(dog.FOAM_PINK if kind == "peach" else (dog.FOAM_WATER if kind == "water" else dog.FOAM_WHITE))
 
 
 @rpc("any_peer", "call_local", "unreliable_ordered")

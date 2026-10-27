@@ -113,6 +113,7 @@
 | `proto_timid_eye_mult` | 2.0 | 배 | ✅ | 겁쟁이: 눈에 물 벌점(`mood_eye_hit`) 배수 |
 | `proto_ticklish_time` | 0.6 | s | ✅ | 간지럼쟁이: 배·발을 이만큼 문지르면 다리 찰랑 (보통 `tickle_time` 3초) |
 | `proto_ticklish_mood` | -0.05 | | ✅ | 간지럼쟁이: 배·발 찰랑 한 번마다 |
+| `proto_no_shampoo_mood` | -0.25 | | ✅ | 샴푸가 떨어져 물로만 씻으면 기분 (거품 없이 진행은 됨, 수직 단면 "막힘 0건") |
 
 시제품에서 정한 규칙 (PR #29 PROTOTYPE.md 8장, 기획팀 동의): 요청 카드는 다섯 줄(적시기·거품·헹구기·수건·드라이어), 샤워기는 적시기·헹구기 단계에서만 칠함, 배 밑(몸 표면 약 20%)은 진행 비율에서 뺌, 기분 팁은 계산 때 얼굴로.
 
@@ -173,3 +174,4 @@
 | 2026-10-27 | 9장 `slice_days`·`slice_guests_per_day`·`slice_queue_seats`·`slice_owner_patience` ✅, 7장 `proto_guest_spacing` (새로) | 값은 초안 그대로 / 0.85 | 수직 단면 1장 하루 영업 (개발팀) |
 | 2026-10-27 | 9장 `slice_cat_price`·`slice_cat_temp_good`·`slice_timid_temp_good` ✅, 7장 `proto_cat_*`·`proto_trait_chance`·`proto_timid_eye_mult`·`proto_ticklish_*` (새로) | 값은 초안 그대로 / 새 값 | 수직 단면 3장 고양이·성격 (개발팀) |
 | 2026-10-27 | 9장 `slice_price_wide_shower`·`slice_wide_shower_mult`·`slice_price_plant`·`slice_plant_patience_mult` ✅ | 값은 초안 그대로 | 수직 단면 4장 정산·쇼핑·다음 날 (개발팀) |
+| 2026-10-27 | 7장 `proto_no_shampoo_mood` (새로) | −0.25 | 샴푸가 0이어도 진행이 막히지 않게 (기획 #54 검토) |

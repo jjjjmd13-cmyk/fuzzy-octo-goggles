@@ -46,6 +46,8 @@ var settle_panel: PanelContainer
 var settle_stats: Label
 var settle_face: TextureRect
 var settle_best: Label
+## 남은 샴푸 N마리분 / 내일 손님 M명 (모자라면 빨강)
+var settle_supply: Label
 var settle_shop_button: Button
 var next_day_button: Button
 var settle_end_label: Label
@@ -287,6 +289,13 @@ func _update_settle(day: Node, at_bath: bool) -> void:
 	if best.x >= 0.0:
 		settle_face.texture = UiArt.texture(["face_unhappy", "face_neutral", "face_happy"][Tuning.data.mood_face(best.x)])
 		settle_best.text = "오늘 가장 기뻐한 손님 (%s)" % WashStation.SPECIES_NAMES[int(best.y)]
+	var store: Node = world.store
+	var shampoo_left: int = store.basic_uses + store.peach_uses
+	var tomorrow: int = day.guests_on(day.day + 1)
+	settle_supply.visible = not day.is_last_day()
+	var short := shampoo_left < tomorrow
+	settle_supply.text = "남은 샴푸 %d마리분 / 내일 손님 %d명%s" % [shampoo_left, tomorrow, "\n모자라요! 컴퓨터에서 샴푸를 사 두세요 (없으면 물로만 씻어요)" if short else ""]
+	settle_supply.add_theme_color_override("font_color", Color(1, 0.45, 0.4) if short else Color(0.75, 1, 0.75))
 	next_day_button.visible = not day.is_last_day()
 	settle_end_label.visible = day.is_last_day()
 
@@ -305,6 +314,9 @@ func _build_settle_panel() -> void:
 	settle_stats = Label.new()
 	settle_stats.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(settle_stats)
+	settle_supply = Label.new()
+	settle_supply.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(settle_supply)
 	var best_row := HBoxContainer.new()
 	best_row.alignment = BoxContainer.ALIGNMENT_CENTER
 	box.add_child(best_row)
