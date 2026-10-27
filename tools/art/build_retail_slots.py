@@ -60,6 +60,16 @@ def fur_atlas():
                 u=(k%cols+x)/cols;v=(k//cols+y)/rows
                 o.data.uv_layers.active.data[loop].uv=((idx%grid+.045+.91*u)/grid,(idx//grid+.045+.91*v)/grid)
         m=pigment(o,color);imnode=m.node_tree.nodes.new('ShaderNodeTexImage');imnode.image=image;m.node_tree.nodes.active=imnode
+    # Fill each object's unused UV padding with its own pigment. White gutters
+    # would otherwise bleed into the coat in the game's minified mip levels.
+    from array import array
+    pixels=array('f',[1,1,1,1])*(W*W)
+    for idx,(_,color) in enumerate(B.FUR):
+        x0=int((idx%grid)*W/grid);x1=int((idx%grid+1)*W/grid)
+        y0=int((idx//grid)*W/grid);y1=int((idx//grid+1)*W/grid)
+        row=array('f',B.rgba(color))*(x1-x0)
+        for y in range(y0,y1):pixels[(y*W+x0)*4:(y*W+x1)*4]=row
+    image.pixels.foreach_set(pixels);image.update()
     bpy.ops.object.select_all(action='DESELECT')
     for o,_ in B.FUR:o.select_set(True)
     bpy.context.view_layer.objects.active=B.FUR[0][0]
@@ -120,8 +130,10 @@ def owner():
         fore=tube('Forearm',[(side*.224,.984,-.012),(side*.228,.851,-.027),(side*.222,.743,-.044)],[.037,.033,.024],skin,p=(side*.157,1.187,0),n=12)
         hand=ball('Hand',(side*.219,.715,-.046),(.033,.052,.025),skin,p=(side*.157,1.187,0),seg=12,rings=8);join(arm,[fore,hand])
         hip=(side*.084,.801,0)
-        leg=tube('Leg_'+tag,[hip,(side*.088,.622,-.002),(side*.086,.407,-.015),(side*.084,.199,.005),(side*.084,.084,.008)],[.068,.063,.05,.046,.043],pants,p=hip,parent=body,n=14)
-        boot=box('Shoe',(side*.084,.046,-.037),(.119,.092,.224),shoe,.025,p=hip);join(leg,[boot])
+        knee_pos=(side*.086,.45,0)
+        leg=tube('Leg_'+tag,[hip,(side*.088,.622,-.002),knee_pos],[.068,.063,.05],pants,p=hip,parent=body,n=14)
+        knee=tube('Knee_'+tag,[knee_pos,(side*.084,.199,.005),(side*.084,.084,.008)],[.05,.046,.043],pants,p=knee_pos,parent=leg,n=14)
+        boot=box('Shoe',(side*.084,.046,-.037),(.119,.092,.224),shoe,.025,p=knee_pos);join(knee,[boot])
         ball('Ear_'+tag,(side*.099,1.363,.002),(.017,.03,.018),skin,parent=head,seg=12,rings=8)
         ball('Eye_'+tag,(side*.039,1.389,-.087),(.009,.006,.0055),dark,parent=head,seg=12,rings=8)
         tube('Brow_'+tag,[(side*.025,1.408,-.085),(side*.039,1.414,-.086),(side*.054,1.408,-.078)],[.0024]*3,hair,parent=head,n=6)

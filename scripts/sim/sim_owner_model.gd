@@ -23,18 +23,26 @@ const HATS: Array[Color] = [
 	Color(0.55, 0.4, 0.3), Color(0.4, 0.75, 0.5), Color(0.98, 0.84, 0.5),
 ]
 
-## 머리 꼭대기 높이 (m)
+## 기본 키와 앉는 자리 높이. height는 현재 머리 위 말풍선 위치에 쓰는 높이.
+@export var standing_height := 1.12
+@export var seat_height := 0.4
+@export var hip_clearance := 0.055
 var height := 1.12
 
 var _body: Node3D
 var _head: Node3D
 var _arms: Array[Node3D] = []
 var _legs: Array[Node3D] = []
+var _knees: Array[Node3D] = []
+var _knee_scales: Array[float] = []
+var _seated_body_offset := 0.02
 ## 재질 이름 → 색을 바꿀 표면 목록 [메시, 표면 번호]
 var _recolor := {"Shirt": [], "Hat": []}
 var _board: Sprite3D
 var _hearts: CPUParticles3D
 var _rest := {}
+var _rest_axes := {}
+var _rest_positions := {}
 
 var _from := Vector3.ZERO
 var _to := Vector3.ZERO
@@ -57,9 +65,16 @@ func _ready() -> void:
 		var leg := find_child("Leg_" + tag, true, false) as Node3D
 		if leg != null:
 			_legs.append(leg)
-	for node in [_body, _head] + _arms + _legs:
+		var knee := find_child("Knee_" + tag, true, false) as Node3D
+		if knee != null:
+			_knees.append(knee)
+	for node in [_body, _head] + _arms + _legs + _knees:
 		if node != null:
 			_rest[node] = node.transform
+			_rest_axes[node] = global_basis.inverse() * node.global_basis
+			_rest_positions[node] = to_local(node.global_position)
+	height = standing_height
+	_fit_seated_pose()
 	_find_recolor(self)
 	_add_effects()
 
@@ -85,6 +100,7 @@ func enter(door: Vector3, front: Vector3, duration: float) -> void:
 func go_sit(chair: Vector3, look: Vector3, duration: float) -> void:
 	_walk(chair, duration, "sit")
 	_face_target = look
+	_react = -1
 
 
 ## 목욕통 옆으로 와서 반응 (기분 0 한숨 / 1 끄덕 / 2 하트·박수)
@@ -129,13 +145,20 @@ func _process(delta: float) -> void:
 	# 걸을 때 통통, 앉으면 높이 맞춤, 한숨이면 살짝 움츠림
 	if _body != null:
 		var squash := 1.0 - minf(_react_time, 0.6) * 0.08 if _react == 0 else 1.0
-		_set_pose(_body, Vector3.ZERO, Vector3(0, (absf(sin(_t * 10.0)) * 0.04 if moving else 0.0) + (0.02 if sitting else 0.0), 0), Vector3(1, squash, 1))
+		_set_pose(_body, Vector3.ZERO, Vector3(0, (absf(sin(_t * 10.0)) * 0.04 if moving else 0.0) + (_seated_body_offset if sitting else 0.0), 0), Vector3(1, squash, 1))
+	height = standing_height * (_body.scale.y if _body != null else 1.0) + (_seated_body_offset if sitting else 0.0)
+	if _hearts != null:
+		_hearts.position.y = height
+	var jointed := _knees.size() == _legs.size() and not _knees.is_empty()
 	for i in _legs.size():
-		_set_pose(_legs[i], Vector3(-1.3 if sitting else sin(_t * 10.0 + i * PI) * 0.5 * float(moving), 0, 0))
+		var bend := -PI / 2.0 if jointed else -1.3
+		_set_pose(_legs[i], Vector3(bend if sitting else sin(_t * 10.0 + i * PI) * 0.5 * float(moving), 0, 0))
+		if jointed:
+			_set_pose(_knees[i], Vector3(PI / 2.0 if sitting else 0.0, 0, 0), Vector3.ZERO, Vector3(1, _knee_scales[i] if sitting else 1.0, 1))
 	# 팔: 안고 올 때 앞으로, 반응 때 박수
 	_react_time += delta
 	for i in _arms.size():
-		var side := signf(_rest[_arms[i]].origin.x + 0.0001)
+		var side := signf((_rest_positions[_arms[i]] as Vector3).x + 0.0001)
 		var swing := Vector3(sin(_t * 10.0 + i * PI) * 0.4 * float(moving), 0, side * 0.15)
 		if _pose == "carry":
 			swing = Vector3(-1.2, 0, 0)
@@ -156,7 +179,29 @@ func _process(delta: float) -> void:
 
 func _set_pose(node: Node3D, euler: Vector3, offset: Vector3 = Vector3.ZERO, scale_value: Vector3 = Vector3.ONE) -> void:
 	var rest: Transform3D = _rest[node]
-	node.transform = Transform3D(rest.basis * Basis.from_euler(euler) * Basis.from_scale(scale_value), rest.origin + offset)
+	var axes: Basis = _rest_axes[node]
+	var local_rotation := axes.inverse() * Basis.from_euler(euler) * axes
+	node.transform = Transform3D(rest.basis * local_rotation * Basis.from_scale(scale_value), rest.origin + offset)
+
+
+## 무릎이 있는 GLB는 실제 관절/발바닥 길이로 의자에 맞춘다. 이전 모형은 기존 자세 유지.
+func _fit_seated_pose() -> void:
+	if _knees.size() != _legs.size() or _knees.is_empty():
+		return
+	var hips := 0.0
+	for leg in _legs:
+		hips += (_rest_positions[leg] as Vector3).y
+	hips /= _legs.size()
+	_seated_body_offset = seat_height + hip_clearance - hips
+	for i in _knees.size():
+		var knee := _knees[i]
+		var hip: Vector3 = _rest_positions[_legs[i]]
+		var neutral: Vector3 = _rest_positions[knee]
+		var seated := hip + Vector3(0, _seated_body_offset, 0) + Basis(Vector3.RIGHT, -PI / 2.0) * (neutral - hip)
+		var length := neutral.y
+		if knee is MeshInstance3D:
+			length = -(knee as MeshInstance3D).get_aabb().position.y
+		_knee_scales.append(seated.y / maxf(length, 0.01))
 
 
 ## 재질 이름이 Shirt·Hat 인 표면을 찾아 둔다 (GLB 는 재질 이름, 임시 모형은 resource_name)

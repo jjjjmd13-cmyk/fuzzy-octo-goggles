@@ -106,16 +106,22 @@ func run_test() -> void:
 	check("shake" in sfx.played, "같은 곳 6초 → 몸 털기")
 	check(world.hud.overlay.is_showing_foam(), "몸 털기 → 화면에 거품")
 	await _op(hands.center(), false, false)
-	# 왕복은 거의 안 늘고, 원을 그려야 는다
+	# 같은 몸 위치·반경·리듬에서 비교한다. 앞의 간지럼 시험으로 칠한 양은 분리한다.
+	await get_tree().create_timer(0.6).timeout
+	station.dog.mask.fill("scrub", 0.0)
+	station.dose = 0.5
 	var before: float = station.dog.mask.ratio("scrub")
 	for i in 60:
-		await _op(hands.center() + Vector2(sin(i * 0.4) * 60.0, -40), true, false)
+		await _op(hands.center() + Vector2(sin(i * TAU * 2.0 * STEP) * 40.0, 0), true, false)
 	var back_forth: float = station.dog.mask.ratio("scrub") - before
 	check(not station.circling, "왕복은 원이 아님")
+	await _op(hands.center(), false, false)
+	station.dog.mask.fill("scrub", 0.0)
+	station.dose = 0.5
 	before = station.dog.mask.ratio("scrub")
 	for i in 60:
 		var angle := i * TAU * 2.0 * STEP
-		await _op(hands.center() + Vector2(0, 40) + Vector2(cos(angle), sin(angle)) * 40.0, true, false)
+		await _op(hands.center() + Vector2(cos(angle), sin(angle)) * 40.0, true, false)
 	var circles: float = station.dog.mask.ratio("scrub") - before
 	check(station.circling, "동그라미는 원으로 인식")
 	check(circles > back_forth * 2.0, "원을 그리면 왕복보다 훨씬 빨리 거품 (원 %.3f, 왕복 %.3f)" % [circles, back_forth])

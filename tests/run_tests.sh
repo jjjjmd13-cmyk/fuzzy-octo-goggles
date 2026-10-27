@@ -34,6 +34,11 @@ mkdir -p "$LOG_DIR"
 echo "== 임포트: $PROJECT"
 timeout "$IMPORT_TIMEOUT" "$GODOT" --headless --path "$PROJECT" --import >"$LOG_DIR/import.log" 2>&1
 code=$?
+# Godot 4.4.1 upstream #108994: saving GLTF succeeds, only its headless editor thumbnail fails.
+# Retain raw output and ignore only that exact, version-guarded two-line block.
+if [ "$code" -eq 0 ] && [ -f "$PROJECT/tools/filter_godot_441_import.py" ] && grep -Fq 'servers/rendering/dummy/storage/texture_storage.h:107' "$LOG_DIR/import.log"; then
+  python3 "$PROJECT/tools/filter_godot_441_import.py" "$LOG_DIR/import.log" "$("$GODOT" --version)"
+fi
 cat "$LOG_DIR/import.log"
 if [ "$code" -ne 0 ]; then
   echo "::error::임포트 실패 (종료 코드 $code)"

@@ -51,12 +51,12 @@ void fragment() {
 	vec3 base = fur * tint.rgb * (1.0 + strand * strand_amount * (1.0 - wet * 0.8));
 	vec3 color = mix(base, mud_color.rgb, dirt);
 	color *= mix(vec3(1.0), vec3(0.42, 0.40, 0.40), wet); // 젖으면 진하게
-	color = mix(color, vec3(1.0), m.a * 0.35); // 말리면 밝게
+	color = mix(color, vec3(1.0), m.a * 0.2); // 말리면 밝게
 	ALBEDO = color;
 	ROUGHNESS = mix(0.9, 0.55, wet);        // 젖으면 살짝 반짝 (너무 매끈하면 금속처럼 보임)
 	SPECULAR = mix(0.3, 0.45, wet);
 	// 보송한 테두리 (털 끝이 빛을 받는 느낌), 젖으면 사라짐
-	RIM = 0.3 * (1.0 - wet);
+	RIM = 0.18 * (1.0 - wet);
 	RIM_TINT = 0.6;
 	float remaining = 1.0 - m[blink_channel];
 	EMISSION = vec3(1.0, 0.85, 0.2) * blink * step(0.5, remaining) * 0.8;

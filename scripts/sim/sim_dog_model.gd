@@ -61,6 +61,8 @@ var _tongue: Node3D
 var _face_marker: Node3D
 ## 움직이는 부위의 처음 자세 (움직임은 여기에 더함)
 var _rest := {}
+var _rest_axes := {}
+var _rest_positions := {}
 
 
 func _ready() -> void:
@@ -139,7 +141,7 @@ func _process(delta: float) -> void:
 	var flinch := false
 	if _watch_point != null and _head != null:
 		var local: Vector3 = _watch_point
-		var from_head := local - (_rest_of(_head).origin + Vector3(0, 0.1, 0))
+		var from_head: Vector3 = local - (_rest_positions[_head] + Vector3(0, 0.1, 0))
 		target = Vector2(clampf(atan2(from_head.x, from_head.z), -0.6, 0.6), clampf(-atan2(from_head.y, Vector2(from_head.x, from_head.z).length()), -0.4, 0.4))
 		flinch = _watch_spray and local.distance_to(face_center) < face_radius * 2.2
 		if flinch:
@@ -164,7 +166,7 @@ func _process(delta: float) -> void:
 
 	# 귀: 기분이 나쁘면 처지고, 드라이어·볼 펄럭이면 팔랑. 바깥쪽으로 처지도록 귀의 좌우에 따라 부호
 	for i in _ears.size():
-		var side := signf(_rest_of(_ears[i]).origin.x + 0.0001)
+		var side := signf((_rest_positions[_ears[i]] as Vector3).x + 0.0001)
 		var flutter := sin(_t * 45.0 + i) * (0.35 * signf(_cheek_flap) + 0.45 * _blow)
 		_pose(_ears[i], Vector3(sin(_t * 30.0 + i) * 0.3 * _shake, 0, side * (EAR_TILT[_mood] + flutter)))
 
@@ -195,7 +197,9 @@ func _process(delta: float) -> void:
 ## 처음 자세에 회전(오일러)·크기를 더한다
 func _pose(node: Node3D, euler: Vector3, scale_mult: float = 1.0, axis_scale: Vector3 = Vector3.ONE) -> void:
 	var rest: Transform3D = _rest_of(node)
-	node.transform = Transform3D(rest.basis * Basis.from_euler(euler) * Basis.from_scale(axis_scale * scale_mult), rest.origin)
+	var axes: Basis = _rest_axes[node]
+	var local_rotation := axes.inverse() * Basis.from_euler(euler) * axes
+	node.transform = Transform3D(rest.basis * local_rotation * Basis.from_scale(axis_scale * scale_mult), rest.origin)
 
 
 func _rest_of(node: Node3D) -> Transform3D:
@@ -242,6 +246,8 @@ func _find_parts() -> void:
 	for node in [_head, _chest, _mouth] + _eyes + _ears + _cheeks + _front_legs + _tail:
 		if node != null:
 			_rest_of(node)
+			_rest_axes[node] = global_basis.inverse() * node.global_basis
+			_rest_positions[node] = to_local(node.global_position)
 
 
 func _part(part_name: String) -> Node3D:

@@ -17,10 +17,10 @@ background_mode = 1
 background_color = Color(0.6, 0.76, 0.84, 1)
 sky = SubResource("Sky_main")
 ambient_light_source = 2
-ambient_light_color = Color(0.85, 0.88, 0.92, 1)
-ambient_light_energy = 0.3
-reflected_light_source = 1
-tonemap_mode = 2
+ambient_light_color = Color(0.88, 0.91, 0.94, 1)
+ambient_light_energy = 0.32
+reflected_light_source = 2
+tonemap_mode = 3
 tonemap_exposure = 0.8
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_desk"]
@@ -69,7 +69,9 @@ environment = SubResource("Environment_bright")
 
 [node name="Sun" type="DirectionalLight3D" parent="."]
 transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 0, 10, 0)
-light_energy = 0.45
+light_color = Color(0.97, 0.98, 1, 1)
+light_energy = 0.18
+light_angular_distance = 0.15
 shadow_enabled = true
 
 [node name="Camera" type="Camera3D" parent="."]

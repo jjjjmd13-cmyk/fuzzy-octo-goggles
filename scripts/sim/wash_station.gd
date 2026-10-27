@@ -42,8 +42,8 @@ const CIRCLE_MIN_RADIUS := 10.0
 const VISIBLE_SAMPLES := 500
 ## 주인 위치 (작업대 기준): 문 / 목욕통 옆 / 대기 의자
 const OWNER_DOOR := Vector3(1.9, 0, 1.2)
-const OWNER_FRONT := Vector3(1.05, 0, -0.2)
-const OWNER_CHAIR := Vector3(0.95, 0, -0.78)
+const OWNER_FRONT := Vector3(1.2, 0, 0.1)
+const OWNER_CHAIR := Vector3(1.42, 0, -0.65)
 ## 주인 말풍선이 대기 중에 보이는 시간 (s)
 const BUBBLE_WAIT_TIME := 3.0
 
@@ -155,7 +155,9 @@ func _ready() -> void:
 	if backdrop != null:
 		var wall_material := StandardMaterial3D.new()
 		wall_material.albedo_texture = backdrop
-		$Wall.material_override = wall_material
+		$Wall/Backdrop.material_override = wall_material
+		$Wall/Backdrop.visible = true
+		$Wall/Tiles.visible = false
 		$Wall/Window.visible = false
 	# 가게 간판 그림이 있으면 뒤 벽에 건다 (assets/ui/sign.png)
 	var sign_picture := UiArt.texture("sign")

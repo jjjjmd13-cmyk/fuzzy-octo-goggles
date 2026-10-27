@@ -1,6 +1,14 @@
-[gd_scene load_steps=2 format=3 uid="uid://b7simownmdl1"]
+[gd_scene load_steps=3 format=3 uid="uid://b7simownmdl1"]
 
-[ext_resource type="Script" path="res://scripts/sim/toy_owner_model.gd" id="1_owner"]
+[ext_resource type="PackedScene" path="res://assets/models/owner/owner.glb" id="1_glb"]
+
+[ext_resource type="Script" path="res://scripts/sim/sim_owner_model.gd" id="2_script"]
 
 [node name="OwnerModel" type="Node3D"]
-script = ExtResource("1_owner")
+script = ExtResource("2_script")
+standing_height = 1.55
+seat_height = 0.4
+hip_clearance = 0.055
+
+[node name="Art" parent="." instance=ExtResource("1_glb")]
+rotation = Vector3(0, 3.141592653589793, 0)
