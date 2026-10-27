@@ -7,7 +7,7 @@
   {
     "source": "art/incoming/dog/dog.glb",
     "runtime": "assets/models/dog/dog.glb",
-    "sha256": "a448521f16a9b42fcb76d26c0e77ed0ccb548e40b85873bf556a2566a28b3e87"
+    "sha256": "fc1f9d98c64beecd888426a4c0b744d379df803c41e222dd9d5f9803c3e4932d"
   },
   {
     "source": "art/incoming/owner/owner.glb",

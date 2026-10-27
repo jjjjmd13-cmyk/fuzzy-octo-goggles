@@ -26,8 +26,8 @@
   },
   {
     "file": "art/incoming/dog/dog.glb",
-    "triangles": 7692,
-    "mesh_nodes": 25,
+    "triangles": 7686,
+    "mesh_nodes": 27,
     "bounds_m": [
       [
         -0.18198491632938385,
@@ -36,13 +36,13 @@
       ],
       [
         0.18198491632938385,
-        0.6008074283599854,
+        0.6006959229707718,
         0.29169216752052307
       ]
     ],
     "dimensions_m": [
       0.3639698326587677,
-      0.6008074283599854,
+      0.6006959229707718,
       0.5576921720057726
     ],
     "embedded_pngs": [
@@ -51,7 +51,7 @@
         1024
       ]
     ],
-    "fur_uv_triangles_checked": 5674,
+    "fur_uv_triangles_checked": 5786,
     "fur_uv_positive_area_overlaps": 0,
     "joint_pivots_m": {
       "Head": [
@@ -126,7 +126,7 @@
       ]
     },
     "clean_albedo": "Procedural pigment only; DIFFUSE COLOR pass, no direct/indirect lighting, AO or state effects",
-    "pigment_color_count": 705,
+    "pigment_color_count": 713,
     "art_direction": "retail-v2",
     "result": "PASS"
   },

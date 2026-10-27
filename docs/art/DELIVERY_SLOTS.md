@@ -1,3 +1,5 @@
+> 후속 추가: 볼 관절·2D 그림 5개는 [CHEEKS_UI_DELIVERY.md](CHEEKS_UI_DELIVERY.md) 참고. 아래는 최초 retail-v2 납품 기록이며 최신 파일 해시·수치는 RUNTIME_MANIFEST.json과 VALIDATION_*.json을 기준으로 한다.
+
 # 3D 아트 납품 · 두 번째 그래픽 방향
 
 2026-10-27 사용자 요청: **Dooms Hair Salon / Onigiri Shop Simulator처럼 보이는 그래픽**. 게임 방식의 복제나 협동 확정 요청으로 처리하지 않았다. 협동 가능성은 열려 있으며 이번 변경은 그래픽 파일에 한정한다.
