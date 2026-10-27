@@ -22,6 +22,7 @@ const SOUNDS := {
 	"sigh": preload("res://assets/sfx/sigh.wav"),  # 주인 한숨 (😣)
 	"whine": preload("res://assets/sfx/whine.wav"),  # 강아지가 주인을 보며 낑낑
 	"bark": preload("res://assets/sfx/bark.wav"),  # 주인에게 달려감
+	"bell": preload("res://assets/sfx/bell.wav"),  # 딸랑 (손님이 들어옴)
 }
 const LOOPS := {
 	"shower": preload("res://assets/sfx/shower.wav"),  # 쏴아
