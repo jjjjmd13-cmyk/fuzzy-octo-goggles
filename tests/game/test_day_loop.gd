@@ -15,7 +15,8 @@ func run_test() -> void:
 	time_limit_sec = 120.0
 	get_tree().root.size = Vector2i(1280, 800)
 	var data: Resource = Tuning.data
-	data.day_open_minutes_real = 0.5
+	# 1분 영업: 손님 4명이 약 13초 간격 (마지막 손님까지 받아도 6시 전에 끝나서 "빨리 돌리기"를 봄)
+	data.day_open_minutes_real = 1.0
 	data.slice_owner_patience = 5.0
 	get_tree().current_scene = null
 	Net.start_offline()
@@ -46,6 +47,8 @@ func run_test() -> void:
 	await _frames(2)
 	var waiting: Node3D = station.waiting_area.owners.get(day.queue_ids[0])
 	check(waiting != null, "대기 손님 모형이 있음")
+	check(waiting.get_node_or_null("HeldDog") != null and waiting.holding, "대기 손님은 강아지를 안고 있음")
+	check(day.queue_variants[0] != station.owner_variant, "대기 손님과 목욕대 주인의 옷이 다름")
 	check_eq(station.waiting_area.get_child_count(), data.slice_queue_seats + 1, "대기 의자 %d개 + 손님 1명" % data.slice_queue_seats)
 	await _wait(func() -> bool: return waiting.wait_level >= 1, data.slice_owner_patience)
 	check(waiting.wait_level >= 1, "오래 기다리면 시계를 봄")
@@ -73,7 +76,11 @@ func run_test() -> void:
 	check(not day.closed, "손님이 남았으면 영업 중")
 	await _finish_guest()
 	await _frames(3)
+	check(day.closing and not day.closed, "일찍 끝나면 벽시계를 6시까지 빠르게 돌림")
+	check(world.hud.hint_label.text.contains("다 받았어요"), "문 닫는 중 안내")
+	await _wait(func() -> bool: return day.closed, day.FAST_FORWARD_TIME + 1.0)
 	check(day.closed, "오늘 손님이 다 오고 다 끝나면 영업 끝")
+	check(is_equal_approx(day.hour(), 18.0), "벽시계가 6시")
 	check_eq(day.served + day.walked_out, day.guests_today(), "씻긴 손님 + 떠난 손님 = 오늘 손님")
 	check(world.hud._closed_panel.visible, "영업 끝 알림")
 

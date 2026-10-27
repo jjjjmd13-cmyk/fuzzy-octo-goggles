@@ -124,6 +124,15 @@ func _ready() -> void:
 		$Card.add_theme_stylebox_override("panel", style)
 	world.get_node("WashStation").screen_foam.connect(overlay.show_foam)
 	_card_home = $Card.position
+	# 대기 손님 참을성 원: HUD 맨 밑 층 (요청 카드·도구걸이가 그 위)
+	var patience_layer := Control.new()
+	patience_layer.name = "PatienceLayer"
+	patience_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	patience_layer.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	add_child(patience_layer)
+	move_child(patience_layer, 0)
+	overlay.patience_layer = patience_layer
+	patience_layer.draw.connect(overlay.draw_patience)
 	_closed_panel = PanelContainer.new()
 	_closed_panel.theme = get_tree().root.theme
 	_closed_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
@@ -184,7 +193,9 @@ func _process(_delta: float) -> void:
 	for i in _tool_buttons.size():
 		_tool_buttons[i].button_pressed = i == station.tool
 	var hint: String = station.next_hint() if at_bath else ""
-	if at_bath and phase == WashStation.OwnerPhase.EMPTY and not day.is_open():
+	if at_bath and phase == WashStation.OwnerPhase.EMPTY and day.closing:
+		hint = "오늘 손님을 다 받았어요! 가게 문을 닫아요"
+	elif at_bath and phase == WashStation.OwnerPhase.EMPTY and not day.is_open():
 		hint = "6시! 오늘 영업이 끝나 가요"
 	if at_bath and not station.is_operator() and station.stage < WashStation.Stage.PAY:
 		hint = "다른 사람이 씻기는 중이에요 (구경 중)"

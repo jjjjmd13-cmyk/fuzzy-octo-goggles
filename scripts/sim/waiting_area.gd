@@ -1,14 +1,22 @@
 extends Node3D
 ## 대기 의자 (MILESTONE_V3_SLICE 1장): 목욕대가 차 있을 때 온 주인 손님이 앉아 기다리는 곳.
 ## 의자가 꽉 차면 문밖에 서서 줄을 선다. 기다림은 몸짓으로 보인다 (시계 보기 → 발 구르기 → 시무룩).
+## 남은 참을성은 HUD 가 머리 위에 그린다. 대기 손님은 강아지를 안고 있다 (손님인 줄 알아보게).
 ##
 ## 대기열은 ShopDay(호스트)가 정하고 동기화한다. 이 스크립트는 그걸 읽어 주인 모형을 놓기만 한다 (화면 전용).
 ## 위치는 모두 목욕대(부모) 기준. 의자 모형은 목욕대 옆 의자와 같은 교체 씬(chair_model.tscn).
 
 const OWNER_SCENE := preload("res://scenes/art/sim/owner_model.tscn")
 const CHAIR_SCENE := preload("res://scenes/art/sim/chair_model.tscn")
+const DOG_SCENE := preload("res://scenes/art/sim/dog_model.tscn")
+## 안은 강아지 크기와 자리 (주인 기준: 앉으면 무릎 위, 서면 가슴 앞)
+## (무릎 위: 발이 의자 앞·다리 사이로 삐져나오지 않게 몸 쪽으로, QA #50)
+const HELD_DOG_SCALE := 0.6
+const HELD_ON_LAP := Vector3(0, 0.56, 0.1)
+const HELD_STANDING := Vector3(0, 0.82, 0.26)
 ## 대기 의자 (앞에서부터). 의자 수는 slice_queue_seats 만큼 앞에서부터 씀
-const SEATS: Array[Vector3] = [Vector3(-1.2, 0, -0.62), Vector3(-1.62, 0, -0.62), Vector3(-2.04, 0, -0.62), Vector3(-2.46, 0, -0.62)]
+## (화면 왼쪽 HUD 에 덜 가리게 안쪽·뒤쪽으로, QA #45 리뷰)
+const SEATS: Array[Vector3] = [Vector3(-0.98, 0, -0.78), Vector3(-1.36, 0, -0.78), Vector3(-1.74, 0, -0.78), Vector3(-2.12, 0, -0.78)]
 ## 의자가 꽉 차면 서서 기다리는 곳 (문 쪽으로 늘어섬)
 const LINE_START := Vector3(-2.2, 0, 0.0)
 const LINE_STEP := Vector3(-0.15, 0, 0.45)
@@ -78,11 +86,24 @@ func _process(delta: float) -> void:
 			if i < day.queue_variants.size():
 				owner.set_variant(day.queue_variants[i])
 			owners[guest] = owner
+			# 강아지 모형은 뛰기 때문에 스스로 높이를 바꾼다. 받침 노드에 넣어 받침을 옮긴다
+			var holder := Node3D.new()
+			holder.name = "HeldDog"
+			holder.scale = Vector3.ONE * HELD_DOG_SCALE
+			owner.add_child(holder)
+			var held := DOG_SCENE.instantiate() as Node3D
+			# 안은 강아지는 보이기만 한다 (클릭 판정 모양 없음)
+			held.set("auto_hit_shapes", false)
+			holder.add_child(held)
+			owner.holding = true
 		if _spot.get(guest, -1) != i:
 			_spot[guest] = i
 			var target := station.to_global(spot_position(i))
 			owner.go_wait(target, station.global_position, owner.global_position.distance_to(target) / WALK_SPEED, is_seat(i))
 		owner.wait_level = _wait_level(day.patience_ratio(i))
+		var held_dog := owner.get_node_or_null("HeldDog") as Node3D
+		if held_dog != null:
+			held_dog.position = HELD_ON_LAP if owner.is_sitting() else HELD_STANDING
 	# 대기열에서 빠진 손님: 목욕대로 갔으면 (목욕대 주인 모형이 이어받음) 지우고, 아니면 문으로 나감
 	for guest in owners.keys():
 		if guest in ids:

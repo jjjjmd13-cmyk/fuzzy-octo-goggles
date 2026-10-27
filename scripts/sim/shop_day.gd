@@ -8,6 +8,8 @@ extends Node
 signal day_ended
 
 const WashStation := preload("res://scripts/sim/wash_station.gd")
+## 손님을 일찍 다 받으면 벽시계를 6시까지 빠르게 돌리는 시간 (s)
+const FAST_FORWARD_TIME := 1.5
 
 # --- DaySync (호스트가 씀)
 ## 며칠째 (1부터)
@@ -27,6 +29,8 @@ var queue_variants := PackedInt32Array()
 var queue_since := PackedFloat32Array()
 ## 오늘 영업이 끝났음 (6시가 지났거나 손님이 다 왔고, 목욕대·대기열이 빔)
 var closed := false
+## 오늘 손님을 다 받아 벽시계를 6시까지 빠르게 돌리는 중
+var closing := false
 
 var station: WashStation
 var sfx: Node
@@ -56,6 +60,7 @@ func start_day(number: int) -> void:
 	queue_variants = PackedInt32Array()
 	queue_since = PackedFloat32Array()
 	closed = false
+	closing = false
 	_idle_time = 0.0
 	# 첫 손님은 바로 (이슈 #40: 시작하자마자 할 일이 있게)
 	_arrive()
@@ -99,6 +104,13 @@ func guest_number_today(guest_id: int) -> int:
 func _process(delta: float) -> void:
 	if not Net.is_host() or day == 0 or closed:
 		return
+	if closing:
+		# 일찍 끝난 날: 벽시계를 6시까지 빠르게 돌리고 "영업 끝" (기획팀 제안)
+		clock = minf(clock + open_seconds() / FAST_FORWARD_TIME * delta, open_seconds())
+		if not is_open():
+			closed = true
+			_day_closed.rpc()
+		return
 	clock = minf(clock + delta, open_seconds())
 	var idle := station.owner_phase == WashStation.OwnerPhase.EMPTY
 	# 너무 오래 기다린 손님은 떠남
@@ -124,8 +136,11 @@ func _process(delta: float) -> void:
 		station.take_guest(guest, variant, true)
 		idle = false
 	if idle and queue_ids.is_empty() and (arrived >= guests_today() or not is_open()):
-		closed = true
-		_day_closed.rpc()
+		if is_open():
+			closing = true
+		else:
+			closed = true
+			_day_closed.rpc()
 
 
 ## 호스트: 목욕대가 손님 한 명을 다 씻겨 돈을 받음 (WashStation._pay)
@@ -141,7 +156,7 @@ func _arrive() -> void:
 	_next_id += 1
 	arrived += 1
 	_idle_time = 0.0
-	var variant := _rng.randi_range(0, maxi(Tuning.data.owner_variants, 1) - 1)
+	var variant := _pick_variant()
 	_guest_arrived.rpc()
 	if station.owner_phase == WashStation.OwnerPhase.EMPTY and queue_ids.is_empty():
 		station.take_guest(guest, variant, false)
@@ -155,6 +170,22 @@ func _arrive() -> void:
 	queue_ids = ids
 	queue_variants = variants
 	queue_since = since
+
+
+## 주인 모양: 지금 가게에 있는 손님(목욕대·대기열)과 겹치지 않게 고른다 (다 쓰였으면 아무거나)
+func _pick_variant() -> int:
+	var used := {}
+	if station.owner_phase != WashStation.OwnerPhase.EMPTY:
+		used[station.owner_variant] = true
+	for variant in queue_variants:
+		used[variant] = true
+	var free: Array[int] = []
+	for variant in maxi(Tuning.data.owner_variants, 1):
+		if not used.has(variant):
+			free.append(variant)
+	if free.is_empty():
+		return _rng.randi_range(0, maxi(Tuning.data.owner_variants, 1) - 1)
+	return free[_rng.randi_range(0, free.size() - 1)]
 
 
 ## 배열을 새로 만들어 넣는다 (같은 배열을 고치면 동기화가 바뀐 줄 모름)

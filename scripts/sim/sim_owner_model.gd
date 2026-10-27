@@ -30,6 +30,8 @@ const HATS: Array[Color] = [
 var height := 1.12
 ## 기다림 몸짓 (대기열): 0 가만히 / 1 시계 보기 / 2 발 구르기 / 3 시무룩
 var wait_level := 0
+## 강아지를 안고 있음 (대기 손님: 손님인 줄 알아보게)
+var holding := false
 
 var _body: Node3D
 var _head: Node3D
@@ -198,11 +200,14 @@ func _process(delta: float) -> void:
 			swing = Vector3(-1.2, 0, 0)
 		elif _react == 2:
 			swing = Vector3(-1.3, 0, side * (0.25 + absf(sin(_react_time * 12.0)) * 0.35))
+		elif wait_level == 1 and i == 0 and _watch_glance():
+			# 시계 보기: 손목을 눈앞으로 (강아지는 다른 팔로 안음)
+			swing = Vector3(-1.5, 0, -side * 0.5)
+		elif holding and _react < 0:
+			# 안은 강아지를 받침 (시무룩하면 팔이 처짐)
+			swing = Vector3((-0.6 if wait_level == 3 else -0.9) if sitting else -1.2, 0, side * 0.1)
 		elif _react == 0 or wait_level == 3:
 			swing = Vector3(0, 0, side * 0.05)
-		elif wait_level == 1 and i == 0 and _watch_glance():
-			# 시계 보기: 손목을 눈앞으로
-			swing = Vector3(-1.5, 0, -side * 0.5)
 		_set_pose(_arms[i], swing)
 	# 머리: 끄덕 / 한숨(고개 숙임) / 가만히 숨쉬기
 	if _head != null:
@@ -216,6 +221,11 @@ func _process(delta: float) -> void:
 		elif wait_level == 1 and _watch_glance():
 			nod = 0.3
 		_set_pose(_head, Vector3(nod, 0, 0))
+
+
+## 의자에 앉아 있음 (걷는 중이 아님)
+func is_sitting() -> bool:
+	return _pose == "sit" and _move_left <= 0.0 and _segments.is_empty()
 
 
 ## 시계 보기는 4초마다 1.5초씩
