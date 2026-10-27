@@ -1,4 +1,4 @@
-[gd_scene load_steps=16 format=3 uid="uid://b7wrld000001"]
+[gd_scene load_steps=18 format=3 uid="uid://b7wrld000001"]
 
 [ext_resource type="Script" path="res://scripts/game/world.gd" id="1_world"]
 [ext_resource type="Script" path="res://scripts/level/room_builder.gd" id="2_room"]
@@ -6,6 +6,7 @@
 [ext_resource type="Script" path="res://scripts/game/sfx.gd" id="4_sfx"]
 [ext_resource type="PackedScene" uid="uid://b7hud00000001" path="res://scenes/game/hud.tscn" id="5_hud"]
 [ext_resource type="PackedScene" uid="uid://b7washstat01" path="res://scenes/sim/wash_station.tscn" id="6_station"]
+[ext_resource type="Script" path="res://scripts/sim/shop_day.gd" id="7_day"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 
@@ -60,6 +61,41 @@ properties/2/replication_mode = 2
 properties/3/path = NodePath(".:shampoo")
 properties/3/spawn = true
 properties/3/replication_mode = 2
+
+[sub_resource type="SceneReplicationConfig" id="SceneReplicationConfig_day"]
+properties/0/path = NodePath(".:day")
+properties/0/spawn = true
+properties/0/replication_mode = 2
+properties/1/path = NodePath(".:clock")
+properties/1/spawn = true
+properties/1/replication_mode = 2
+properties/2/path = NodePath(".:arrived")
+properties/2/spawn = true
+properties/2/replication_mode = 2
+properties/3/path = NodePath(".:served")
+properties/3/spawn = true
+properties/3/replication_mode = 2
+properties/4/path = NodePath(".:walked_out")
+properties/4/spawn = true
+properties/4/replication_mode = 2
+properties/5/path = NodePath(".:earned")
+properties/5/spawn = true
+properties/5/replication_mode = 2
+properties/6/path = NodePath(".:first_guest")
+properties/6/spawn = true
+properties/6/replication_mode = 2
+properties/7/path = NodePath(".:queue_ids")
+properties/7/spawn = true
+properties/7/replication_mode = 2
+properties/8/path = NodePath(".:queue_variants")
+properties/8/spawn = true
+properties/8/replication_mode = 2
+properties/9/path = NodePath(".:queue_since")
+properties/9/spawn = true
+properties/9/replication_mode = 2
+properties/10/path = NodePath(".:closed")
+properties/10/spawn = true
+properties/10/replication_mode = 2
 
 [node name="World" type="Node3D"]
 script = ExtResource("1_world")
@@ -129,6 +165,14 @@ script = ExtResource("3_store")
 root_path = NodePath("..")
 replication_interval = 0.1
 replication_config = SubResource("SceneReplicationConfig_store")
+
+[node name="Day" type="Node" parent="."]
+script = ExtResource("7_day")
+
+[node name="DaySync" type="MultiplayerSynchronizer" parent="Day"]
+root_path = NodePath("..")
+replication_interval = 0.1
+replication_config = SubResource("SceneReplicationConfig_day")
 
 [node name="Sfx" type="Node" parent="."]
 script = ExtResource("4_sfx")

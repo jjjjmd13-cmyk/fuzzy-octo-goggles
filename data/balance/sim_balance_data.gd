@@ -128,6 +128,19 @@ extends Resource
 ## 저절로·화살표로 한 번에 도는 각도 (°)
 @export var proto_turn_step := 90.0
 
+## 손님이 문밖에 줄을 서기 전까지 차례로 도착하는 간격 = 영업 시간 × 이 값 / 그날 손님 수
+@export var proto_guest_spacing := 0.85
+
+@export_group("수직 단면 (TUNING_V3 6·9장)")
+## 영업 9시~6시 = 실제 이 분 (벽시계)
+@export var day_open_minutes_real := 8.0
+@export var slice_days := 3
+## 1·2·3일차 손님 수
+@export var slice_guests_per_day := PackedInt32Array([4, 5, 6])
+## 대기 의자 수 (꽉 차면 문밖에 줄)
+@export var slice_queue_seats := 3
+## 기다리기 시작해서 떠나기까지 (s)
+@export var slice_owner_patience := 150.0
 
 ## 기분 0~1 → 얼굴 단계 0(😣) / 1(😐) / 2(😊)
 func mood_face(mood: float) -> int:

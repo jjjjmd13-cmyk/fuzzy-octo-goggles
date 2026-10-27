@@ -1,7 +1,7 @@
 extends Node3D
 ## 목욕대 작업대 (GDD_V3 3장, 시제품 1-2 "단계마다 다른 손동작").
 ##
-## 주인이 강아지를 데리고 와서 맡기면, 적시기 → 샴푸 짜기 → 문지르기 → 헹구기 → 수건 → 드라이어 순서로
+## 하루 영업(ShopDay)이 손님을 보내면 (take_guest) 주인이 강아지를 데리고 와서 맡기고, 적시기 → 샴푸 짜기 → 문지르기 → 헹구기 → 수건 → 드라이어 순서로
 ## 씻기고, 주인이 반응하며 동전을 건네면 강아지가 주인에게 달려간다.
 ## 단계마다 손동작이 다르다 (3.1): 누르고 조준 / 누르는 시간 / 원 그리기 / 쓸어내리기 / 연타 / 휠 거리.
 ## 마우스 하나로 끝난다 (2장): 다음 도구가 저절로 손에 들리고, 보이는 쪽이 다 되면 강아지가 저절로 돈다.
@@ -20,7 +20,8 @@ signal dose_failed
 
 enum Stage { WET, SQUEEZE, SCRUB, RINSE, TOWEL, DRY, PAY }
 enum Tool { SHOWER, BOTTLE, HAND, BUCKET, TOWEL, DRYER }
-enum OwnerPhase { ARRIVE, WAIT, REACT, LEAVE }
+## EMPTY = 손님 없음 (다음 손님을 기다림)
+enum OwnerPhase { ARRIVE, WAIT, REACT, LEAVE, EMPTY }
 
 ## 단계별 마스크 채널 (샴푸 짜기는 마스크 없음)
 const STAGE_CHANNEL := ["wet", "", "scrub", "rinse", "towel", "dry"]
@@ -60,8 +61,10 @@ var yaw := 0.0
 var coins := PackedInt32Array()
 var used_peach := false
 var dogs_done := 0
-var owner_phase := OwnerPhase.ARRIVE
+var owner_phase := OwnerPhase.EMPTY
 var owner_variant := 0
+## 주인이 대기 의자에서 왔음 (아니면 문에서)
+var owner_from_queue := false
 
 # --- 내 화면 (동기화하지 않음)
 ## 손에 든 도구 (단계가 바뀌면 저절로 바뀜, 도구걸이 클릭으로 직접 바꿀 수도 있음)
@@ -72,6 +75,8 @@ var temperature := 0.5
 var dryer_distance := 0.32
 var camera: Camera3D
 var store: Node
+## 하루 영업 (돈을 받으면 알림)
+var day: Node
 var sfx: Node
 ## 샴푸가 비어서 거품이 안 남 (안내용)
 var out_of_shampoo := false
@@ -101,6 +106,7 @@ var turns := 0
 @onready var camera_point: Marker3D = $CameraPoint
 @onready var coin_root: Node3D = $Coins
 @onready var owner_model: Node3D = $Owner
+@onready var waiting_area: Node3D = $WaitingArea
 
 var _built_serial := -1
 var _seen_stage := -1
@@ -188,22 +194,22 @@ func _ready() -> void:
 		_samples.append(Vector3(cos(golden * i) * r, y, sin(golden * i) * r))
 
 
-## 호스트: 영업 시작 (첫 손님)
+## 호스트: 처음 영업 (손님 없음. 손님은 ShopDay 가 take_guest 로 보냄)
 func reset() -> void:
 	if not Net.is_host():
 		return
 	dogs_done = 0
-	new_dog()
+	owner_phase = OwnerPhase.EMPTY
 
 
-## 호스트: 다음 손님 (주인이 강아지를 데리고 들어옴).
-func new_dog() -> void:
+## 호스트: 손님이 강아지를 맡기러 옴. guest = 손님 번호(= 강아지 번호), from_queue = 대기 의자에서 옴
+func take_guest(guest: int, variant: int, from_queue: bool) -> void:
 	if not Net.is_host():
 		return
 	var data: Resource = Tuning.data
 	var pattern := _rng.randi_range(0, maxi(data.mask_patterns, 1) - 1)
 	var peach := 1 if _rng.randf() < data.proto_peach_request_chance else 0
-	dog_info = Vector4i(dog_info.x + 1, pattern, _rng.randi() & 0x3fffffff, peach)
+	dog_info = Vector4i(guest, pattern, _rng.randi() & 0x3fffffff, peach)
 	stage = Stage.WET
 	ratio = 0.0
 	mood = data.mood_start
@@ -211,7 +217,8 @@ func new_dog() -> void:
 	used_peach = false
 	_dose_paid = false
 	_host_dose_kind = ""
-	owner_variant = _rng.randi_range(0, maxi(data.owner_variants, 1) - 1)
+	owner_variant = variant
+	owner_from_queue = from_queue
 	owner_phase = OwnerPhase.ARRIVE
 	_owner_timer = data.proto_owner_arrive_time
 
@@ -256,6 +263,8 @@ func owner_bubble_visible() -> bool:
 ## 다음에 할 일 (노란 안내)
 func next_hint() -> String:
 	match owner_phase:
+		OwnerPhase.EMPTY:
+			return "다음 손님을 기다려요"
 		OwnerPhase.ARRIVE:
 			return "손님이 왔어요! 주인이 강아지를 맡겨요"
 		OwnerPhase.REACT, OwnerPhase.LEAVE:
@@ -822,9 +831,16 @@ func _on_owner_phase_changed() -> void:
 	var data: Resource = Tuning.data
 	if owner_model.has_method("set_variant"):
 		owner_model.set_variant(owner_variant)
+	owner_model.visible = owner_phase != OwnerPhase.EMPTY
 	match owner_phase:
 		OwnerPhase.ARRIVE:
-			_owner_call("enter", [to_global(OWNER_DOOR), to_global(OWNER_FRONT), data.proto_owner_arrive_time * 0.75])
+			if owner_from_queue:
+				var path: Array = []
+				for point: Vector3 in waiting_area.path_to_tub():
+					path.append(to_global(point))
+				_owner_call("enter", [to_global(waiting_area.spot_position(0)), to_global(OWNER_FRONT), data.proto_owner_arrive_time * 0.75, path])
+			else:
+				_owner_call("enter", [to_global(OWNER_DOOR), to_global(OWNER_FRONT), data.proto_owner_arrive_time * 0.75])
 		OwnerPhase.WAIT:
 			_owner_call("go_sit", [to_global(OWNER_CHAIR), to_global(Vector3.ZERO), 1.0])
 		OwnerPhase.REACT:
@@ -856,6 +872,8 @@ func _update_dog_presence() -> void:
 			var target := turntable.to_local(owner_model.global_position) * Vector3(1, 0, 1)
 			dog.position = Vector3(0, 0.02, 0).lerp(target, t) + Vector3(0, sin(t * PI) * 0.3, 0)
 			dog.model.visible = t < 1.0
+		OwnerPhase.EMPTY:
+			dog.model.visible = false
 		_:
 			dog.model.visible = true
 			dog.position = Vector3(0, 0.02, 0)
@@ -991,7 +1009,7 @@ func _host_process(delta: float) -> void:
 				_owner_timer = data.proto_owner_leave_time
 		OwnerPhase.LEAVE:
 			if _owner_timer <= 0.0:
-				new_dog()
+				owner_phase = OwnerPhase.EMPTY
 
 
 ## 작업자: 지금 작업자가 목욕대 자리에 있으면 그대로, 아니면 목욕대 자리의 첫 사람 (슬롯 순).
@@ -1029,6 +1047,11 @@ func _pay() -> void:
 		values.append(data.money_scent_tip)
 	coins = values
 	dogs_done += 1
+	if day != null:
+		var total := 0
+		for value in values:
+			total += value
+		day.guest_paid(total)
 
 
 @rpc("any_peer", "call_local", "reliable")

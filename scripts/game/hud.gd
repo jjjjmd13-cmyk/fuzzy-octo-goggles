@@ -36,6 +36,11 @@ Tab(패드 LB·RB) 자리 바꾸기 · Esc 메뉴 · F1 이 도움말"""
 var _tool_buttons: Array[Button] = []
 var _step_labels: Array[Label] = []
 var _step_checks: Array[TextureRect] = []
+var _seen_phase := -1
+var _card_home := Vector2.ZERO
+## 영업 끝 알림 (정산 화면이 생기기 전까지)
+var _closed_panel: PanelContainer
+var _closed_label: Label
 
 
 func _ready() -> void:
@@ -118,6 +123,16 @@ func _ready() -> void:
 		style.content_margin_bottom = 20
 		$Card.add_theme_stylebox_override("panel", style)
 	world.get_node("WashStation").screen_foam.connect(overlay.show_foam)
+	_card_home = $Card.position
+	_closed_panel = PanelContainer.new()
+	_closed_panel.theme = get_tree().root.theme
+	_closed_panel.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+	_closed_label = Label.new()
+	_closed_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_closed_panel.add_child(_closed_label)
+	add_child(_closed_panel)
+	move_child(_closed_panel, overlay.get_index())
+	_closed_panel.hide()
 
 
 func is_paused() -> bool:
@@ -147,7 +162,15 @@ func _process(_delta: float) -> void:
 	# 동전 그림이 있으면 그림 + 숫자, 없으면 "돈 N"
 	money_label.text = ("      %d" if money_label.get_child_count() > 0 else "돈 %d") % store.money
 
-	card_title.text = "%d번째 손님" % maxi(station.dog_number(), 1)
+	var day: Node = world.day
+	# 요청 카드: 주인이 맡기는 순간 말풍선에서 날아와 걸림 (접수). 손님이 없거나 들어오는 중엔 안 보임
+	var phase: int = station.owner_phase
+	$Card.visible = phase != WashStation.OwnerPhase.EMPTY and phase != WashStation.OwnerPhase.ARRIVE
+	if phase != _seen_phase:
+		if phase == WashStation.OwnerPhase.WAIT and _seen_phase == WashStation.OwnerPhase.ARRIVE:
+			_fly_card_in(station)
+		_seen_phase = phase
+	card_title.text = "%d번째 손님" % maxi(day.guest_number_today(station.dog_number()), 1)
 	card_request.visible = station.wants_peach()
 	for i in _step_labels.size():
 		var done: bool = i < station.stage
@@ -161,6 +184,8 @@ func _process(_delta: float) -> void:
 	for i in _tool_buttons.size():
 		_tool_buttons[i].button_pressed = i == station.tool
 	var hint: String = station.next_hint() if at_bath else ""
+	if at_bath and phase == WashStation.OwnerPhase.EMPTY and not day.is_open():
+		hint = "6시! 오늘 영업이 끝나 가요"
 	if at_bath and not station.is_operator() and station.stage < WashStation.Stage.PAY:
 		hint = "다른 사람이 씻기는 중이에요 (구경 중)"
 	var warning: bool = at_bath and station.eye_warning_left > 0.0 and station.overflow_left <= 0.0
@@ -170,6 +195,9 @@ func _process(_delta: float) -> void:
 	hint_label.text = hint
 	hint_label.visible = not hint.is_empty()
 
+	_closed_panel.visible = day.closed
+	if day.closed:
+		_closed_label.text = "%d일차 영업 끝!\n씻긴 손님 %d명 · 기다리다 떠난 손님 %d명\n번 돈 %d" % [day.day, day.served, day.walked_out, day.earned]
 	shop_panel.visible = not at_bath
 	if shop_panel.visible:
 		shop_info.text = "돈 %d · 기본 샴푸 %d마리분 · 복숭아 샴푸 %d마리분" % [store.money, store.basic_uses, store.peach_uses]
@@ -180,3 +208,17 @@ func _process(_delta: float) -> void:
 		use_basic.button_pressed = store.shampoo == "basic"
 		use_peach.button_pressed = store.shampoo == "peach"
 		use_peach.disabled = store.peach_uses <= 0 and store.shampoo != "peach"
+
+
+## 접수: 요청 카드가 주인 말풍선 자리에서 작게 시작해 왼쪽 위 자리로 날아가 걸린다
+func _fly_card_in(station: WashStation) -> void:
+	var card: Control = $Card
+	var camera: Camera3D = world.camera
+	var point: Vector3 = station.owner_bubble_point()
+	if camera.is_position_behind(point):
+		return
+	card.position = camera.unproject_position(point)
+	card.scale = Vector2.ONE * 0.3
+	var tween := create_tween().set_parallel().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(card, "position", _card_home, 0.45)
+	tween.tween_property(card, "scale", Vector2.ONE, 0.45)
