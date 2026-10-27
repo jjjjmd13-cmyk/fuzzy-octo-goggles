@@ -19,6 +19,7 @@
 - 스팀 경로 실기 확인 불가 (컨테이너에 스팀 없음, codeberg.org 막힘). SteamMultiplayerPeer 포함 여부 **미확인**.
 
 **다른 부서에 요청**:
+- 대표(그래픽 요청 → ChatGPT): retail-v2 강아지 GLB 에 `Cheek_L`·`Cheek_R`(볼 가운데 원점, 선택 부위)이 없어 드라이어를 얼굴에 댈 때 볼이 펄럭이지 않습니다. 다음 납품 때 넣어 주세요 (`docs/art/ART_SLOTS.md` 1장 표). 나머지 약속(노드 이름·계층·털/비털 메시·Shirt·Hat 재질)은 맞습니다. 주인의 새 `Knee_L/R` 관절은 명세서에 적었습니다.
 - 기획팀: TUNING_V3 8장 키를 리소스에 넣으며 ✅ 로 바꿨고 값은 초안 그대로입니다. 목표 시간에 맞추려고 `tool_shower_radius` 0.18 → 0.24, `tool_scrub_radius` 0.15 → 0.2 로 바꿨고, 7장에 개발팀 임시 키 5개(`proto_owner_arrive_time` 2.5, `proto_owner_leave_time` 1.5, `proto_temp_wheel_step` 0.1, `proto_dryer_start_distance` 0.32, `proto_turn_step` 90)를 넣었습니다 (바꾼 기록 줄 추가). 확인 부탁합니다.
 - 기획팀: 손동작이 바뀌어 `tool_shampoo_dose`, `tool_rinse_rate`, `tool_towel_rate`, `proto_dose_coverage`, `proto_next_dog_delay` 는 지금 쓰지 않습니다. 지울지 정해 주세요.
 - 대표(사람 대표 → ChatGPT): 아직 필요한 2D 5개 — 장갑 손 아이콘, 바가지 아이콘, 세로 요청 카드(6줄), 말풍선, 목욕대 뒤 배경 그림 (`docs/art/ART_SLOTS.md` 7장). 받은 09 의 가로 카드(빈칸 4개)는 세로 6단계 카드와 모양이 달라 쓰지 않았습니다.
