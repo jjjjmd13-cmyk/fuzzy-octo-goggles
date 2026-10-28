@@ -18,6 +18,7 @@ extends Control
 @onready var message_label: Label = %MessageLabel
 
 const SaveGame := preload("res://scripts/core/save_game.gd")
+const UiArt := preload("res://scripts/game/ui_art.gd")
 
 static var _autostart_done := false
 
@@ -27,6 +28,7 @@ var continue_button: Button
 
 func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_hang_sign()
 	solo_button.pressed.connect(_start_new)
 	steam_button.pressed.connect(func() -> void:
 		SaveGame.continue_requested = false
@@ -55,6 +57,32 @@ func _ready() -> void:
 	message_label.text = Net.last_end_reason
 	(continue_button if continue_button.visible else solo_button).grab_focus()
 	_autostart()
+
+
+## 가게 간판 그림 (assets/ui/sign.png, 가게 벽과 같은 그림)이 있으면 제목 뒤에 건다. 글자는 그림 위에.
+func _hang_sign() -> void:
+	var picture := UiArt.texture("sign")
+	var title := $Center/Box/Title as Label
+	if picture == null:
+		return
+	var sign := TextureRect.new()
+	sign.name = "Sign"
+	sign.texture = picture
+	sign.custom_minimum_size = Vector2(460, 130)
+	sign.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	sign.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	var box := title.get_parent()
+	box.add_child(sign)
+	box.move_child(sign, title.get_index())
+	title.reparent(sign, false)
+	title.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	title.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	# 그림 왼쪽의 강아지를 비켜 가운데 빈칸에
+	title.offset_left = 110
+	title.add_theme_font_size_override("font_size", 44)
+	title.add_theme_color_override("font_color", Color(1, 1, 1))
+	title.add_theme_color_override("font_outline_color", Color(0.85, 0.35, 0.5))
+	title.add_theme_constant_override("outline_size", 12)
 
 
 func _start_new() -> void:
