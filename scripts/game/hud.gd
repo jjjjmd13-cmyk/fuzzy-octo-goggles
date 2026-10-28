@@ -180,8 +180,8 @@ func _ready() -> void:
 	guide = GuideOverlay.new()
 	guide.name = "Guide"
 	guide.theme = get_tree().root.theme
+	# 맨 위 층: F1 조작 그림이 정산 판 위에, 안내 카드가 도구 커서 위에 보이게 (QA #61)
 	add_child(guide)
-	move_child(guide, overlay.get_index())
 	_build_volume_rows()
 	_build_settle_panel()
 	_build_morning_panel()

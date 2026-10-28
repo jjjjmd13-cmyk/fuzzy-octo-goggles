@@ -95,9 +95,21 @@ func _draw_face(level: int) -> void:
 			draw_arc(mouth + Vector2(0, 12), 14, PI + 0.3, TAU - 0.3, 16, Color.BLACK, 3.0)
 
 
+## 막대 뒤 불투명 판 + 테두리 글자: 뒤의 대기 손님·강아지 그림 위에서도 잘 읽히게 (QA #61)
+func _draw_dial_back(title: String) -> void:
+	var back := Rect2(DIAL_RECT.position - Vector2(18, 44), DIAL_RECT.size + Vector2(110, 58))
+	draw_rect(back, Color(0.08, 0.09, 0.13, 0.92))
+	draw_rect(back, Color(1, 1, 1, 0.5), false, 2.0)
+	draw_rect(DIAL_RECT, Color(0.1, 0.1, 0.15, 1.0))
+	var font := get_theme_default_font()
+	var at := Vector2(back.position.x + 10, DIAL_RECT.position.y - 14)
+	draw_string_outline(font, at, title, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, 5, Color(0, 0, 0))
+	draw_string(font, at, title, HORIZONTAL_ALIGNMENT_LEFT, -1, 18, Color(1, 1, 1))
+
+
 ## good = 이 손님의 '좋음' 범위 (고양이·겁쟁이는 좁음)
 func _draw_dial(temperature: float, good: PackedFloat32Array) -> void:
-	draw_rect(DIAL_RECT, Color(0.1, 0.1, 0.15, 0.8))
+	_draw_dial_back("물 온도 (휠)")
 	# 아래 = 차가움(파랑), 위 = 뜨거움(빨강), 가운데 초록 = 좋음
 	var bottom := DIAL_RECT.end.y
 	var height := DIAL_RECT.size.y
@@ -106,8 +118,6 @@ func _draw_dial(temperature: float, good: PackedFloat32Array) -> void:
 	draw_rect(Rect2(DIAL_RECT.position.x, DIAL_RECT.position.y, DIAL_RECT.size.x, height * (1.0 - good[1])), Color(1.0, 0.4, 0.3, 0.8))
 	var y := bottom - height * temperature
 	draw_rect(Rect2(DIAL_RECT.position.x - 8, y - 4, DIAL_RECT.size.x + 16, 8), Color.WHITE)
-	var font := get_theme_default_font()
-	draw_string(font, Vector2(DIAL_RECT.position.x - 8, DIAL_RECT.position.y - 10), "물 온도 (휠)", HORIZONTAL_ALIGNMENT_LEFT, -1, 18)
 
 
 ## 주인 머리 위 말풍선: 목욕 + (복숭아 향)
@@ -261,15 +271,14 @@ func _draw_icon(art: String, center: Vector2, radius: float, fallback: Callable)
 func _draw_distance(station: WashStation) -> void:
 	var data: Resource = Tuning.data
 	var range_m: PackedFloat32Array = data.dryer_distance_range
-	draw_rect(DIAL_RECT, Color(0.1, 0.1, 0.15, 0.8))
+	_draw_dial_back("거리 (휠)")
 	var near := inverse_lerp(range_m[0], range_m[1], data.proto_dryer_near)
 	draw_rect(Rect2(DIAL_RECT.position, Vector2(DIAL_RECT.size.x, DIAL_RECT.size.y * near)), Color(1.0, 0.4, 0.3, 0.8))
 	draw_rect(Rect2(DIAL_RECT.position + Vector2(0, DIAL_RECT.size.y * near), Vector2(DIAL_RECT.size.x, DIAL_RECT.size.y * (1.0 - near))), Color(0.56, 0.83, 0.96, 0.8))
 	var y := DIAL_RECT.position.y + DIAL_RECT.size.y * inverse_lerp(range_m[0], range_m[1], station.dryer_distance)
 	draw_rect(Rect2(DIAL_RECT.position.x - 8, y - 4, DIAL_RECT.size.x + 16, 8), Color.WHITE)
 	draw_rect(Rect2(DIAL_RECT.position.x - 8, y - 4, DIAL_RECT.size.x + 16, 8), Color.BLACK, false, 1.5)
-	var font := get_theme_default_font()
-	draw_string(font, Vector2(DIAL_RECT.position.x - 8, DIAL_RECT.position.y - 10), "거리 (휠)", HORIZONTAL_ALIGNMENT_LEFT, -1, 18)
+
 
 
 ## 회전판 가장자리 화살표 (누르면 바로 돌림)
