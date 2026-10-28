@@ -45,6 +45,7 @@ var _silent := DisplayServer.get_name() == "headless"
 func _ready() -> void:
 	for i in 6:
 		var player := AudioStreamPlayer.new()
+		player.bus = &"SFX"
 		add_child(player)
 		_players.append(player)
 	for sound in LOOPS:
@@ -53,6 +54,7 @@ func _ready() -> void:
 		stream.loop_begin = 0
 		stream.loop_end = int(stream.get_length() * stream.mix_rate)
 		var player := AudioStreamPlayer.new()
+		player.bus = &"SFX"
 		player.stream = stream
 		add_child(player)
 		_loops[sound] = player

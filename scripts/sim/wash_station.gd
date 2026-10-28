@@ -701,9 +701,11 @@ func _use_dryer(hit: Variant, held: bool, delta: float) -> void:
 	var closeness := 1.0 - inverse_lerp(range_m[0], range_m[1], dryer_distance)
 	sfx.set_loop("dryer", (0.5 + closeness * 0.5) if held else 0.0)
 	if hit == null:
+		dog.stop_spray()
 		return
 	if dog.model.has_method("blow"):
 		dog.model.blow(closeness)
+	dog.blow_fur(hit, closeness)
 	if dog.is_face(hit) and _cheek_cooldown <= 0.0:
 		_cheek_cooldown = 0.5
 		_report_event.rpc_id(1, dog_info.x, "cheek")

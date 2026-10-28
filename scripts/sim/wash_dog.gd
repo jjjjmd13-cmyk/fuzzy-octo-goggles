@@ -42,6 +42,8 @@ var _splash: CPUParticles3D
 var _spray: CPUParticles3D
 var _pour: CPUParticles3D
 var _press: CPUParticles3D
+## 드라이어 바람에 털이 날림 (크림색 작은 털 뭉치, 위로 흩어짐)
+var _fur: CPUParticles3D
 var _stream: MeshInstance3D
 var _glob: MeshInstance3D
 
@@ -66,6 +68,14 @@ func _ready() -> void:
 	_press.direction = Vector3.DOWN
 	_press.initial_velocity_min = 0.2
 	_press.initial_velocity_max = 0.6
+	_fur = _make_particles(Color(0.98, 0.92, 0.8), 0.008, false)
+	_fur.amount = 30
+	_fur.lifetime = 0.9
+	_fur.direction = Vector3.UP
+	_fur.spread = 60.0
+	_fur.initial_velocity_min = 0.3
+	_fur.initial_velocity_max = 0.9
+	_fur.gravity = Vector3(0, -0.6, 0)
 	# 샤워기 물줄기 (노즐 → 맞는 곳)
 	_stream = MeshInstance3D.new()
 	var tube := CylinderMesh.new()
@@ -369,6 +379,15 @@ func spray(world_point: Vector3) -> void:
 func stop_spray() -> void:
 	if _spray != null:
 		_spray.emitting = false
+	if _fur != null:
+		_fur.emitting = false
+
+
+## 드라이어: 바람이 닿는 곳에서 털이 날림 (closeness 0~1, 가까울수록 많이)
+func blow_fur(world_point: Vector3, closeness: float) -> void:
+	_fur.global_position = world_point
+	_fur.speed_scale = 0.6 + closeness * 0.8
+	_fur.emitting = true
 
 
 ## 차가운 물에 펄쩍: 물이 튄다

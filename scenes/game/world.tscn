@@ -1,4 +1,4 @@
-[gd_scene load_steps=18 format=3 uid="uid://b7wrld000001"]
+[gd_scene load_steps=19 format=3 uid="uid://b7wrld000001"]
 
 [ext_resource type="Script" path="res://scripts/game/world.gd" id="1_world"]
 [ext_resource type="Script" path="res://scripts/level/room_builder.gd" id="2_room"]
@@ -7,6 +7,7 @@
 [ext_resource type="PackedScene" uid="uid://b7hud00000001" path="res://scenes/game/hud.tscn" id="5_hud"]
 [ext_resource type="PackedScene" uid="uid://b7washstat01" path="res://scenes/sim/wash_station.tscn" id="6_station"]
 [ext_resource type="Script" path="res://scripts/sim/shop_day.gd" id="7_day"]
+[ext_resource type="Script" path="res://scripts/game/music.gd" id="8_music"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
 
@@ -200,6 +201,9 @@ script = ExtResource("7_day")
 root_path = NodePath("..")
 replication_interval = 0.1
 replication_config = SubResource("SceneReplicationConfig_day")
+
+[node name="Music" type="Node" parent="."]
+script = ExtResource("8_music")
 
 [node name="Sfx" type="Node" parent="."]
 script = ExtResource("4_sfx")
