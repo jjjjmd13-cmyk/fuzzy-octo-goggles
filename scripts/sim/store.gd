@@ -34,6 +34,23 @@ func reset() -> void:
 	plant = false
 
 
+## 저장할 값 (SaveGame)
+func to_save() -> Dictionary:
+	return {"money": money, "basic_uses": basic_uses, "peach_uses": peach_uses, "shampoo": shampoo, "wide_shower": wide_shower, "plant": plant}
+
+
+## 호스트: 저장에서 되살림
+func load_save(data: Dictionary) -> void:
+	if not Net.is_host():
+		return
+	money = int(data.get("money", 0))
+	basic_uses = int(data.get("basic_uses", 0))
+	peach_uses = int(data.get("peach_uses", 0))
+	shampoo = str(data.get("shampoo", "basic"))
+	wide_shower = bool(data.get("wide_shower", false))
+	plant = bool(data.get("plant", false))
+
+
 func price(kind: String) -> int:
 	var data: Resource = Tuning.data
 	match kind:
