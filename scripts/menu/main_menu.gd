@@ -1,5 +1,5 @@
 extends Control
-## 메인 메뉴: 이어하기 / 새로 하기(혼자) / 친구와 하기(스팀) / 개발용 IP 접속.
+## 메인 메뉴: 이어하기 / 새로 하기(혼자). (친구와 하기(스팀)·개발용 IP 접속 줄은 숨김 — 1인용)
 ## 이어하기는 자동 저장(SaveGame)이 있고 3일차를 아직 안 끝냈을 때만 보인다 (MILESTONE_V3_SLICE 5장).
 ##
 ## 개발용 실행 옵션 (godot ... -- <옵션>):
@@ -48,6 +48,10 @@ func _ready() -> void:
 	quit_button.pressed.connect(get_tree().quit)
 	port_edit.text = str(Net.DEFAULT_PORT)
 
+	# 1인용 결정 (사람 대표, 2026-10-28): 친구와 하기·개발용 IP 접속 줄은 메뉴에서만 숨긴다.
+	# 코드(Net·스팀 로비·ENet)는 그대로 두고, 개발용 실행 옵션 --host / --join 도 그대로 쓸 수 있다.
+	for row in [steam_button, steam_note, $Center/Box/DevSeparator, $Center/Box/DevTitle, $Center/Box/DevRow, $Center/Box/DevButtons]:
+		row.hide()
 	steam_button.disabled = not SteamService.available
 	steam_note.text = (
 		"%s 님, 로비를 만든 뒤 게임 안에서 친구를 초대하세요" % SteamService.persona_name
