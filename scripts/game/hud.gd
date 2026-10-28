@@ -215,7 +215,8 @@ func _process(_delta: float) -> void:
 	var station: WashStation = world.station
 	var store: Node = world.store
 	var at_bath: bool = world.local_seat() == 0
-	status_label.text = "%s · 플레이어 %d / %d · F1 조작" % [Net.status_text, world.get_players().size(), Net.MAX_PLAYERS]
+	# 1인용: "혼자 하기 · 플레이어 1 / 4" 는 보이지 않고 F1 안내만 (이슈 #64)
+	status_label.text = "F1: 조작 그림"
 	invite_button.visible = Net.can_invite_friends()
 	seat_button.text = "Tab: 컴퓨터 자리 →" if at_bath else "Tab: ← 목욕대"
 	# 동전 그림이 있으면 그림 + 숫자, 없으면 "돈 N"

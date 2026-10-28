@@ -56,7 +56,8 @@ func _process(delta: float) -> void:
 	# 첫 정산 뒤 한 번: 컴퓨터 자리로 (가면 끝)
 	if day.closed and day.day == 1 and not shop_arrow_done:
 		shop_arrow = true
-	if shop_arrow and world.local_seat() != 0:
+	# 컴퓨터 자리에 가거나, 안 가고 다음 날 아침이 되면 끝 (이슈 #64)
+	if shop_arrow and (world.local_seat() != 0 or day.morning or day.day != 1):
 		shop_arrow = false
 		shop_arrow_done = true
 	queue_redraw()

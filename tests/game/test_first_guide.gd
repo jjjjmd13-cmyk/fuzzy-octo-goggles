@@ -58,6 +58,16 @@ func run_test() -> void:
 	await _wait(func() -> bool: return world.local_seat() == 1, 1.0)
 	await _frames(2)
 	check(not guide.shop_arrow and guide.shop_arrow_done, "컴퓨터 자리에 가면 화살표 끝")
+	# 컴퓨터에 안 가고 다음 날로 넘어가도 화살표는 끝 (이슈 #64)
+	guide.shop_arrow_done = false
+	world.switch_seat()
+	await _wait(func() -> bool: return world.local_seat() == 0, 1.0)
+	await _frames(2)
+	check(guide.shop_arrow, "(다시) 정산 화살표")
+	world.day.send_next_day()
+	await _frames(3)
+	check(not guide.shop_arrow, "다음 날 아침이 되면 쇼핑 화살표 끔")
+	check_eq(world.hud.status_label.text, "F1: 조작 그림", "1인용: 플레이어 수 줄 없음")
 
 	# --- F1 조작 그림
 	var f1 := InputEventAction.new()
