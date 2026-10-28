@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """멍냥 목욕탕 음악을 코드로 합성한다 (외부 파일·비용 없음, 우리가 만든 것이라 CC0 로 둠).
 
-- assets/music/bgm_shop.wav     영업 중 배경음악 (32초, 이어 붙여 반복되게 마디 단위로 끝남)
+- assets/music/bgm_shop.wav     영업 중 배경음악 (16마디 · 112 BPM = 약 34.3초, 이어 붙여 반복되게 마디 단위로 끝남)
 - assets/music/settle_jingle.wav 정산 화면 짧은 곡 (약 3초)
 
 같은 시드로 늘 같은 소리가 나온다. 곡을 바꾸려면 아래 CHORDS·MELODY_SEED 를 고치고 다시 실행:
