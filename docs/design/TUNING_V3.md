@@ -108,11 +108,14 @@
 | `proto_guest_spacing` | 0.85 | 배 | ✅ | 손님 도착 간격 = 영업 시간 × 이 값 ÷ 그날 손님 수 (8분·4명이면 약 102초). 목욕대가 비고 기다리는 손님도 없으면 `proto_next_dog_delay` 뒤 다음 손님이 앞당겨 옴 |
 | `proto_cat_chance` | 0.4 | 비율 | ✅ | 2일차부터 손님이 고양이일 비율 |
 | `proto_trait_chance` | 0.5 | 비율 | ✅ | 성격이 열린 날 손님이 성격(간지럼쟁이·겁쟁이 중 열린 것)을 가질 비율 |
-| `proto_cat_wet_mood` | -0.004 | /s | ✅ | 고양이: 젖어 있는 동안(적시기 ~ 수건) 기분 (50초면 −0.2) |
-| `proto_cat_pour_head_mood` | -0.2 | | ✅ | 고양이: 바가지를 머리에 쏟으면 |
+| `proto_cat_wet_mood` | -0.0012 | /s | ✅ | 고양이: 젖어 있는 동안(샴푸 짜기 ~ 수건) 기분 (40~50초면 약 −0.05) |
+| `proto_cat_pour_head_mood` | -0.06 | | ✅ | 고양이: 바가지를 머리에 쏟으면 |
+| `proto_cat_pour_head_max` | 1 | 번 | ✅ | 고양이 머리 바가지 벌점은 한 손님에 이만큼만 (그 뒤엔 부르르 반응만) |
 | `proto_timid_eye_mult` | 2.0 | 배 | ✅ | 겁쟁이: 눈에 물 벌점(`mood_eye_hit`) 배수 |
 | `proto_ticklish_time` | 0.6 | s | ✅ | 간지럼쟁이: 배·발을 이만큼 문지르면 다리 찰랑 (보통 `tickle_time` 3초) |
-| `proto_ticklish_mood` | -0.05 | | ✅ | 간지럼쟁이: 배·발 찰랑 한 번마다 |
+| `proto_ticklish_mood` | -0.03 | | ✅ | 간지럼쟁이: 배·발 찰랑 한 번마다 |
+| `proto_ticklish_cooldown` | 2.0 | s | ✅ | 간지럼쟁이 찰랑 벌점 사이 최소 시간 |
+| `proto_ticklish_mood_cap` | 0.1 | | ✅ | 간지럼쟁이 한 손님 벌점 합계 최대 |
 | `proto_no_shampoo_mood` | -0.25 | | ✅ | 샴푸가 떨어져 물로만 씻으면 기분 (거품 없이 진행은 됨, 수직 단면 "막힘 0건") |
 
 시제품에서 정한 규칙 (PR #29 PROTOTYPE.md 8장, 기획팀 동의): 요청 카드는 다섯 줄(적시기·거품·헹구기·수건·드라이어), 샤워기는 적시기·헹구기 단계에서만 칠함, 배 밑(몸 표면 약 20%)은 진행 비율에서 뺌, 기분 팁은 계산 때 얼굴로.
@@ -175,3 +178,4 @@
 | 2026-10-27 | 9장 `slice_cat_price`·`slice_cat_temp_good`·`slice_timid_temp_good` ✅, 7장 `proto_cat_*`·`proto_trait_chance`·`proto_timid_eye_mult`·`proto_ticklish_*` (새로) | 값은 초안 그대로 / 새 값 | 수직 단면 3장 고양이·성격 (개발팀) |
 | 2026-10-27 | 9장 `slice_price_wide_shower`·`slice_wide_shower_mult`·`slice_price_plant`·`slice_plant_patience_mult` ✅ | 값은 초안 그대로 | 수직 단면 4장 정산·쇼핑·다음 날 (개발팀) |
 | 2026-10-27 | 7장 `proto_no_shampoo_mood` (새로) | −0.25 | 샴푸가 0이어도 진행이 막히지 않게 (기획 #54 검토) |
+| 2026-10-28 | 7장 `proto_cat_wet_mood`·`proto_cat_pour_head_mood`·`proto_ticklish_mood`, 새 `proto_cat_pour_head_max`·`proto_ticklish_cooldown`·`proto_ticklish_mood_cap` | −0.004 → −0.0012, −0.2 → −0.06 (1번), −0.05 → −0.03 (2초·합계 0.1) | 이슈 #56: 흉내 손 기분 고양이·간지럼쟁이 0.00 → 목표 0.3·0.2 (기획팀) |

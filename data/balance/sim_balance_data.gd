@@ -159,14 +159,19 @@ extends Resource
 ## 성격이 열린 날 손님이 성격을 가질 비율
 @export var proto_trait_chance := 0.5
 ## 고양이: 젖어 있는 동안 (적시기 ~ 수건) 초당 기분
-@export var proto_cat_wet_mood := -0.004
+@export var proto_cat_wet_mood := -0.0012
 ## 고양이: 바가지를 머리에 쏟으면 기분
-@export var proto_cat_pour_head_mood := -0.2
+@export var proto_cat_pour_head_mood := -0.06
+## 고양이: 머리에 바가지 벌점은 한 손님에 이만큼만 (그 뒤엔 부르르 반응만)
+@export var proto_cat_pour_head_max := 1
 ## 겁쟁이: 눈에 물 벌점 배수
 @export var proto_timid_eye_mult := 2.0
 ## 간지럼쟁이: 배·발을 이만큼 문지르면 다리 찰랑 (s) + 기분
 @export var proto_ticklish_time := 0.6
-@export var proto_ticklish_mood := -0.05
+@export var proto_ticklish_mood := -0.03
+## 간지럼쟁이: 찰랑 벌점 사이 최소 시간 (s), 한 손님 간지럼 벌점 합계 최대
+@export var proto_ticklish_cooldown := 2.0
+@export var proto_ticklish_mood_cap := 0.1
 ## 샴푸가 떨어져 물로만 씻으면 기분 (진행은 막히지 않음)
 @export var proto_no_shampoo_mood := -0.25
 
