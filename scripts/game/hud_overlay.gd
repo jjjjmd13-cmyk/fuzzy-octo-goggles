@@ -64,7 +64,7 @@ func _draw() -> void:
 		for spot in _foam_spots:
 			draw_circle(Vector2(spot.x, spot.y), spot.z, color)
 			draw_circle(Vector2(spot.x + spot.z * 0.6, spot.y - spot.z * 0.4), spot.z * 0.6, color)
-	if at_bath and not hud.is_paused() and not hud.is_menu_open():
+	if at_bath and not hud.is_paused() and not hud.is_menu_open() and not hud.guide.help_visible:
 		_draw_cursor(station, world.cursor)
 
 
