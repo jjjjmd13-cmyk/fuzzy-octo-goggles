@@ -10,6 +10,7 @@ const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
 const Player := preload("res://scripts/player/player.gd")
 const WashStation := preload("res://scripts/sim/wash_station.gd")
 const Settings := preload("res://scripts/core/settings.gd")
+const SaveGame := preload("res://scripts/core/save_game.gd")
 ## 회전판 화살표를 누를 수 있는 거리 (px)
 const ARROW_PICK_PIXELS := 40.0
 
@@ -59,7 +60,29 @@ func _ready() -> void:
 			_spawn_player(peer_id)
 		store.reset()
 		station.reset()
-		day.start_day(1)
+		var saved := SaveGame.read() if SaveGame.continue_requested else {}
+		SaveGame.continue_requested = false
+		if not saved.is_empty() and not bool(saved.get("finished", false)):
+			# 이어하기: 저장된 날의 다음 날 아침 화면부터
+			store.load_save(saved)
+			day.load_save(saved)
+		else:
+			day.start_day(1)
+		# 자동 저장: 영업이 끝날 때, 정산·아침에 물건을 살 때, 다음 날로 넘어갈 때 (영업 중에는 안 함)
+		day.day_ended.connect(save_game)
+		day.morning_started.connect(save_game)
+		store.bought.connect(func(_kind: String) -> void:
+			if day.closed or day.morning:
+				save_game())
+
+
+## 호스트: 지금 상태를 저장 (SaveGame)
+func save_game() -> void:
+	if not Net.is_host():
+		return
+	var data: Dictionary = store.to_save()
+	data.merge(day.to_save())
+	SaveGame.write(data)
 
 
 func get_player(peer_id: int) -> Node3D:
