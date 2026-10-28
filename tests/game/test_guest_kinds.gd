@@ -61,11 +61,16 @@ func run_test() -> void:
 	await _frames(2)
 	var mood_before: float = station.mood
 	await get_tree().create_timer(2.0).timeout
-	check(station.mood < mood_before - 0.004, "고양이는 젖어 있는 동안 기분이 조금씩 나빠짐 (%.3f → %.3f)" % [mood_before, station.mood])
+	check(station.mood < mood_before + data.proto_cat_wet_mood * 2.0 * 0.5, "고양이는 젖어 있는 동안 기분이 조금씩 나빠짐 (%.3f → %.3f)" % [mood_before, station.mood])
 	mood_before = station.mood
 	station._report_event.rpc_id(1, station.dog_info.x, "pour_head")
 	await _frames(1)
 	check(station.mood <= mood_before + data.proto_cat_pour_head_mood + 0.01, "고양이 머리에 바가지 → 크게 싫어함")
+	# 같은 실수로 끝없이 깎지 않음 (이슈 #56): 두 번째부터는 반응만
+	mood_before = station.mood
+	station._report_event.rpc_id(1, station.dog_info.x, "pour_head")
+	await _frames(1)
+	check(station.mood > mood_before - 0.01, "머리 바가지 벌점은 한 손님에 %d번만" % data.proto_cat_pour_head_max)
 	await _pay_and_leave()
 	check(_paid >= data.slice_cat_price, "고양이 요금 %d (받은 돈 %d)" % [data.slice_cat_price, _paid])
 
@@ -84,6 +89,16 @@ func run_test() -> void:
 	await _frames(2)
 	check("squeak" in sfx.played, "배를 문지르면 금방 다리 찰랑 (%.1f초)" % data.proto_ticklish_time)
 	check(station.mood < mood_before, "간지럼쟁이 배 찰랑 → 기분 −")
+	# 쿨타임 안에 또 찰랑해도 벌점은 없음, 한 손님 합계는 proto_ticklish_mood_cap 까지 (이슈 #56)
+	var after_first: float = station.mood
+	station._report_event.rpc_id(1, station.dog_info.x, "tickle_belly")
+	await _frames(1)
+	check(is_equal_approx(station.mood, after_first), "쿨타임(%.0f초) 안에는 간지럼 벌점 없음" % data.proto_ticklish_cooldown)
+	for i in 10:
+		station._ticklish_last_ms = -100000
+		station._report_event.rpc_id(1, station.dog_info.x, "tickle_belly")
+	await _frames(1)
+	check(mood_before - station.mood <= data.proto_ticklish_mood_cap + 0.001, "간지럼 벌점 합계는 최대 %.2f (%.3f)" % [data.proto_ticklish_mood_cap, mood_before - station.mood])
 	sfx.played.clear()
 	station._tickle_anchor = null
 	for i in int((data.proto_ticklish_time + 0.2) / 0.05):
