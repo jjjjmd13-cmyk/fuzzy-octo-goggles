@@ -51,6 +51,12 @@ var settle_supply: Label
 var settle_shop_button: Button
 var next_day_button: Button
 var settle_end_label: Label
+## 3일차 정산 뒤 끝 화면 (3일 합계 + 다음에 열리는 것 잠긴 칸 → 메뉴로)
+var end_button: Button
+var end_panel: PanelContainer
+var end_totals: Label
+var end_menu_button: Button
+var _show_end := false
 var morning_panel: PanelContainer
 var morning_title: Label
 var morning_news: Label
@@ -173,6 +179,7 @@ func _ready() -> void:
 	patience_layer.draw.connect(overlay.draw_patience)
 	_build_settle_panel()
 	_build_morning_panel()
+	_build_end_panel()
 	_build_shop_grid()
 
 
@@ -182,7 +189,7 @@ func is_paused() -> bool:
 
 ## 정산·아침 화면이 떠 있음 (목욕대 도구를 쓰지 않고 마우스 커서를 보여 줌)
 func is_menu_open() -> bool:
-	return settle_panel.visible or morning_panel.visible
+	return settle_panel.visible or morning_panel.visible or end_panel.visible
 
 
 func _unhandled_input(event: InputEvent) -> void:
@@ -278,7 +285,10 @@ func _process(_delta: float) -> void:
 
 ## 정산 화면: 씻긴 손님 · 떠난 손님 · 번 돈(요금 + 팁) · 오늘 가장 기뻐한 손님 얼굴 → 쇼핑 / 다음 날
 func _update_settle(day: Node, at_bath: bool) -> void:
-	settle_panel.visible = day.closed and at_bath
+	end_panel.visible = _show_end and day.closed and day.is_last_day()
+	if end_panel.visible:
+		end_totals.text = "3일 동안 씻긴 손님 %d명 · 번 돈 %d" % [day.total_served, day.total_earned]
+	settle_panel.visible = day.closed and at_bath and not end_panel.visible
 	if not settle_panel.visible:
 		return
 	settle_panel.get_node("Box/Title").text = "%d일차 정산" % day.day
@@ -298,6 +308,7 @@ func _update_settle(day: Node, at_bath: bool) -> void:
 	settle_supply.add_theme_color_override("font_color", Color(1, 0.45, 0.4) if short else Color(0.75, 1, 0.75))
 	next_day_button.visible = not day.is_last_day()
 	settle_end_label.visible = day.is_last_day()
+	end_button.visible = day.is_last_day()
 
 
 ## 아침 화면: 오늘 새로 열린 것 → 영업 시작
@@ -337,8 +348,39 @@ func _build_settle_panel() -> void:
 	next_day_button.pressed.connect(func() -> void: world.day.send_next_day())
 	settle_end_label = Label.new()
 	settle_end_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	settle_end_label.text = "수직 단면은 여기까지! 고마워요"
+	settle_end_label.text = "오늘이 마지막 날이에요"
 	box.add_child(settle_end_label)
+	end_button = _menu_button(buttons, "끝 →")
+	end_button.pressed.connect(func() -> void: _show_end = true)
+
+
+## 끝 화면: 3일 합계, 다음에 열리는 것(잠긴 칸, GDD_V3 6장 "남은 것이 보이게"), 메뉴로
+func _build_end_panel() -> void:
+	end_panel = _center_panel("End", "수직 단면은 여기까지! 고마워요")
+	var box: VBoxContainer = end_panel.get_node("Box")
+	end_totals = Label.new()
+	end_totals.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(end_totals)
+	var next_title := Label.new()
+	next_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	next_title.text = "다음에 열리는 것"
+	box.add_child(next_title)
+	var row := HBoxContainer.new()
+	row.alignment = BoxContainer.ALIGNMENT_CENTER
+	row.add_theme_constant_override("separation", 12)
+	box.add_child(row)
+	for upcoming in ["목욕대 2대째", "빗질", "새 동물 ?"]:
+		var cell := PanelContainer.new()
+		cell.custom_minimum_size = Vector2(150, 90)
+		cell.modulate = Color(1, 1, 1, 0.6)
+		var label := Label.new()
+		label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		label.text = "잠김\n%s" % upcoming
+		cell.add_child(label)
+		row.add_child(cell)
+	end_menu_button = _menu_button(box, "메뉴로")
+	end_menu_button.pressed.connect(func() -> void: Net.leave_session())
 
 
 func _build_morning_panel() -> void:
@@ -387,13 +429,22 @@ func _build_shop_grid() -> void:
 		var effect := Label.new()
 		effect.text = cell[2]
 		effect.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-		effect.add_theme_font_size_override("font_size", 16)
+		effect.add_theme_font_size_override("font_size", 20)
 		cell_box.add_child(effect)
 		if button.get_parent() != null:
 			button.get_parent().remove_child(button)
 		button.focus_mode = Control.FOCUS_NONE
 		cell_box.add_child(button)
 		_shop_effects[kind] = button
+	# 판을 불투명하게 크게: 3D 모니터를 다 덮어 테두리가 비스듬히 삐져나오지 않게 (QA #54)
+	var screen := StyleBoxFlat.new()
+	screen.bg_color = Color(0.11, 0.15, 0.21, 0.98)
+	screen.border_color = Color(0.04, 0.04, 0.06)
+	screen.set_border_width_all(8)
+	screen.set_corner_radius_all(14)
+	screen.set_content_margin_all(22)
+	$Shop.add_theme_stylebox_override("panel", screen)
+	$Shop.custom_minimum_size = Vector2(760, 470)
 	shop_next_day = _menu_button(box, "다음 날 →")
 	shop_next_day.pressed.connect(func() -> void: world.day.send_next_day())
 
