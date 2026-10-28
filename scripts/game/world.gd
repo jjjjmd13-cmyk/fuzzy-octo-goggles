@@ -9,6 +9,7 @@ extends Node3D
 const PLAYER_SCENE := preload("res://scenes/player/player.tscn")
 const Player := preload("res://scripts/player/player.gd")
 const WashStation := preload("res://scripts/sim/wash_station.gd")
+const Settings := preload("res://scripts/core/settings.gd")
 ## 회전판 화살표를 누를 수 있는 거리 (px)
 const ARROW_PICK_PIXELS := 40.0
 
@@ -28,6 +29,7 @@ var _seat_shown := -1
 @onready var store: Node = $Store
 @onready var day: Node = $Day
 @onready var sfx: Node = $Sfx
+@onready var music: Node = $Music
 @onready var hud: CanvasLayer = $HUD
 @onready var camera: Camera3D = $Camera
 @onready var computer_point: Marker3D = $Computer/CameraPoint
@@ -46,6 +48,8 @@ func _ready() -> void:
 	day.station = station
 	day.sfx = sfx
 	day.store = store
+	music.day = day
+	Settings.ensure_loaded()
 	camera.fov = Tuning.data.seat_camera_fov
 	camera.global_transform = station.camera_point.global_transform
 	cursor = get_viewport().get_visible_rect().size / 2.0

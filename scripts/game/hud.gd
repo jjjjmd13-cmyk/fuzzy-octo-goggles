@@ -6,6 +6,7 @@ extends CanvasLayer
 const WashStation := preload("res://scripts/sim/wash_station.gd")
 const UiArt := preload("res://scripts/game/ui_art.gd")
 const Store := preload("res://scripts/sim/store.gd")
+const Settings := preload("res://scripts/core/settings.gd")
 const TOOL_ART := ["tool_shower", "tool_bottle", "tool_hand", "tool_bucket", "tool_towel", "tool_dryer"]
 const HELP_TEXT := """[조작 — 마우스 하나로]
 왼쪽 버튼(패드 RT) 도구 쓰기 — 단계마다 쓰는 법이 달라요
@@ -62,6 +63,9 @@ var buy_plant: Button
 var shop_next_day: Button
 var _shop_effects := {}
 var _menu_was_open := false
+## 음량 (Esc 메뉴): 효과음 / 음악
+var sfx_slider: HSlider
+var music_slider: HSlider
 
 
 func _ready() -> void:
@@ -171,6 +175,7 @@ func _ready() -> void:
 	move_child(patience_layer, 0)
 	overlay.patience_layer = patience_layer
 	patience_layer.draw.connect(overlay.draw_patience)
+	_build_volume_rows()
 	_build_settle_panel()
 	_build_morning_panel()
 	_build_shop_grid()
@@ -306,6 +311,36 @@ func _update_morning(day: Node) -> void:
 	if day.morning:
 		morning_title.text = "%d일차 아침" % day.day
 		morning_news.text = day.morning_news(day.day)
+
+
+## Esc 메뉴에 음량 막대 두 개 (효과음 / 음악). 바꾸면 바로 적용·저장 (Settings)
+func _build_volume_rows() -> void:
+	Settings.ensure_loaded()
+	var box: VBoxContainer = $PauseMenu/Box
+	sfx_slider = _volume_row(box, "효과음", Settings.sfx_volume)
+	music_slider = _volume_row(box, "음악", Settings.music_volume)
+	var changed := func(_value: float) -> void: Settings.set_volumes(sfx_slider.value, music_slider.value)
+	sfx_slider.value_changed.connect(changed)
+	music_slider.value_changed.connect(changed)
+
+
+func _volume_row(box: VBoxContainer, title: String, value: float) -> HSlider:
+	var row := HBoxContainer.new()
+	box.add_child(row)
+	box.move_child(row, $PauseMenu/Box/Leave.get_index())
+	var label := Label.new()
+	label.text = title
+	label.custom_minimum_size = Vector2(90, 0)
+	row.add_child(label)
+	var slider := HSlider.new()
+	slider.min_value = 0.0
+	slider.max_value = 1.0
+	slider.step = 0.05
+	slider.value = value
+	slider.custom_minimum_size = Vector2(220, 32)
+	slider.focus_mode = Control.FOCUS_NONE
+	row.add_child(slider)
+	return slider
 
 
 func _build_settle_panel() -> void:
