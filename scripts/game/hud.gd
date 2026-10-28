@@ -70,6 +70,8 @@ var shop_next_day: Button
 var _shop_effects := {}
 var _menu_was_open := false
 ## 음량 (Esc 메뉴): 효과음 / 음악
+## Esc 메뉴: 영업 중에 나가면 오늘 것은 저장되지 않음 알림 (QA #57)
+var leave_warning: Label
 var sfx_slider: HSlider
 var music_slider: HSlider
 
@@ -267,6 +269,8 @@ func _process(_delta: float) -> void:
 	hint_label.text = hint
 	hint_label.visible = not hint.is_empty()
 
+	# 영업 중(정산·아침이 아님)에 나가면 오늘 것은 저장되지 않는다
+	leave_warning.visible = pause_menu.visible and not day.closed and not day.morning
 	_update_settle(day, at_bath)
 	_update_morning(day)
 	shop_panel.visible = not at_bath and not day.morning
@@ -328,6 +332,12 @@ func _update_morning(day: Node) -> void:
 func _build_volume_rows() -> void:
 	Settings.ensure_loaded()
 	var box: VBoxContainer = $PauseMenu/Box
+	leave_warning = Label.new()
+	leave_warning.text = "오늘 영업은 저장되지 않아요 (아침부터 다시)"
+	leave_warning.add_theme_color_override("font_color", Color(1, 0.6, 0.5))
+	leave_warning.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(leave_warning)
+	box.move_child(leave_warning, $PauseMenu/Box/Leave.get_index())
 	sfx_slider = _volume_row(box, "효과음", Settings.sfx_volume)
 	music_slider = _volume_row(box, "음악", Settings.music_volume)
 	var changed := func(_value: float) -> void: Settings.set_volumes(sfx_slider.value, music_slider.value)
@@ -352,6 +362,37 @@ func _volume_row(box: VBoxContainer, title: String, value: float) -> HSlider:
 	slider.focus_mode = Control.FOCUS_NONE
 	row.add_child(slider)
 	return slider
+
+
+## 끝 화면을 열며 축하: 색종이가 쏟아지고 박수·딩 (QA #57)
+func _open_end() -> void:
+	_show_end = true
+	var confetti := CPUParticles2D.new()
+	confetti.name = "Confetti"
+	confetti.position = Vector2(get_viewport().get_visible_rect().size.x / 2.0, -20.0)
+	confetti.emission_shape = CPUParticles2D.EMISSION_SHAPE_RECTANGLE
+	confetti.emission_rect_extents = Vector2(get_viewport().get_visible_rect().size.x / 2.0, 10.0)
+	confetti.amount = 160
+	confetti.lifetime = 3.5
+	confetti.one_shot = true
+	confetti.explosiveness = 0.7
+	confetti.direction = Vector2.DOWN
+	confetti.spread = 30.0
+	confetti.gravity = Vector2(0, 220)
+	confetti.initial_velocity_min = 80.0
+	confetti.initial_velocity_max = 220.0
+	confetti.angular_velocity_min = -360.0
+	confetti.angular_velocity_max = 360.0
+	confetti.scale_amount_min = 6.0
+	confetti.scale_amount_max = 10.0
+	var colors := Gradient.new()
+	colors.offsets = PackedFloat32Array([0.0, 0.25, 0.5, 0.75, 1.0])
+	colors.colors = PackedColorArray([Color("ff7aa8"), Color("ffd45c"), Color("7ad7ff"), Color("8ce99a"), Color("c792ea")])
+	confetti.color_initial_ramp = colors
+	add_child(confetti)
+	confetti.emitting = true
+	world.sfx.play("clap")
+	world.sfx.play("ding")
 
 
 func _build_settle_panel() -> void:
@@ -386,13 +427,16 @@ func _build_settle_panel() -> void:
 	settle_end_label.text = "오늘이 마지막 날이에요"
 	box.add_child(settle_end_label)
 	end_button = _menu_button(buttons, "끝 →")
-	end_button.pressed.connect(func() -> void: _show_end = true)
+	end_button.pressed.connect(_open_end)
 
 
 ## 끝 화면: 3일 합계, 다음에 열리는 것(잠긴 칸, GDD_V3 6장 "남은 것이 보이게"), 메뉴로
 func _build_end_panel() -> void:
-	end_panel = _center_panel("End", "수직 단면은 여기까지! 고마워요")
+	end_panel = _center_panel("End", "체험판은 여기까지! 고마워요")
+	end_panel.custom_minimum_size = Vector2(720, 420)
 	var box: VBoxContainer = end_panel.get_node("Box")
+	box.alignment = BoxContainer.ALIGNMENT_CENTER
+	(box.get_node("Title") as Label).add_theme_font_size_override("font_size", 40)
 	end_totals = Label.new()
 	end_totals.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	box.add_child(end_totals)

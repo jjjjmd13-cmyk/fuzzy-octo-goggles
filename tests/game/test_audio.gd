@@ -34,6 +34,11 @@ func run_test() -> void:
 	# --- 음악: 영업 중 배경음악 → 영업이 끝나면 정산 곡
 	await _frames(3)
 	check_eq(world.music.playing, "bgm", "영업 중 배경음악")
+	# Esc 메뉴: 영업 중에 나가면 오늘 것은 저장되지 않음 알림 (QA #57)
+	world.hud._set_paused(true)
+	await _frames(1)
+	check(world.hud.leave_warning.visible, "영업 중 Esc 메뉴에 '저장되지 않아요' 알림")
+	world.hud._set_paused(false)
 	await _wait(station.is_washing, 4.0)
 	# 드라이어 털 날림
 	station.dog.blow_fur(station.dog.model.to_global(station.dog.model.body_center), 1.0)

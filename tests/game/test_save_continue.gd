@@ -72,6 +72,8 @@ func run_test() -> void:
 	world.hud.end_button.pressed.emit()
 	await _frames(2)
 	check(world.hud.end_panel.visible and not world.hud.settle_panel.visible, "끝 화면")
+	check(_has_text(world.hud.end_panel, "체험판은 여기까지"), "끝 화면 문구: 체험판은 여기까지")
+	check(world.hud.get_node_or_null("Confetti") != null and "clap" in world.sfx.played, "끝 화면 축하: 색종이 + 박수")
 	check(world.hud.end_totals.text.contains("씻긴 손님 3명"), "3일 합계 (%s)" % world.hud.end_totals.text)
 	check(_has_text(world.hud.end_panel, "잠김"), "다음에 열리는 것 잠긴 칸")
 	check(bool(SaveGame.read().finished) and not SaveGame.can_continue(), "3일차를 끝낸 저장은 이어하기 없음")
