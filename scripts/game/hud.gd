@@ -7,13 +7,8 @@ const WashStation := preload("res://scripts/sim/wash_station.gd")
 const UiArt := preload("res://scripts/game/ui_art.gd")
 const Store := preload("res://scripts/sim/store.gd")
 const Settings := preload("res://scripts/core/settings.gd")
+const GuideOverlay := preload("res://scripts/game/guide_overlay.gd")
 const TOOL_ART := ["tool_shower", "tool_bottle", "tool_hand", "tool_bucket", "tool_towel", "tool_dryer"]
-const HELP_TEXT := """[조작 — 마우스 하나로]
-왼쪽 버튼(패드 RT) 도구 쓰기 — 단계마다 쓰는 법이 달라요
-휠(패드 오른쪽 스틱 ▲▼) 물 온도 · 드라이어 거리
-도구는 저절로 바뀌어요 (오른쪽 아래 도구걸이로 직접 바꿀 수도)
-강아지는 저절로 돌아요 (회전판 양쪽 화살표로 바로 돌리기)
-Tab(패드 LB·RB) 자리 바꾸기 · Esc 메뉴 · F1 이 도움말"""
 
 @onready var world: Node = get_parent()
 @onready var status_label: Label = $Status
@@ -34,7 +29,6 @@ var card_trait: Label
 @onready var use_basic: Button = $Shop/Box/Use/UseBasic
 @onready var use_peach: Button = $Shop/Box/Use/UsePeach
 @onready var overlay: Control = $Overlay
-@onready var help_label: Label = $Help
 @onready var pause_menu: Control = $PauseMenu
 
 var _tool_buttons: Array[Button] = []
@@ -69,6 +63,8 @@ var buy_plant: Button
 var shop_next_day: Button
 var _shop_effects := {}
 var _menu_was_open := false
+## 처음 하는 사람용 안내 (손동작 그림, 쇼핑 화살표, F1 조작 그림)
+var guide: Control
 ## 음량 (Esc 메뉴): 효과음 / 음악
 ## Esc 메뉴: 영업 중에 나가면 오늘 것은 저장되지 않음 알림 (QA #57)
 var leave_warning: Label
@@ -90,8 +86,6 @@ func _ready() -> void:
 	use_basic.pressed.connect(func() -> void: world.store.send_select("basic"))
 	use_peach.pressed.connect(func() -> void: world.store.send_select("peach"))
 	pause_menu.hide()
-	help_label.text = HELP_TEXT
-	help_label.hide()
 	for i in WashStation.TOOL_NAMES.size():
 		var button := Button.new()
 		button.text = WashStation.TOOL_NAMES[i]
@@ -183,6 +177,11 @@ func _ready() -> void:
 	move_child(patience_layer, 0)
 	overlay.patience_layer = patience_layer
 	patience_layer.draw.connect(overlay.draw_patience)
+	guide = GuideOverlay.new()
+	guide.name = "Guide"
+	guide.theme = get_tree().root.theme
+	add_child(guide)
+	move_child(guide, overlay.get_index())
 	_build_volume_rows()
 	_build_settle_panel()
 	_build_morning_panel()
@@ -203,7 +202,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event.is_action_pressed("pause_menu"):
 		_set_paused(not pause_menu.visible)
 	elif event.is_action_pressed("toggle_help"):
-		help_label.visible = not help_label.visible
+		guide.help_visible = not guide.help_visible
 
 
 func _set_paused(paused: bool) -> void:
