@@ -162,6 +162,10 @@ var _dog_scene: PackedScene
 # 호스트만
 var _dose_paid := false
 var _host_dose_kind := ""
+## 이번 손님 벌점 횟수·합계 (같은 실수로 끝없이 깎지 않게, 이슈 #56)
+var _pour_head_penalties := 0
+var _ticklish_penalty := 0.0
+var _ticklish_last_ms := -100000
 var _owner_timer := 0.0
 
 
@@ -227,6 +231,9 @@ func take_guest(guest: int, variant: int, from_queue: bool, kind := Vector2i.ZER
 		return
 	var data: Resource = Tuning.data
 	guest_kind = kind
+	_pour_head_penalties = 0
+	_ticklish_penalty = 0.0
+	_ticklish_last_ms = -100000
 	var pattern := _rng.randi_range(0, maxi(data.mask_patterns, 1) - 1)
 	var peach := 1 if _rng.randf() < data.proto_peach_request_chance else 0
 	dog_info = Vector4i(guest, pattern, _rng.randi() & 0x3fffffff, peach)
@@ -1145,10 +1152,17 @@ func _report_event(serial: int, kind: String) -> void:
 		"eye":
 			mood += data.mood_eye_hit * (data.proto_timid_eye_mult if personality() == Personality.TIMID else 1.0)
 		"pour_head":
-			if is_cat():
+			# 고양이: 처음 실수는 확실히, 같은 실수로 끝없이 깎지 않음 (반응은 계속)
+			if is_cat() and _pour_head_penalties < data.proto_cat_pour_head_max:
+				_pour_head_penalties += 1
 				mood += data.proto_cat_pour_head_mood
 		"tickle_belly":
-			mood += data.proto_ticklish_mood
+			var now := Time.get_ticks_msec()
+			if now - _ticklish_last_ms >= int(data.proto_ticklish_cooldown * 1000.0) and _ticklish_penalty < data.proto_ticklish_mood_cap:
+				_ticklish_last_ms = now
+				var penalty := minf(-data.proto_ticklish_mood, data.proto_ticklish_mood_cap - _ticklish_penalty)
+				_ticklish_penalty += penalty
+				mood -= penalty
 		"tickle", "shake", "cheek":
 			pass
 		_:
