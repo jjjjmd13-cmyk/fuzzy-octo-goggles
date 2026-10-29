@@ -1,0 +1,129 @@
+#### 통과해야 하는 프로젝트
+== 임포트: /tmp/tmp.LJ7ys2lxFZ/pass
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+first_scan_filesystem: begin: Project initialization steps: 5
+	first_scan_filesystem: step 0: Scanning file structure...
+	first_scan_filesystem: step 1: Loading global class names...
+	first_scan_filesystem: step 2: Verifying GDExtensions...
+	first_scan_filesystem: step 3: Creating autoload scripts...
+	first_scan_filesystem: step 4: Initializing plugins...
+	first_scan_filesystem: step 5: Starting file scan...
+first_scan_filesystem: end
+update_scripts_classes: begin: Registering global classes... steps: 3
+	update_scripts_classes: step 0: 
+	update_scripts_classes: step 1: 
+	update_scripts_classes: step 2: 
+update_scripts_classes: end
+update_script_paths_documentation: begin: Updating scripts documentation steps: 3
+	update_script_paths_documentation: step 0: qa_test.gd
+	update_script_paths_documentation: step 1: test_roles.gd
+	update_script_paths_documentation: step 2: test_sample.gd
+update_script_paths_documentation: end
+loading_editor_layout: begin: Loading editor steps: 5
+	loading_editor_layout: step 0: Loading editor layout...
+loading_editor_layout: end
+== 실행: tests/test_roles.tscn
+   역할: host guest guest (포트 25000)
+   통과
+== 실행: tests/test_sample.tscn
+   통과
+
+결과: 통과 2 / 실패 0
+같은 역할 로그 분리: 통과
+
+#### 실패해야 하는 프로젝트
+== 임포트: /tmp/tmp.LJ7ys2lxFZ/fail
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+first_scan_filesystem: begin: Project initialization steps: 5
+	first_scan_filesystem: step 0: Scanning file structure...
+	first_scan_filesystem: step 1: Loading global class names...
+	first_scan_filesystem: step 2: Verifying GDExtensions...
+	first_scan_filesystem: step 3: Creating autoload scripts...
+	first_scan_filesystem: step 4: Initializing plugins...
+	first_scan_filesystem: step 5: Starting file scan...
+first_scan_filesystem: end
+update_scripts_classes: begin: Registering global classes... steps: 7
+	update_scripts_classes: step 0: 
+	update_scripts_classes: step 1: 
+	update_scripts_classes: step 2: 
+	update_scripts_classes: step 3: 
+	update_scripts_classes: step 4: 
+	update_scripts_classes: step 5: 
+	update_scripts_classes: step 6: 
+update_scripts_classes: end
+update_script_paths_documentation: begin: Updating scripts documentation steps: 7
+	update_script_paths_documentation: step 0: qa_test.gd
+	update_script_paths_documentation: step 1: test_check_fails.gd
+	update_script_paths_documentation: step 2: test_hangs.gd
+	update_script_paths_documentation: step 3: test_no_mark.gd
+	update_script_paths_documentation: step 4: test_roles_no_ready.gd
+	update_script_paths_documentation: step 5: test_script_error.gd
+	update_script_paths_documentation: step 6: test_time_limit_in_run_test.gd
+update_script_paths_documentation: end
+loading_editor_layout: begin: Loading editor steps: 5
+	loading_editor_layout: step 0: Loading editor layout...
+loading_editor_layout: end
+== 실행: tests/test_check_fails.tscn
+[예상된 실패] tests/test_check_fails.tscn 실패: 종료 코드 1
+   --- tests_test_check_fails.tscn.log
+   | Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+   | 
+   | QA_TEST_FAIL: 일부러 틀린 덧셈 (기대: 3, 실제: 2)
+   | QA_TEST_FAIL: 실패 1개
+== 실행: tests/test_hangs.tscn
+[예상된 실패] tests/test_hangs.tscn 실패: 시간 초과 (20초)
+   --- tests_test_hangs.tscn.log
+   | Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+   | 
+== 실행: tests/test_no_mark.tscn
+[예상된 실패] tests/test_no_mark.tscn 실패: 성공 문자열 QA_TEST_PASS 없음
+   --- tests_test_no_mark.tscn.log
+   | Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+   | 
+== 실행: tests/test_roles_no_ready.tscn
+   역할: host guest (포트 25000)
+[예상된 실패] tests/test_roles_no_ready.tscn 실패: host: 준비 문자열 QA_TEST_READY 없음 (10초)
+   --- tests_test_roles_no_ready.tscn.0.host.log
+   | Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+   | 
+== 실행: tests/test_script_error.tscn
+[예상된 실패] tests/test_script_error.tscn 실패: 오류 출력 있음
+   --- tests_test_script_error.tscn.log
+   | Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+   | 
+   | SCRIPT ERROR: Cannot call method 'queue_free' on a null value.
+   |           at: run_test (res://tests/test_script_error.gd:7)
+   | QA_TEST_PASS
+== 실행: tests/test_time_limit_in_run_test.tscn
+[예상된 실패] tests/test_time_limit_in_run_test.tscn 실패: 종료 코드 1
+   --- tests_test_time_limit_in_run_test.tscn.log
+   | Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+   | 
+   | QA_TEST_FAIL: 시간 초과 (2.0초)
+   | QA_TEST_FAIL: 실패 1개
+   | WARNING: ObjectDB instances leaked at exit (run with --verbose for details).
+   |      at: cleanup (core/object/object.cpp:2378)
+
+결과: 통과 0 / 실패 6
+  실패: tests/test_check_fails.tscn (종료 코드 1)
+  실패: tests/test_hangs.tscn (시간 초과 (20초))
+  실패: tests/test_no_mark.tscn (성공 문자열 QA_TEST_PASS 없음)
+  실패: tests/test_roles_no_ready.tscn (host: 준비 문자열 QA_TEST_READY 없음 (10초))
+  실패: tests/test_script_error.tscn (오류 출력 있음)
+  실패: tests/test_time_limit_in_run_test.tscn (종료 코드 1)
+
+#### 문법 오류는 임포트에서 실패
+잡아냄
+
+#### Godot 4.4.1 GLTF 썸네일 오류 필터 (tools/filter_godot_441_import.py): 그 두 줄만 지우는지
+   알려진 버그 (지움): 통과
+   GLB 가 아닌 파일 (남김): 통과
+   GLB 의 다른 오류 (남김): 통과
+   다른 Godot 버전 (남김): 통과
+   뒤에 다른 오류가 이어짐 (남김): 통과
+
+#### project.godot 없는 폴더는 건너뜀
+
+자체 검사 통과

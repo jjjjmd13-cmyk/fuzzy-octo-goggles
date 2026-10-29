@@ -3,13 +3,16 @@ extends Control
 ## - 1일차 첫 손님에서만: 단계가 바뀌면 그 단계 손동작 그림 1장 (움직이는 그림 + 한 줄)
 ## - 첫 정산 뒤: 컴퓨터 자리(쇼핑)로 가라는 화살표 (한 번 가면 사라짐)
 ## - F1: 조작 그림 한 장 (마우스 · 휠 · 키)
-## 그림은 임시 도형. assets/ui/hint_<단계>.png · help_controls.png 가 있으면 그 그림을 쓴다.
+## 손동작 PNG + 기존 도구 아이콘으로 움직이는 시범. 그림이 빠지면 도형 시범은 유지한다.
 
 const WashStation := preload("res://scripts/sim/wash_station.gd")
 const UiArt := preload("res://scripts/game/ui_art.gd")
 ## 손동작 그림이 떠 있는 시간 (s)
 const GESTURE_TIME := 4.5
 const HINT_ART := ["hint_wet", "hint_squeeze", "hint_scrub", "hint_rinse", "hint_towel", "hint_dry"]
+const TOOL_ART := ["tool_shower", "tool_bottle", "tool_hand", "tool_bucket", "tool_towel", "tool_dryer"]
+const STAGE_NAMES := ["적시기", "샴푸 짜기", "문지르기", "헹구기", "수건", "드라이어"]
+const MOTION_PERIOD := 1.6
 const CAPTIONS := ["누른 채 몸 위를 쓸어요", "병을 누르고 있다가 떼요", "동그라미를 그려요!", "위에서 아래로 쭉 끌어요", "여러 번 꾹꾹 눌러요", "휠로 거리를 맞춰요"]
 const INK := Color(0.15, 0.17, 0.22)
 const PAPER := Color(1, 0.98, 0.92, 0.95)
@@ -27,6 +30,8 @@ var help_visible := false
 var _seen_stage := -1
 var _seen_guest := -1
 var _t := 0.0
+## 각 단계가 시작할 때 0으로: 병을 떼는 순간이나 원의 중간부터 시작하지 않는다.
+var _gesture_t := 0.0
 
 @onready var hud: CanvasLayer = get_parent()
 
@@ -50,6 +55,8 @@ func _process(delta: float) -> void:
 		_seen_stage = station.stage
 		gesture_stage = station.stage
 		gesture_left = GESTURE_TIME
+		_gesture_t = 0.0
+	_gesture_t += delta
 	gesture_left = maxf(gesture_left - delta, 0.0)
 	if gesture_left <= 0.0 or not station.is_washing():
 		gesture_stage = -1
@@ -75,27 +82,49 @@ func _draw() -> void:
 
 ## 손동작 그림 카드: 위에 움직이는 그림, 아래 한 줄
 func _draw_gesture(stage: int, center: Vector2) -> void:
+	if stage < 0 or stage >= HINT_ART.size():
+		return
 	var fade := clampf(gesture_left / 0.4, 0.0, 1.0)
-	var rect := Rect2(center - Vector2(150, 70), Vector2(300, 140))
-	draw_rect(rect, Color(PAPER, PAPER.a * fade))
-	draw_rect(rect, Color(INK, fade), false, 3.0)
-	var picture := UiArt.texture(HINT_ART[stage])
-	var art := center + Vector2(0, -14)
-	if picture != null:
-		draw_texture_rect(picture, Rect2(art - Vector2(48, 48), Vector2(96, 96)), false, Color(1, 1, 1, fade))
-	else:
-		_draw_motion(stage, art, fade)
+	var rect := Rect2(center - Vector2(210, 76), Vector2(420, 176))
+	var panel := StyleBoxFlat.new()
+	panel.bg_color = Color(PAPER, PAPER.a * fade)
+	panel.border_color = Color(INK, fade)
+	panel.set_border_width_all(2)
+	panel.set_corner_radius_all(14)
+	draw_style_box(panel, rect)
 	var font := get_theme_default_font()
+	# 완성된 도구 그림은 다시 그리지 않고 같은 텍스처를 쓴다.
+	var tool := UiArt.texture(TOOL_ART[stage])
+	if tool != null:
+		_draw_fitted(tool, Rect2(rect.position + Vector2(14, 8), Vector2(28, 28)), fade)
+	draw_string(font, rect.position + Vector2(50, 28), "%d/6  %s" % [stage + 1, STAGE_NAMES[stage]], HORIZONTAL_ALIGNMENT_LEFT, -1, 19, Color(INK, fade))
+	var picture := UiArt.texture(HINT_ART[stage])
+	var art := center + Vector2(-102, 8)
+	if picture != null:
+		_draw_fitted(picture, Rect2(art - Vector2(54, 54), Vector2(108, 108)), fade)
+		draw_line(center + Vector2(-10, -32), center + Vector2(-10, 49), Color(INK, 0.12 * fade), 1.0)
+	# PNG 유무와 독립: 입력 방법을 항상 움직이는 그림으로 보여 준다.
+	_draw_motion(stage, center + Vector2(88 if picture != null else 0, 8), fade)
 	var text: String = CAPTIONS[stage]
 	var size := font.get_string_size(text, HORIZONTAL_ALIGNMENT_LEFT, -1, 22)
-	draw_string(font, Vector2(center.x - size.x / 2.0, rect.end.y - 14), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(INK, fade))
+	draw_string(font, Vector2(center.x - size.x / 2.0, rect.end.y - 17), text, HORIZONTAL_ALIGNMENT_LEFT, -1, 22, Color(INK, fade))
+	# 남은 시간 표시. 4.5초 뒤 닫히는 조건은 그대로다.
+	draw_line(rect.position + Vector2(14, rect.size.y - 6), rect.position + Vector2(14 + (rect.size.x - 28) * clampf(gesture_left / GESTURE_TIME, 0, 1), rect.size.y - 6), Color(ACCENT, fade), 3.0)
+
+
+## 길쭉한 기존 도구 아이콘도 가로세로 비율을 유지한다.
+func _draw_fitted(texture: Texture2D, box: Rect2, fade: float) -> void:
+	var size := texture.get_size()
+	var fit := minf(box.size.x / size.x, box.size.y / size.y)
+	var scaled := size * fit
+	draw_texture_rect(texture, Rect2(box.get_center() - scaled / 2.0, scaled), false, Color(1, 1, 1, fade))
 
 
 ## 단계별 움직이는 손동작 (도형)
 func _draw_motion(stage: int, at: Vector2, fade: float) -> void:
 	var ink := Color(INK, fade)
 	var accent := Color(ACCENT, fade)
-	var phase := fmod(_t, 1.6) / 1.6
+	var phase := fmod(_gesture_t, MOTION_PERIOD) / MOTION_PERIOD
 	match stage:
 		WashStation.Stage.WET:
 			# 누른 채 지그재그로 쓸기
@@ -105,44 +134,51 @@ func _draw_motion(stage: int, at: Vector2, fade: float) -> void:
 			draw_polyline(points, Color(ink, 0.4 * fade), 3.0)
 			var seg := phase * 4.0
 			var i := mini(int(seg), 3)
-			_draw_pointer(points[i].lerp(points[i + 1], seg - i), true, fade)
+			_draw_pointer(points[i].lerp(points[i + 1], seg - i), true, fade, stage)
 		WashStation.Stage.SQUEEZE:
 			# 누르는 동안 막대가 차오름 → 뗌
 			var fill := clampf(phase / 0.7, 0.0, 1.0)
 			draw_rect(Rect2(at + Vector2(-70, 20), Vector2(140, 12)), Color(ink, 0.25 * fade))
 			draw_rect(Rect2(at + Vector2(-70, 20), Vector2(140 * fill, 12)), accent)
-			_draw_pointer(at + Vector2(0, -12), phase < 0.7, fade)
+			_draw_pointer(at + Vector2(0, -12 - (12.0 if phase >= 0.7 else 0.0)), phase < 0.7, fade, stage)
 		WashStation.Stage.SCRUB:
 			# 동그라미
 			draw_arc(at, 30, 0, TAU, 32, Color(ink, 0.4 * fade), 3.0)
 			draw_colored_polygon(PackedVector2Array([at + Vector2(30, -6), at + Vector2(38, 6), at + Vector2(22, 6)]), Color(ink, 0.4 * fade))
-			_draw_pointer(at + Vector2.from_angle(phase * TAU) * 30.0, true, fade)
+			_draw_pointer(at + Vector2.from_angle(phase * TAU) * 30.0, true, fade, stage)
 		WashStation.Stage.RINSE:
 			# 위 → 아래로 끌기
 			draw_line(at + Vector2(0, -36), at + Vector2(0, 30), Color(ink, 0.4 * fade), 3.0)
 			draw_colored_polygon(PackedVector2Array([at + Vector2(-9, 26), at + Vector2(9, 26), at + Vector2(0, 40)]), Color(ink, 0.4 * fade))
-			_draw_pointer(at + Vector2(0, lerpf(-36, 30, phase)), true, fade)
+			_draw_pointer(at + Vector2(0, lerpf(-36, 30, phase)), true, fade, stage)
 		WashStation.Stage.TOWEL:
 			# 꾹꾹 연타: 누를 때마다 둥근 물결
-			var tap := fmod(_t, 0.4) / 0.4
+			var tap := fmod(_gesture_t, 0.4) / 0.4
 			draw_arc(at, 10 + tap * 26, 0, TAU, 24, Color(accent, (1.0 - tap) * fade), 3.0)
-			_draw_pointer(at, tap < 0.4, fade)
+			_draw_pointer(at + Vector2(0, -8.0 if tap >= 0.4 else 0.0), tap < 0.4, fade, stage)
 		_:
 			# 휠: 마우스 그림의 휠이 위·아래로
 			draw_rect(Rect2(at + Vector2(-22, -36), Vector2(44, 66)), Color(1, 1, 1, fade))
 			draw_rect(Rect2(at + Vector2(-22, -36), Vector2(44, 66)), ink, false, 3.0)
-			var wheel_y := sin(_t * 5.0) * 6.0
+			var wheel_y := sin(_gesture_t * TAU / MOTION_PERIOD) * 6.0
 			draw_rect(Rect2(at + Vector2(-5, -26 + wheel_y), Vector2(10, 16)), accent)
-			draw_string(get_theme_default_font(), at + Vector2(30, -8), "▲ 멀리", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, ink)
-			draw_string(get_theme_default_font(), at + Vector2(30, 16), "▼ 가까이", HORIZONTAL_ALIGNMENT_LEFT, -1, 16, ink)
+			# 실제 wheel_step: 위로 = 가까이, 아래로 = 멀리.
+			draw_string(get_theme_default_font(), at + Vector2(30, -8), "▲ 가까이", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, ink)
+			draw_string(get_theme_default_font(), at + Vector2(30, 16), "▼ 멀리", HORIZONTAL_ALIGNMENT_LEFT, -1, 15, ink)
 
 
 ## 손가락 커서 (pressed 면 누른 표시)
-func _draw_pointer(at: Vector2, pressed: bool, fade: float) -> void:
-	draw_circle(at, 11.0, Color(1, 0.85, 0.7, fade))
-	draw_arc(at, 11.0, 0, TAU, 20, Color(INK, fade), 2.0)
+func _draw_pointer(at: Vector2, pressed: bool, fade: float, stage: int) -> void:
 	if pressed:
-		draw_arc(at, 17.0, 0, TAU, 20, Color(ACCENT, fade), 3.0)
+		draw_circle(at, 20.0, Color(ACCENT, 0.16 * fade))
+		draw_arc(at, 20.0, 0, TAU, 20, Color(ACCENT, fade), 2.0)
+	var picture := UiArt.texture(TOOL_ART[stage])
+	if picture != null:
+		var extent := 30.0 if pressed else 36.0
+		_draw_fitted(picture, Rect2(at - Vector2.ONE * extent / 2.0, Vector2.ONE * extent), fade)
+	else:
+		draw_circle(at, 11.0, Color(1, 0.85, 0.7, fade))
+		draw_arc(at, 11.0, 0, TAU, 20, Color(INK, fade), 2.0)
 
 
 ## 정산 화면의 "컴퓨터에서 쇼핑하기" (없으면 오른쪽 위 자리 버튼)를 가리키는 깜빡이는 화살표
