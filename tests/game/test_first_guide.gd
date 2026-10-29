@@ -5,6 +5,7 @@ extends "res://tests/qa_test.gd"
 
 const WashStation := preload("res://scripts/sim/wash_station.gd")
 const SaveGame := preload("res://scripts/core/save_game.gd")
+const UiArt := preload("res://scripts/game/ui_art.gd")
 
 var world: Node
 var station: WashStation
@@ -39,9 +40,22 @@ func run_test() -> void:
 	await _wait(station.is_washing, 3.0)
 	await _frames(2)
 	check_eq(guide.gesture_stage, WashStation.Stage.WET, "첫 단계 손동작 그림 (적시기)")
-	station._advance()
-	await _frames(2)
-	check_eq(guide.gesture_stage, WashStation.Stage.SQUEEZE, "단계가 바뀌면 그 단계 그림 (샴푸 짜기)")
+	check_eq(guide.GESTURE_TIME, 4.5, "안내는 기존의 4.5초")
+	# 실제 시간으로 닫힘/같은 단계에서 재등장하지 않음 검사.
+	await get_tree().create_timer(4.6).timeout
+	check_eq(guide.gesture_stage, -1, "4.5초 뒤 안내 종료")
+	await _frames(3)
+	check_eq(guide.gesture_stage, -1, "같은 단계에서 안내가 되살아나지 않음")
+	for stage in range(6):
+		if stage > 0:
+			station._advance()
+			await _frames(2)
+			check_eq(guide.gesture_stage, stage, "단계가 바뀌면 새 그림 %d" % stage)
+			check(guide._gesture_t < 0.5, "단계마다 시범이 처음부터 시작 %d" % stage)
+		var picture: Texture2D = UiArt.texture(guide.HINT_ART[stage])
+		if check(picture != null, "정식 손동작 PNG 로드 %d" % stage):
+			check_eq(picture.get_size(), Vector2(512, 512), "512px PNG %d" % stage)
+		check(UiArt.texture(guide.TOOL_ART[stage]) != null, "기존 도구 그림 재사용 %d" % stage)
 	check(guide.CAPTIONS[WashStation.Stage.SQUEEZE].length() <= 20, "글자는 한 줄")
 	await _finish_guest()
 	# --- 둘째 손님: 그림 없음
@@ -67,6 +81,11 @@ func run_test() -> void:
 	world.day.send_next_day()
 	await _frames(3)
 	check(not guide.shop_arrow, "다음 날 아침이 되면 쇼핑 화살표 끔")
+	world.day.send_open()
+	await _wait(station.is_washing, 4.0)
+	await _frames(2)
+	check(world.day.day == 2 and station.is_washing() and world.day.guest_number_today(station.dog_number()) == 1, "2일차 첫 손님이 실제로 목욕 중")
+	check_eq(guide.gesture_stage, -1, "2일차 첫 손님도 안내 없음")
 	check_eq(world.hud.status_label.text, "F1: 조작 그림", "1인용: 플레이어 수 줄 없음")
 
 	# --- F1 조작 그림
