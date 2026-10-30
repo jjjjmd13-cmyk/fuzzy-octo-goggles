@@ -1,0 +1,37 @@
+{
+  "shower": {
+    "triangles": 2108,
+    "textures": 0,
+    "units": "metres",
+    "up": "+Y",
+    "forward": "-Z"
+  },
+  "shampoo": {
+    "triangles": 1392,
+    "textures": 0,
+    "units": "metres",
+    "up": "+Y",
+    "forward": "-Z"
+  },
+  "towel": {
+    "triangles": 876,
+    "textures": 0,
+    "units": "metres",
+    "up": "+Y",
+    "forward": "-Z"
+  },
+  "dryer": {
+    "triangles": 1224,
+    "textures": 0,
+    "units": "metres",
+    "up": "+Y",
+    "forward": "-Z"
+  },
+  "hands": {
+    "triangles": 2392,
+    "textures": 0,
+    "units": "metres",
+    "up": "+Y",
+    "forward": "-Z"
+  }
+}
