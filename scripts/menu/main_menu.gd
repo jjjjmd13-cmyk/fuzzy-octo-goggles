@@ -23,6 +23,8 @@ const UiArt := preload("res://scripts/game/ui_art.gd")
 static var _autostart_done := false
 
 ## 이어하기 (저장이 있을 때만 보임)
+const V4_SCENE := "res://scenes/v4/fp_shop.tscn"
+
 var continue_button: Button
 
 
@@ -39,6 +41,14 @@ func _ready() -> void:
 	solo_button.get_parent().add_child(continue_button)
 	solo_button.get_parent().move_child(continue_button, solo_button.get_index())
 	continue_button.pressed.connect(_continue)
+	# V4 방향 시제품 (1인칭으로 걸어다니며 손에 든 도구로 씻기). V3 게임은 그대로 두고 새 씬으로 연다.
+	var v4_button := Button.new()
+	v4_button.name = "V4Button"
+	v4_button.text = "V4 시제품 (1인칭)"
+	v4_button.custom_minimum_size = Vector2(0, 52)
+	solo_button.get_parent().add_child(v4_button)
+	solo_button.get_parent().move_child(v4_button, solo_button.get_index() + 1)
+	v4_button.pressed.connect(func() -> void: get_tree().change_scene_to_file(V4_SCENE))
 	continue_button.visible = SaveGame.can_continue()
 	if continue_button.visible:
 		continue_button.text = "이어하기 (%d일차 아침부터)" % SaveGame.continue_day()
