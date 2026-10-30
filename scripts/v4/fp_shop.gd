@@ -20,15 +20,13 @@ const DOG_LAYER := 16
 const REACH := 2.4
 ## 강아지가 앉는 곳 (목욕통 위)
 const DOG_SPOT := Vector3(0, 0.92, -1.6)
-## 다 됐다고 보는 비율
-const DONE_AT := 0.85
-## 쓰는 동안 이만큼마다 몸 털기 (s)
-const SHAKE_EVERY := 5.0
-## 도구: 이름, 칠하는 채널, 붓 반경(m), 초당 양, 색
+## 도구: 이름, 칠하는 채널, 색. 붓 크기·속도·완료 기준은 Tuning.data.v4_* (GDD_V4)
+## 단계마다 처음 닿을 때 반응 하나: 적시기 다리 찰랑 / 거품 펄쩍 / 헹구기 몸 털기+물 튐 / 말리기 다리 찰랑
+const STAGE_REACTION := {"wet": "wiggle_legs", "scrub": "jump", "rinse": "shake", "dry": "wiggle_legs"}
 const TOOLS := {
-	"shower": {"name": "샤워기", "channel": "wet", "radius": 0.3, "rate": 2.5, "color": Color(0.7, 0.8, 0.9)},
-	"shampoo": {"name": "샴푸", "channel": "scrub", "radius": 0.26, "rate": 2.2, "color": Color(1.0, 0.6, 0.75)},
-	"towel": {"name": "수건", "channel": "dry", "radius": 0.28, "rate": 2.0, "color": Color(0.95, 0.95, 0.85)},
+	"shower": {"name": "샤워기", "channel": "wet", "color": Color(0.7, 0.8, 0.9)},
+	"shampoo": {"name": "샴푸", "channel": "scrub", "color": Color(1.0, 0.6, 0.75)},
+	"towel": {"name": "수건", "channel": "dry", "color": Color(0.95, 0.95, 0.85)},
 }
 
 ## false 면 마우스·키 입력을 읽지 않는다 (테스트가 using 등을 직접 넣음)
@@ -50,7 +48,7 @@ var _pickups := {}
 var _held_view: Node3D
 var _rng := RandomNumberGenerator.new()
 var _foam_carry := 0.0
-var _contact := 0.0
+var _reacted := {}
 var _towel_tick := 0.0
 var _hint := ""
 var _hint_left := 0.0
@@ -81,7 +79,7 @@ func new_dog() -> void:
 	dog.show_mask()
 	dog.react("set_mood", 1)
 	done = false
-	_contact = 0.0
+	_reacted.clear()
 	_show_hint("강아지를 씻겨 주세요: 샤워기 → 샴푸 → 샤워기로 헹구기 → 수건", 4.0)
 
 
@@ -118,15 +116,18 @@ func drop() -> void:
 func use_tool_at(point: Vector3, delta: float) -> void:
 	if held.is_empty() or done:
 		return
-	var tool: Dictionary = TOOLS[held]
 	var dir := dog.dir_of(point)
 	var wet_here := dog.mask.value_at("wet", dir)
+	var radius := brush_radius(point)
+	var stage := ""
 	match held:
 		"shower":
-			dog.paint("wet", point, tool.radius, tool.rate * delta)
+			stage = "wet"
+			dog.paint("wet", point, radius, Tuning.data.v4_rate_shower * delta)
 			if dog.foam_count() > 0:
-				dog.rinse_foam(point, tool.radius, delta * 40.0)
-				dog.paint("rinse", point, tool.radius, tool.rate * delta)
+				stage = "rinse"
+				dog.rinse_foam(point, radius, delta * 40.0)
+				dog.paint("rinse", point, radius, Tuning.data.v4_rate_shower * delta)
 			dog.spray(point)
 			dog.show_stream(_tool_tip(), point, Color(0.55, 0.85, 1.0))
 			sfx.set_loop("shower", 0.8)
@@ -134,36 +135,45 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 			if wet_here < 0.3:
 				_show_hint("먼저 샤워기로 물을 뿌려요", 1.5)
 				return
-			dog.paint("scrub", point, tool.radius, tool.rate * delta)
+			stage = "scrub"
+			dog.paint("scrub", point, radius, Tuning.data.v4_rate_shampoo * delta)
 			_foam_carry += delta * 10.0
 			while _foam_carry >= 1.0:
 				_foam_carry -= 1.0
 				dog.add_foam(point, 1, _rng, 1.4)
 			sfx.set_loop("scrub", 0.8)
 		"towel":
+			stage = "dry"
 			if dog.foam_count() > 0 and dog.mask.value_at("scrub", dir) > 0.5:
 				_show_hint("거품을 샤워기로 먼저 헹궈요", 1.5)
-			dog.paint("dry", point, tool.radius, tool.rate * delta * clampf(wet_here + 0.2, 0.0, 1.0))
+			dog.paint("dry", point, radius, Tuning.data.v4_rate_towel * delta * clampf(wet_here + 0.2, 0.0, 1.0))
 			_towel_tick -= delta
 			if _towel_tick <= 0.0:
 				_towel_tick = 0.35
 				dog.press_effect(point)
 				sfx.play("towel")
-	# 반응: 씻는 동안 꼬리 흔들기, 가끔 몸 털기
+	# 반응: 씻는 동안 꼬리 흔들기 + 도구를 바라봄, 단계마다 처음 한 번 몸짓 (칠하기는 멈추지 않음)
 	dog.react("set_mood", 2)
 	if dog.model.has_method("watch"): dog.model.watch(point, true)
-	_contact += delta
-	if _contact >= SHAKE_EVERY:
-		_contact = 0.0
-		dog.react("shake")
-		dog.splash()
-		sfx.play("shake")
+	if not _reacted.has(stage):
+		_reacted[stage] = true
+		dog.react(STAGE_REACTION[stage])
+		if stage == "rinse":
+			dog.splash()
+			sfx.play("shake")
 	_check_done()
+
+
+## 붓 반경(m): 몸 겉면의 v4_brush_share 만큼 덮는 원 (구 위 원뿔 각 → 몸 중심에서의 거리)
+func brush_radius(point: Vector3) -> float:
+	var angle := acos(1.0 - 2.0 * Tuning.data.v4_brush_share)
+	return angle * maxf(dog.dir_of(point).length(), 0.05)
 
 
 func _check_done() -> void:
 	var p := progress()
-	if p.wet >= DONE_AT and p.scrub >= DONE_AT and p.dry >= DONE_AT and p.foam == 0:
+	var done_at: float = Tuning.data.v4_done_ratio
+	if p.wet >= done_at and p.scrub >= done_at and p.dry >= done_at and p.foam == 0:
 		done = true
 		_stop_effects()
 		dog.react("set_mood", 2)
@@ -428,7 +438,7 @@ func _draw_hud() -> void:
 	for i in rows.size():
 		var y := 30.0 + i * 34.0
 		_hud.draw_rect(Rect2(20, y, 220, 22), Color(0, 0, 0, 0.5))
-		_hud.draw_rect(Rect2(20, y, 220 * clampf(rows[i][1] / DONE_AT, 0.0, 1.0), 22), Color(0.5, 0.85, 0.55) if rows[i][1] >= DONE_AT else Color(0.45, 0.7, 1.0))
+		_hud.draw_rect(Rect2(20, y, 220 * clampf(rows[i][1] / Tuning.data.v4_done_ratio, 0.0, 1.0), 22), Color(0.5, 0.85, 0.55) if rows[i][1] >= Tuning.data.v4_done_ratio else Color(0.45, 0.7, 1.0))
 		_text(font, Vector2(250, y + 18), rows[i][0], 18, false)
 	if p.foam > 0:
 		_text(font, Vector2(20, 30 + 3 * 34 + 18), "남은 거품 %d (샤워기로 헹구기)" % p.foam, 18, false)

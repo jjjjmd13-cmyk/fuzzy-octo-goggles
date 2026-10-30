@@ -175,6 +175,17 @@ extends Resource
 ## 샴푸가 떨어져 물로만 씻으면 기분 (진행은 막히지 않음)
 @export var proto_no_shampoo_mood := -0.25
 
+
+@export_group("V4 1인칭 시제품 (GDD_V4 0.2)")
+## 단계 완료 기준: 칠한 비율 (씻는 시간 제한은 없음, 빨리 할수록 좋을 뿐)
+@export var v4_done_ratio := 0.8
+## 붓 크기: 한 번에 칠하는 몸 겉면 비율 (0.2 = 몸의 약 1/5)
+@export var v4_brush_share := 0.2
+## 도구를 대고 있는 동안 초당 칠하는 양 (붓 가운데 기준, 1 = 한 번에 다 참)
+@export var v4_rate_shower := 2.5
+@export var v4_rate_shampoo := 2.2
+@export var v4_rate_towel := 2.0
+
 ## 기분 0~1 → 얼굴 단계 0(😣) / 1(😐) / 2(😊)
 func mood_face(mood: float) -> int:
 	if mood >= 0.66:
