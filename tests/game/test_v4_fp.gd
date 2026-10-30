@@ -5,7 +5,7 @@ extends "res://tests/qa_test.gd"
 
 const SCENE := preload("res://scenes/v4/fp_shop.tscn")
 const STEP := 1.0 / 30.0
-## 도구 하나로 한 바퀴 훑는 데 이 시간(초) 안이어야 "짧고 시원하게"
+## 게임에는 씻는 시간 제한이 없다 (GDD_V4 0.2). 이건 붓이 너무 작아지지 않았는지 보는 테스트 기준일 뿐
 const TOOL_LIMIT_SEC := 25.0
 
 var shop: Node3D
@@ -67,7 +67,7 @@ func run_test() -> void:
 
 ## 도구를 집고 몸 위 점들을 차례로 훑는다. 채널이 다 차면 멈춤. 걸린 시간(초)
 func _sweep(tool_id: String, channel: String) -> float:
-	return _sweep_until(tool_id, func() -> bool: return shop.dog.mask.ratio(channel) >= shop.DONE_AT)
+	return _sweep_until(tool_id, func() -> bool: return shop.dog.mask.ratio(channel) >= Tuning.data.v4_done_ratio)
 
 
 func _sweep_until(tool_id: String, finished: Callable) -> float:
