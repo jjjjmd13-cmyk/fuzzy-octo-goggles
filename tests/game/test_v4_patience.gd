@@ -23,22 +23,22 @@ func run_test() -> void:
 	await get_tree().process_frame
 
 	check_eq(guests.get_children().filter(func(n: Node) -> bool: return n.name.begins_with("Chair")).size(), 3, "대기 의자 3개")
-	for kind in ["urgent", "normal", "endless", "relaxed"]:
+	for kind in ["hurry", "normal", "forever", "relaxed"]:
 		guests.spawn(kind)
 	check_eq(guests.guests.size(), 3, "의자가 다 차면 더 안 들어옴")
 	for g in guests.guests:
 		check(g.owner.get_node_or_null("PatienceIcon") != null, "%s 손님 머리 위 표시" % g.kind)
-	check_eq(guests.patience_of("urgent"), Tuning.data.v4_patience_urgent, "급함 참을성")
-	check_eq(guests.patience_of("endless"), -1.0, "끝까지 손님은 안 떠남")
+	check_eq(guests.patience_of("hurry"), Tuning.data.v4_patience_hurry, "급함 참을성")
+	check(guests.patience_of("forever") <= 0.0, "끝까지 손님은 안 떠남 (0)")
 
 	# 25초: 급함은 아직 있음, 깜빡이는 구간 (남은 1/6 < 1/4)·발 구르기
 	_advance(25.0)
-	check_eq(guests.guests[0].kind, "urgent", "급함 손님 25초엔 아직 기다림")
+	check_eq(guests.guests[0].kind, "hurry", "급함 손님 25초엔 아직 기다림")
 	check_eq(guests.guests[0].owner.wait_level, 2, "참을성이 거의 다 되면 발 구르기")
 	check(guests.guests[1].owner.wait_level <= 1, "보통 손님은 아직 느긋")
 	# 31초: 급함이 떠나고 뒷사람이 앞으로
 	_advance(6.0)
-	check_eq(left_kinds, ["urgent"] as Array[String], "급함 손님이 30초에 떠남")
+	check_eq(left_kinds, ["hurry"] as Array[String], "급함 손님이 30초에 떠남")
 	check_eq(guests.left_count, 1, "떠난 손님 수")
 	check_eq(guests.guests.size(), 2, "남은 대기 손님 2명")
 	check_eq(guests.guests[0].kind, "normal", "뒷사람이 앞자리로")
@@ -52,7 +52,7 @@ func run_test() -> void:
 	check(not shop.done, "다음 손님 강아지는 다시 더러움")
 	_advance(500.0)
 	check_eq(guests.guests.size(), 1, "끝까지 손님은 500초가 지나도 기다림")
-	check_eq(guests.guests[0].kind, "endless", "남은 손님은 끝까지 손님")
+	check_eq(guests.guests[0].kind, "forever", "남은 손님은 끝까지 손님")
 	check_eq(guests.left_count, 1, "목욕 중인 손님은 안 떠남")
 
 	# 다 안 씻었으면 R 로 넘어가지 않음
@@ -68,7 +68,7 @@ func run_test() -> void:
 		var kind: String = guests.roll_kind()
 		counts[kind] = counts.get(kind, 0) + 1
 	print("성격 2000번: ", counts)
-	check(counts.get("endless", 0) > 120 and counts.get("endless", 0) < 300, "끝까지 약 10%")
+	check(counts.get("forever", 0) > 120 and counts.get("forever", 0) < 300, "끝까지 약 10%")
 	check(counts.get("normal", 0) > 780, "보통이 가장 많음 (약 45%)")
 
 

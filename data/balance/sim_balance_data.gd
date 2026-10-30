@@ -186,15 +186,17 @@ extends Resource
 @export var v4_rate_shampoo := 2.2
 @export var v4_rate_towel := 2.0
 
-## 대기 손님 참을성 (s): 대기 의자에서 이만큼 기다리면 "다음에 올게요" 하고 떠남. 끝까지 손님은 안 떠남
-@export var v4_patience_urgent := 30.0
+## 대기 손님 참을성 (s, TUNING_V4 2장): 대기 의자에서 이만큼 기다리면 "다음에 올게요" 하고 떠남
+@export var v4_patience_hurry := 30.0
 @export var v4_patience_normal := 90.0
 @export var v4_patience_relaxed := 180.0
+## 끝까지 손님 (0 = 안 떠남)
+@export var v4_patience_forever := 0.0
 ## 성격 나올 비율: 급함·보통·느긋·끝까지
-@export var v4_guest_weights := PackedFloat32Array([20, 45, 25, 10])
-## 시제품을 켜자마자 오는 손님 (다른 참을성을 바로 보게, 급함 포함). 그 뒤로는 비율대로
-@export var v4_first_guests: Array[String] = ["normal", "urgent", "relaxed"]
-## 새 손님이 오는 간격 (s, 대기 의자 3개가 다 차면 안 옴)
+@export var v4_patience_mix := PackedFloat32Array([0.2, 0.45, 0.25, 0.1])
+## 시제품을 켜자마자 오는 손님 (다른 참을성을 바로 보게, 급함 포함, 개발 임시값). 그 뒤로는 비율대로
+@export var v4_first_guests: Array[String] = ["normal", "hurry", "relaxed"]
+## 새 손님이 오는 간격 (s, 대기 의자 3개가 다 차면 안 옴, 개발 임시값)
 @export var v4_guest_every := 30.0
 
 ## 기분 0~1 → 얼굴 단계 0(😣) / 1(😐) / 2(😊)

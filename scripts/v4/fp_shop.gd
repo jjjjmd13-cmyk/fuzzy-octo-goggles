@@ -99,7 +99,7 @@ func next_guest() -> void:
 	new_dog()
 	if kind.is_empty():
 		_show_hint("기다리는 손님이 없어요. 곧 와요", 2.0)
-	elif kind == "urgent":
+	elif kind == "hurry":
 		_show_hint("급한 손님을 제때 받았어요! (팁 +)", 2.5)
 	else:
 		_show_hint("%s 손님의 강아지예요" % FpGuests.KIND_NAMES[kind], 2.0)

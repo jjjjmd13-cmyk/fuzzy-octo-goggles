@@ -13,8 +13,8 @@ const OWNER_SCENE := preload("res://scenes/art/sim/owner_model.tscn")
 const CHAIR_SCENE := preload("res://scenes/art/sim/chair_model.tscn")
 const DOG_SCENE := preload("res://scenes/art/sim/dog_model.tscn")
 const FONT := preload("res://assets/fonts/pretendard/Pretendard-Bold.otf")
-const KINDS: Array[String] = ["urgent", "normal", "relaxed", "endless"]
-const KIND_NAMES := {"urgent": "급함", "normal": "보통", "relaxed": "느긋", "endless": "끝까지"}
+const KINDS: Array[String] = ["hurry", "normal", "relaxed", "forever"]
+const KIND_NAMES := {"hurry": "급함", "normal": "보통", "relaxed": "느긋", "forever": "끝까지"}
 const DOOR := Vector3(3.5, 0, 2.6)
 const SEATS: Array[Vector3] = [Vector3(3.0, 0, -1.4), Vector3(3.0, 0, -0.5), Vector3(3.0, 0, 0.4)]
 ## 목욕 중인 강아지 주인이 서서 지켜보는 곳
@@ -89,9 +89,9 @@ func spawn(kind := "") -> void:
 	_seat_all()
 
 
-## 성격 뽑기: v4_guest_weights (급함·보통·느긋·끝까지)
+## 성격 뽑기: v4_patience_mix (급함·보통·느긋·끝까지)
 func roll_kind() -> String:
-	var weights: PackedFloat32Array = Tuning.data.v4_guest_weights
+	var weights: PackedFloat32Array = Tuning.data.v4_patience_mix
 	var total := 0.0
 	for w in weights:
 		total += w
@@ -103,21 +103,15 @@ func roll_kind() -> String:
 	return "normal"
 
 
+## 성격의 참을성 (s). 0 이하 = 안 떠남 (끝까지)
 static func patience_of(kind: String) -> float:
-	match kind:
-		"urgent":
-			return Tuning.data.v4_patience_urgent
-		"normal":
-			return Tuning.data.v4_patience_normal
-		"relaxed":
-			return Tuning.data.v4_patience_relaxed
-	return -1.0
+	return float(Tuning.data.get("v4_patience_" + kind))
 
 
 ## 남은 참을성 비율 (1 = 막 옴, 0 = 떠남). 끝까지 손님은 늘 1
 func remaining(index: int) -> float:
 	var guest: Dictionary = guests[index]
-	if guest.patience < 0.0:
+	if guest.patience <= 0.0:
 		return 1.0
 	return clampf(1.0 - guest.waited / guest.patience, 0.0, 1.0)
 
@@ -221,8 +215,8 @@ func _make_icon(kind: String) -> Node3D:
 	var icon := Node3D.new()
 	icon.name = "PatienceIcon"
 	match kind:
-		"urgent", "normal":
-			var rim := Color(0.95, 0.25, 0.25) if kind == "urgent" else Color(1.0, 0.8, 0.2)
+		"hurry", "normal":
+			var rim := Color(0.95, 0.25, 0.25) if kind == "hurry" else Color(1.0, 0.8, 0.2)
 			_part(icon, _disc(0.14), Vector3.ZERO, rim)
 			_part(icon, _disc(0.11), Vector3(0, 0, 0.012), Color(1, 1, 1))
 			_part(icon, _bar(Vector3(0.016, 0.085, 0.01)), Vector3(0, 0.035, 0.024), Color(0.15, 0.15, 0.2))
@@ -237,7 +231,7 @@ func _make_icon(kind: String) -> Node3D:
 			leaf.rotation.z = -0.5
 			var stem := _part(icon, _bar(Vector3(0.015, 0.09, 0.015)), Vector3(-0.05, -0.1, 0), Color(0.25, 0.55, 0.3))
 			stem.rotation.z = -0.5
-		"endless":
+		"forever":
 			var cup := CylinderMesh.new()
 			cup.top_radius = 0.08
 			cup.bottom_radius = 0.065
