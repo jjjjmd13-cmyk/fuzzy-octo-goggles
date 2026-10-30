@@ -3,7 +3,7 @@ extends "res://tests/qa_test.gd"
 ## 표를 직접 읽어서 비교하므로, 기획팀이 표를 바꾸면 리소스도 같이 바꿔야 통과한다.
 
 ## 표 → 적어도 이만큼 ✅ 줄이 있어야 함 (표를 잘못 읽으면 0 개가 되므로)
-const TUNING_DOCS := {"res://docs/design/TUNING_V3.md": 40, "res://docs/design/TUNING_V4.md": 10}
+const TUNING_DOCS := {"res://docs/design/TUNING_V3.md": 40, "res://docs/design/TUNING_V4.md": 12}
 const BALANCE := "res://data/balance/sim_balance.tres"
 
 
@@ -47,7 +47,9 @@ func _prototype_rows(doc: String) -> Dictionary:
 		if value.begins_with("["):
 			var items := []
 			for item in value.trim_prefix("[").trim_suffix("]").split(","):
-				items.append(item.strip_edges().to_float())
+				item = item.strip_edges()
+				# 숫자가 아니면 따옴표 안 글자 (예: 성격 이름)
+				items.append(item.to_float() if item.is_valid_float() else item.trim_prefix("\"").trim_suffix("\""))
 			rows[key] = items
 		else:
 			rows[key] = value.to_float()
@@ -60,6 +62,9 @@ func _same_array(actual: Variant, expected: Array) -> bool:
 	if actual.size() != expected.size():
 		return false
 	for i in expected.size():
-		if not is_equal_approx(float(actual[i]), expected[i]):
+		if expected[i] is String:
+			if str(actual[i]) != expected[i]:
+				return false
+		elif not is_equal_approx(float(actual[i]), expected[i]):
 			return false
 	return true
