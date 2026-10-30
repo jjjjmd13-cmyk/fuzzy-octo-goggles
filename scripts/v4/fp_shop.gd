@@ -11,6 +11,7 @@ extends Node3D
 const WashDog := preload("res://scripts/sim/wash_dog.gd")
 const Sfx := preload("res://scripts/game/sfx.gd")
 const FpPlayer := preload("res://scripts/v4/fp_player.gd")
+const FpGuests := preload("res://scripts/v4/fp_guests.gd")
 const TUB_SCENE := preload("res://scenes/art/sim/tub_model.tscn")
 const MENU_SCENE := "res://scenes/menu/main_menu.tscn"
 
@@ -43,6 +44,8 @@ var done := false
 var dog: WashDog
 var player: CharacterBody3D
 var sfx: Node
+## 대기 의자 손님들 (참을성)
+var guests: FpGuests
 
 var _pickups := {}
 var _held_view: Node3D
@@ -67,6 +70,10 @@ func _ready() -> void:
 	dog.position = DOG_SPOT
 	dog.rotation.y = PI * 0.15
 	add_child(dog)
+	guests = FpGuests.new()
+	guests.name = "Guests"
+	add_child(guests)
+	guests.guest_left.connect(_on_guest_left)
 	_build_player()
 	_build_hud()
 	new_dog()
@@ -81,6 +88,26 @@ func new_dog() -> void:
 	done = false
 	_reacted.clear()
 	_show_hint("강아지를 씻겨 주세요: 샤워기 → 샴푸 → 샤워기로 헹구기 → 수건", 4.0)
+
+
+## 다 씻었으면 대기 의자 맨 앞 손님을 받는다 (지금 주인은 기뻐하며 나감)
+func next_guest() -> void:
+	if not done:
+		_show_hint("다 씻기고 나서 R: 다음 손님", 1.5)
+		return
+	var kind := guests.call_next()
+	new_dog()
+	if kind.is_empty():
+		_show_hint("기다리는 손님이 없어요. 곧 와요", 2.0)
+	elif kind == "urgent":
+		_show_hint("급한 손님을 제때 받았어요! (팁 +)", 2.5)
+	else:
+		_show_hint("%s 손님의 강아지예요" % FpGuests.KIND_NAMES[kind], 2.0)
+
+
+func _on_guest_left(kind: String) -> void:
+	_show_hint("%s 손님이 \"다음에 올게요\" 하고 떠났어요" % FpGuests.KIND_NAMES[kind], 2.5)
+	sfx.play("bell")
 
 
 ## 진행 (0~1): 물·거품(진흙)·말리기, 남은 거품 수
@@ -180,7 +207,7 @@ func _check_done() -> void:
 		dog.react("jump")
 		sfx.play("poof")
 		sfx.play("clap")
-		_show_hint("깨끗해졌어요! R: 다음 강아지", 999.0)
+		_show_hint("깨끗해졌어요! R: 다음 손님", 999.0)
 
 
 func _process(delta: float) -> void:
@@ -215,7 +242,7 @@ func _unhandled_input(event: InputEvent) -> void:
 			KEY_Q:
 				drop()
 			KEY_R:
-				new_dog()
+				next_guest()
 			KEY_ESCAPE:
 				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 				get_tree().change_scene_to_file(MENU_SCENE)
@@ -442,8 +469,9 @@ func _draw_hud() -> void:
 		_text(font, Vector2(250, y + 18), rows[i][0], 18, false)
 	if p.foam > 0:
 		_text(font, Vector2(20, 30 + 3 * 34 + 18), "남은 거품 %d (샤워기로 헹구기)" % p.foam, 18, false)
+	_text(font, Vector2(size.x - 20, 48), "기다리는 손님 %d · 씻긴 %d · 떠난 %d" % [guests.guests.size(), guests.served, guests.left_count], 20, false, true)
 	_text(font, Vector2(size.x - 20, size.y - 60), "손: %s" % (TOOLS[held].name if not held.is_empty() else "빈손"), 22, false, true)
-	_text(font, Vector2(20, size.y - 20), "WASD 걷기 · 마우스 보기 · 클릭 집기/쓰기(누르고 있기) · Q 내려놓기 · R 새 강아지 · Esc 메뉴", 16, false)
+	_text(font, Vector2(20, size.y - 20), "WASD 걷기 · 마우스 보기 · 클릭 집기/쓰기(누르고 있기) · Q 내려놓기 · R 다음 손님 · Esc 메뉴", 16, false)
 	if _hint_left > 0.0:
 		_text(font, Vector2(center.x, 120), _hint, 26, true)
 
