@@ -60,7 +60,8 @@ func run_test() -> void:
 
 	shop.drop()
 	check_eq(shop.held, "", "Q: 내려놓기")
-	check(shop._pickups["towel"].visible, "내려놓은 도구는 선반으로")
+	await get_tree().create_timer(0.4).timeout
+	check(shop._pickups["towel"].visible, "반납 손목 동작 뒤 도구는 선반으로")
 	shop.new_dog()
 	check(not shop.done and shop.progress().scrub < 0.5, "R: 새 강아지는 다시 더러움")
 

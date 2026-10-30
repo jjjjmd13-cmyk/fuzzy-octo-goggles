@@ -10,6 +10,7 @@ extends Node3D
 
 const WashDog := preload("res://scripts/sim/wash_dog.gd")
 const Sfx := preload("res://scripts/game/sfx.gd")
+const FpToolView := preload("res://scripts/v4/fp_tool_view.gd")
 const FpPlayer := preload("res://scripts/v4/fp_player.gd")
 const TUB_SCENE := preload("res://scenes/art/sim/tub_model.tscn")
 const MENU_SCENE := "res://scenes/menu/main_menu.tscn"
@@ -47,7 +48,9 @@ var player: CharacterBody3D
 var sfx: Node
 
 var _pickups := {}
-var _held_view: Node3D
+var _held_view: FpToolView
+var _returning_views: Array[FpToolView] = []
+var _glow_materials := {}
 var _rng := RandomNumberGenerator.new()
 var _foam_carry := 0.0
 var _contact := 0.0
@@ -91,14 +94,18 @@ func progress() -> Dictionary:
 
 
 func pick(tool_id: String) -> void:
-	if held == tool_id:
+	if not TOOLS.has(tool_id) or held == tool_id:
 		return
 	drop()
+	# 빠르게 Q→같은 도구를 집어도 이전 반납 콜백이 선반을 다시 보이지 않게 한다.
+	for view in _returning_views.duplicate():
+		if view.tool_id == tool_id:
+			_returning_views.erase(view)
+			view.queue_free()
 	held = tool_id
-	(_pickups[tool_id] as Node3D).visible = false
-	_held_view = _make_tool_mesh(tool_id)
-	_held_view.position = Vector3(0.26, -0.3, -0.55)
-	_held_view.rotation = Vector3(0.3, -0.4, 0)
+	_set_pickup_available(tool_id, false)
+	_held_view = FpToolView.new()
+	_held_view.setup(tool_id, FpToolView.RETURN_SECONDS if not _returning_views.is_empty() else 0.0)
 	player.camera.add_child(_held_view)
 	sfx.play("press")
 
@@ -106,12 +113,33 @@ func pick(tool_id: String) -> void:
 func drop() -> void:
 	if held.is_empty():
 		return
-	(_pickups[held] as Node3D).visible = true
+	var previous := held
 	held = ""
 	if _held_view != null:
-		_held_view.queue_free()
+		_held_view.begin_return()
+		_returning_views.append(_held_view)
 		_held_view = null
+	else:
+		_set_pickup_available(previous, true)
 	_stop_effects()
+
+
+func _set_pickup_available(tool_id: String, available: bool) -> void:
+	var pickup := _pickups[tool_id] as StaticBody3D
+	pickup.visible = available
+	# 숨긴 StaticBody 도 광선을 가로막으므로 선반에 없는 동안 충돌도 끈다.
+	pickup.collision_layer = (1 << (PICK_LAYER - 1)) if available else 0
+
+
+func _update_tool_views(delta: float, active: bool) -> void:
+	if _held_view != null:
+		_held_view.update_motion(delta, active)
+	for view in _returning_views.duplicate():
+		if view.update_motion(delta, false):
+			if held != view.tool_id:
+				_set_pickup_available(view.tool_id, true)
+			_returning_views.erase(view)
+			view.queue_free()
 
 
 ## 든 도구를 강아지 위 point(월드)에 delta 초 동안 쓴다 (마우스를 누르고 있는 동안 매 프레임)
@@ -180,10 +208,10 @@ func _process(delta: float) -> void:
 	_update_aim()
 	for tool_id in _pickups:
 		_set_glow(_pickups[tool_id], tool_id == hovered)
-	if using and aim_point != null and not held.is_empty():
+	var active := using and aim_point != null and not held.is_empty() and not done
+	_update_tool_views(delta, active)
+	if active:
 		use_tool_at(aim_point, delta)
-		if _held_view != null:
-			_held_view.position.y = -0.3 + sin(Time.get_ticks_msec() * 0.03) * 0.01
 	else:
 		_stop_effects()
 		if not done:
@@ -230,7 +258,7 @@ func _update_aim() -> void:
 
 func _tool_tip() -> Vector3:
 	if _held_view != null:
-		return _held_view.to_global(Vector3(0, 0.12, -0.12))
+		return _held_view.tip_position()
 	return player.camera.global_position
 
 
@@ -299,8 +327,11 @@ func _build_shelf() -> void:
 		shape.position.y = 0.17
 		pickup.add_child(shape)
 		var view := _make_tool_mesh(tool_id)
-		view.position.y = 0.08
+		# GLB 는 쥐는 곳이 원점: 각 메시 최저점을 선반 위에 맞춘다.
+		view.position.y = {"shower": 0.130, "shampoo": 0.074, "towel": 0.002}[tool_id]
+		view.rotation.y = PI / 2.0 # -Z 앞면을 선반 바깥(+X)으로
 		pickup.add_child(view)
+		_cache_glow_materials(tool_id, view)
 		add_child(pickup)
 		_pickups[tool_id] = pickup
 		z += 0.6
@@ -326,50 +357,37 @@ func _build_player() -> void:
 	add_child(player)
 
 
-## 임시 도구 모형 (진짜 그림이 오면 교체: docs/art/ART_SLOTS.md 의 도구 3D)
+## 자산 경로와 손목 연출은 FpToolView 한 곳에서 교체한다.
 func _make_tool_mesh(tool_id: String) -> Node3D:
-	var root := Node3D.new()
-	var color: Color = TOOLS[tool_id].color
-	match tool_id:
-		"shower":
-			_mesh(root, _cylinder(0.025, 0.25), Vector3(0, 0.05, 0.05), Vector3(-0.9, 0, 0), color)
-			_mesh(root, _cylinder(0.06, 0.04), Vector3(0, 0.12, -0.1), Vector3(-0.4, 0, 0), Color(0.85, 0.9, 0.95))
-		"shampoo":
-			_mesh(root, _cylinder(0.05, 0.18), Vector3(0, 0.09, 0), Vector3.ZERO, color)
-			_mesh(root, _cylinder(0.02, 0.05), Vector3(0, 0.2, 0), Vector3.ZERO, Color(1, 1, 1))
-		"towel":
-			var box := BoxMesh.new()
-			box.size = Vector3(0.22, 0.06, 0.16)
-			_mesh(root, box, Vector3(0, 0.03, 0), Vector3.ZERO, color)
-	return root
+	return FpToolView.make_model(tool_id)
 
 
-func _mesh(parent: Node3D, mesh: Mesh, pos: Vector3, rot: Vector3, color: Color) -> void:
-	var instance := MeshInstance3D.new()
-	instance.mesh = mesh
-	instance.position = pos
-	instance.rotation = rot
-	var material := StandardMaterial3D.new()
-	material.albedo_color = color
-	instance.material_override = material
-	parent.add_child(instance)
+## GLB 는 material_override 가 아니라 여러 surface 재질을 사용한다.
+## 인스턴스마다 복제하여 선반 강조가 손에 든 도구/원본 자산에 번지지 않게 한다.
+func _cache_glow_materials(tool_id: String, view: Node3D) -> void:
+	var materials: Array[StandardMaterial3D] = []
+	var meshes: Array[Node] = view.find_children("*", "MeshInstance3D", true, false)
+	if view is MeshInstance3D:
+		meshes.append(view)
+	for node in meshes:
+		var mesh := node as MeshInstance3D
+		for surface in mesh.mesh.get_surface_count():
+			var original := mesh.get_active_material(surface) as StandardMaterial3D
+			if original == null:
+				continue
+			var material := original.duplicate() as StandardMaterial3D
+			mesh.set_surface_override_material(surface, material)
+			material.emission = Color(1.0, 0.9, 0.5)
+			material.emission_energy_multiplier = 0.6
+			materials.append(material)
+	_glow_materials[tool_id] = materials
 
 
-func _cylinder(radius: float, height: float) -> CylinderMesh:
-	var mesh := CylinderMesh.new()
-	mesh.top_radius = radius
-	mesh.bottom_radius = radius
-	mesh.height = height
-	return mesh
-
-
-## 바라보는 도구는 밝게 빛남
+## 바라보는 선반 도구의 원래 파스텔 색·라벨을 보존하며 강조한다.
 func _set_glow(pickup: Node3D, on: bool) -> void:
-	for child in pickup.find_children("*", "MeshInstance3D", true, false):
-		var material := (child as MeshInstance3D).material_override as StandardMaterial3D
-		material.emission_enabled = on
-		material.emission = Color(1, 0.9, 0.5)
-		material.emission_energy_multiplier = 0.6
+	var tool_id: String = pickup.get_meta("tool")
+	for material in _glow_materials[tool_id]:
+		material.emission_enabled = on and pickup.visible
 
 
 func _box(box_name: String, pos: Vector3, size: Vector3, color: Color, visible_mesh := true) -> void:
