@@ -1,0 +1,468 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+first_scan_filesystem: begin: Project initialization steps: 5
+	first_scan_filesystem: step 0: Scanning file structure...
+	first_scan_filesystem: step 1: Loading global class names...
+	first_scan_filesystem: step 2: Verifying GDExtensions...
+	first_scan_filesystem: step 3: Creating autoload scripts...
+	first_scan_filesystem: step 4: Initializing plugins...
+	first_scan_filesystem: step 5: Starting file scan...
+first_scan_filesystem: end
+update_scripts_classes: begin: Registering global classes... steps: 64
+	update_scripts_classes: step 0:
+	update_scripts_classes: step 1:
+	update_scripts_classes: step 2:
+	update_scripts_classes: step 3:
+	update_scripts_classes: step 4:
+	update_scripts_classes: step 5:
+	update_scripts_classes: step 6:
+	update_scripts_classes: step 7:
+	update_scripts_classes: step 8:
+	update_scripts_classes: step 9:
+	update_scripts_classes: step 10:
+	update_scripts_classes: step 11:
+	update_scripts_classes: step 12:
+	update_scripts_classes: step 13:
+	update_scripts_classes: step 14:
+	update_scripts_classes: step 15:
+	update_scripts_classes: step 16:
+	update_scripts_classes: step 17:
+	update_scripts_classes: step 18:
+	update_scripts_classes: step 19:
+	update_scripts_classes: step 20:
+	update_scripts_classes: step 21:
+	update_scripts_classes: step 22:
+	update_scripts_classes: step 23:
+	update_scripts_classes: step 24:
+	update_scripts_classes: step 25:
+	update_scripts_classes: step 26:
+	update_scripts_classes: step 27:
+	update_scripts_classes: step 28:
+	update_scripts_classes: step 29:
+	update_scripts_classes: step 30:
+	update_scripts_classes: step 31:
+	update_scripts_classes: step 32:
+	update_scripts_classes: step 33:
+	update_scripts_classes: step 34:
+	update_scripts_classes: step 35:
+	update_scripts_classes: step 36:
+	update_scripts_classes: step 37:
+	update_scripts_classes: step 38:
+	update_scripts_classes: step 39:
+	update_scripts_classes: step 40:
+	update_scripts_classes: step 41:
+	update_scripts_classes: step 42:
+	update_scripts_classes: step 43:
+	update_scripts_classes: step 44:
+	update_scripts_classes: step 45:
+	update_scripts_classes: step 46:
+	update_scripts_classes: step 47:
+	update_scripts_classes: step 48:
+	update_scripts_classes: step 49:
+	update_scripts_classes: step 50:
+	update_scripts_classes: step 51:
+	update_scripts_classes: step 52:
+	update_scripts_classes: step 53:
+	update_scripts_classes: step 54:
+	update_scripts_classes: step 55:
+	update_scripts_classes: step 56:
+	update_scripts_classes: step 57:
+	update_scripts_classes: step 58:
+	update_scripts_classes: step 59:
+	update_scripts_classes: step 60:
+	update_scripts_classes: step 61:
+	update_scripts_classes: step 62:
+	update_scripts_classes: step 63:
+update_scripts_classes: end
+_update_scan_actions: begin: Scanning actions... steps: 59
+	_update_scan_actions: step 0: Pretendard-Bold.otf
+	_update_scan_actions: step 1: Pretendard-Medium.otf
+	_update_scan_actions: step 2: Pretendard-Regular.otf
+	_update_scan_actions: step 3: Pretendard-SemiBold.otf
+	_update_scan_actions: step 4: chair.glb
+	_update_scan_actions: step 5: dog.glb
+	_update_scan_actions: step 6: dog_clean_pigment.png
+	_update_scan_actions: step 7: hands.glb
+	_update_scan_actions: step 8: owner.glb
+	_update_scan_actions: step 9: floor.glb
+	_update_scan_actions: step 10: wall.glb
+	_update_scan_actions: step 11: dryer.glb
+	_update_scan_actions: step 12: shampoo.glb
+	_update_scan_actions: step 13: shower.glb
+	_update_scan_actions: step 14: towel.glb
+	_update_scan_actions: step 15: tub.glb
+	_update_scan_actions: step 16: turntable.glb
+	_update_scan_actions: step 17: bgm_shop.wav
+	_update_scan_actions: step 18: settle_jingle.wav
+	_update_scan_actions: step 19: bark.wav
+	_update_scan_actions: step 20: bell.wav
+	_update_scan_actions: step 21: bubble_pop.wav
+	_update_scan_actions: step 22: clap.wav
+	_update_scan_actions: step 23: coin.wav
+	_update_scan_actions: step 24: ding.wav
+	_update_scan_actions: step 25: drip.wav
+	_update_scan_actions: step 26: dryer.wav
+	_update_scan_actions: step 27: huff.wav
+	_update_scan_actions: step 28: poof.wav
+	_update_scan_actions: step 29: pour.wav
+	_update_scan_actions: step 30: press.wav
+	_update_scan_actions: step 31: scrub.wav
+	_update_scan_actions: step 32: shake.wav
+	_update_scan_actions: step 33: shower.wav
+	_update_scan_actions: step 34: sigh.wav
+	_update_scan_actions: step 35: splat.wav
+	_update_scan_actions: step 36: squeak.wav
+	_update_scan_actions: step 37: squirt.wav
+	_update_scan_actions: step 38: towel.wav
+	_update_scan_actions: step 39: whine.wav
+	_update_scan_actions: step 40: yelp.wav
+	_update_scan_actions: step 41: bath_backdrop.png
+	_update_scan_actions: step 42: bubble.png
+	_update_scan_actions: step 43: card_vertical.png
+	_update_scan_actions: step 44: check.png
+	_update_scan_actions: step 45: coin.png
+	_update_scan_actions: step 46: face_happy.png
+	_update_scan_actions: step 47: face_neutral.png
+	_update_scan_actions: step 48: face_unhappy.png
+	_update_scan_actions: step 49: icon_bath.png
+	_update_scan_actions: step 50: icon_drop.png
+	_update_scan_actions: step 51: icon_peach.png
+	_update_scan_actions: step 52: sign.png
+	_update_scan_actions: step 53: tool_bottle.png
+	_update_scan_actions: step 54: tool_bucket.png
+	_update_scan_actions: step 55: tool_dryer.png
+	_update_scan_actions: step 56: tool_hand.png
+	_update_scan_actions: step 57: tool_shower.png
+	_update_scan_actions: step 58: tool_towel.png
+_update_scan_actions: end
+reimport: begin: (Re)Importing Assets steps: 59
+	reimport: step 0: Preparing files to reimport...
+	reimport: step 1: Preparing files to reimport...
+	reimport: step 2: Preparing files to reimport...
+	reimport: step 3: Preparing files to reimport...
+	reimport: step 4: Preparing files to reimport...
+	reimport: step 5: Preparing files to reimport...
+	reimport: step 6: Preparing files to reimport...
+	reimport: step 7: Preparing files to reimport...
+	reimport: step 8: Preparing files to reimport...
+	reimport: step 9: Preparing files to reimport...
+	reimport: step 10: Preparing files to reimport...
+	reimport: step 11: Preparing files to reimport...
+	reimport: step 12: Preparing files to reimport...
+	reimport: step 13: Preparing files to reimport...
+	reimport: step 14: Preparing files to reimport...
+	reimport: step 15: Preparing files to reimport...
+	reimport: step 16: Preparing files to reimport...
+	reimport: step 17: Preparing files to reimport...
+	reimport: step 18: Preparing files to reimport...
+	reimport: step 19: Preparing files to reimport...
+	reimport: step 20: Preparing files to reimport...
+	reimport: step 21: Preparing files to reimport...
+	reimport: step 22: Preparing files to reimport...
+	reimport: step 23: Preparing files to reimport...
+	reimport: step 24: Preparing files to reimport...
+	reimport: step 25: Preparing files to reimport...
+	reimport: step 26: Preparing files to reimport...
+	reimport: step 27: Preparing files to reimport...
+	reimport: step 28: Preparing files to reimport...
+	reimport: step 29: Preparing files to reimport...
+	reimport: step 30: Preparing files to reimport...
+	reimport: step 31: Preparing files to reimport...
+	reimport: step 32: Preparing files to reimport...
+	reimport: step 33: Preparing files to reimport...
+	reimport: step 34: Preparing files to reimport...
+	reimport: step 35: Preparing files to reimport...
+	reimport: step 36: Preparing files to reimport...
+	reimport: step 37: Preparing files to reimport...
+	reimport: step 38: Preparing files to reimport...
+	reimport: step 39: Preparing files to reimport...
+	reimport: step 40: Preparing files to reimport...
+	reimport: step 41: Preparing files to reimport...
+	reimport: step 42: Preparing files to reimport...
+	reimport: step 43: Preparing files to reimport...
+	reimport: step 44: Preparing files to reimport...
+	reimport: step 45: Preparing files to reimport...
+	reimport: step 46: Preparing files to reimport...
+	reimport: step 47: Preparing files to reimport...
+	reimport: step 48: Preparing files to reimport...
+	reimport: step 49: Preparing files to reimport...
+	reimport: step 50: Preparing files to reimport...
+	reimport: step 51: Preparing files to reimport...
+	reimport: step 52: Preparing files to reimport...
+	reimport: step 53: Preparing files to reimport...
+	reimport: step 54: Preparing files to reimport...
+	reimport: step 55: Preparing files to reimport...
+	reimport: step 56: Preparing files to reimport...
+	reimport: step 57: Preparing files to reimport...
+	reimport: step 58: Preparing files to reimport...
+	reimport: step 0: Executing pre-reimport operations...
+preload_reimporting_scene: begin: Preparing scenes for reload steps: 1
+	preload_reimporting_scene: step 0: Analyzing scene [empty]
+	preload_reimporting_scene: step 1: Preparation done.
+preload_reimporting_scene: end
+	reimport: step 0: Pretendard-Bold.otf
+	reimport: step 1: Pretendard-Medium.otf
+	reimport: step 2: Pretendard-Regular.otf
+	reimport: step 3: Pretendard-SemiBold.otf
+	reimport: step 4: Pretendard-Bold.otf
+	reimport: step 5: Pretendard-Medium.otf
+	reimport: step 6: Pretendard-Regular.otf
+	reimport: step 7: Pretendard-SemiBold.otf
+	reimport: step 8: bath_backdrop.png
+	reimport: step 9: bubble.png
+	reimport: step 10: card_vertical.png
+	reimport: step 11: check.png
+	reimport: step 12: coin.png
+	reimport: step 13: face_happy.png
+	reimport: step 14: face_neutral.png
+	reimport: step 15: face_unhappy.png
+	reimport: step 16: icon_bath.png
+	reimport: step 17: icon_drop.png
+	reimport: step 18: icon_peach.png
+	reimport: step 19: sign.png
+	reimport: step 20: tool_bottle.png
+	reimport: step 21: tool_bucket.png
+	reimport: step 22: tool_dryer.png
+	reimport: step 23: Pretendard-Bold.otf
+	reimport: step 29: card_vertical.png
+	reimport: step 30: check.png
+	reimport: step 31: coin.png
+	reimport: step 33: face_neutral.png
+	reimport: step 35: icon_bath.png
+	reimport: step 36: icon_drop.png
+	reimport: step 37: icon_peach.png
+	reimport: step 38: sign.png
+	reimport: step 39: tool_bottle.png
+	reimport: step 40: tool_bucket.png
+	reimport: step 41: tool_dryer.png
+	reimport: step 42: tool_hand.png
+	reimport: step 43: tool_shower.png
+	reimport: step 44: tool_towel.png
+	reimport: step 45: dog_clean_pigment.png
+	reimport: step 46: bgm_shop.wav
+	reimport: step 47: chair.glb
+import: begin: Import Scene steps: 104
+	import: step 0: Importing Scene...
+	import: step 2: Running Custom Script...
+	import: step 104: Saving...
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (servers/rendering/dummy/storage/texture_storage.h:107)
+import: end
+	reimport: step 48: dog.glb
+import: begin: Import Scene steps: 104
+	import: step 0: Importing Scene...
+	import: step 2: Running Custom Script...
+	import: step 104: Saving...
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (servers/rendering/dummy/storage/texture_storage.h:107)
+import: end
+	reimport: step 49: hands.glb
+import: begin: Import Scene steps: 104
+	import: step 0: Importing Scene...
+	import: step 2: Running Custom Script...
+	import: step 104: Saving...
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (servers/rendering/dummy/storage/texture_storage.h:107)
+import: end
+	reimport: step 50: owner.glb
+import: begin: Import Scene steps: 104
+	import: step 0: Importing Scene...
+	import: step 2: Running Custom Script...
+	import: step 104: Saving...
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (servers/rendering/dummy/storage/texture_storage.h:107)
+import: end
+	reimport: step 51: floor.glb
+import: begin: Import Scene steps: 104
+	import: step 0: Importing Scene...
+	import: step 2: Running Custom Script...
+	import: step 104: Saving...
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (servers/rendering/dummy/storage/texture_storage.h:107)
+import: end
+	reimport: step 52: wall.glb
+import: begin: Import Scene steps: 104
+	import: step 0: Importing Scene...
+	import: step 2: Running Custom Script...
+	import: step 104: Saving...
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (servers/rendering/dummy/storage/texture_storage.h:107)
+import: end
+	reimport: step 53: dryer.glb
+import: begin: Import Scene steps: 104
+	import: step 0: Importing Scene...
+	import: step 2: Running Custom Script...
+	import: step 104: Saving...
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (servers/rendering/dummy/storage/texture_storage.h:107)
+import: end
+	reimport: step 54: shampoo.glb
+import: begin: Import Scene steps: 104
+	import: step 0: Importing Scene...
+	import: step 2: Running Custom Script...
+	import: step 104: Saving...
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (servers/rendering/dummy/storage/texture_storage.h:107)
+import: end
+	reimport: step 55: shower.glb
+import: begin: Import Scene steps: 104
+	import: step 0: Importing Scene...
+	import: step 2: Running Custom Script...
+	import: step 104: Saving...
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (servers/rendering/dummy/storage/texture_storage.h:107)
+import: end
+	reimport: step 56: towel.glb
+import: begin: Import Scene steps: 104
+	import: step 0: Importing Scene...
+	import: step 2: Running Custom Script...
+	import: step 104: Saving...
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (servers/rendering/dummy/storage/texture_storage.h:107)
+import: end
+	reimport: step 57: tub.glb
+import: begin: Import Scene steps: 104
+	import: step 0: Importing Scene...
+	import: step 2: Running Custom Script...
+	import: step 104: Saving...
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (servers/rendering/dummy/storage/texture_storage.h:107)
+import: end
+	reimport: step 58: turntable.glb
+import: begin: Import Scene steps: 104
+	import: step 0: Importing Scene...
+	import: step 2: Running Custom Script...
+	import: step 104: Saving...
+ERROR: Parameter "t" is null.
+   at: texture_2d_get (servers/rendering/dummy/storage/texture_storage.h:107)
+import: end
+	reimport: step 59: Finalizing Asset Import...
+reimport: end
+update_script_paths_documentation: begin: Updating scripts documentation steps: 64
+	update_script_paths_documentation: step 0: sim_balance_data.gd
+	update_script_paths_documentation: step 1: save_game.gd
+	update_script_paths_documentation: step 2: seeded_rng.gd
+	update_script_paths_documentation: step 3: settings.gd
+	update_script_paths_documentation: step 4: tuning.gd
+	update_script_paths_documentation: step 5: ui_theme.gd
+	update_script_paths_documentation: step 6: guide_overlay.gd
+	update_script_paths_documentation: step 7: hud.gd
+	update_script_paths_documentation: step 8: hud_overlay.gd
+	update_script_paths_documentation: step 9: music.gd
+	update_script_paths_documentation: step 10: sfx.gd
+	update_script_paths_documentation: step 11: ui_art.gd
+	update_script_paths_documentation: step 12: world.gd
+	update_script_paths_documentation: step 13: room_builder.gd
+	update_script_paths_documentation: step 14: main_menu.gd
+	update_script_paths_documentation: step 15: enet_transport.gd
+	update_script_paths_documentation: step 16: offline_transport.gd
+	update_script_paths_documentation: step 17: steam_transport.gd
+	update_script_paths_documentation: step 18: transport.gd
+	update_script_paths_documentation: step 19: network_manager.gd
+	update_script_paths_documentation: step 20: steam_service.gd
+	update_script_paths_documentation: step 21: player.gd
+	update_script_paths_documentation: step 22: player_model.gd
+	update_script_paths_documentation: step 23: paint_mask.gd
+	update_script_paths_documentation: step 24: shop_day.gd
+	update_script_paths_documentation: step 25: sim_dog_model.gd
+	update_script_paths_documentation: step 26: sim_owner_model.gd
+	update_script_paths_documentation: step 27: store.gd
+	update_script_paths_documentation: step 28: toy_cat_model.gd
+	update_script_paths_documentation: step 29: toy_dog_model.gd
+	update_script_paths_documentation: step 30: toy_owner_model.gd
+	update_script_paths_documentation: step 31: waiting_area.gd
+	update_script_paths_documentation: step 32: wash_dog.gd
+	update_script_paths_documentation: step 33: wash_station.gd
+	update_script_paths_documentation: step 34: fp_player.gd
+	update_script_paths_documentation: step 35: fp_shop.gd
+	update_script_paths_documentation: step 36: test_audio.gd
+	update_script_paths_documentation: step 37: test_day_loop.gd
+	update_script_paths_documentation: step 38: test_first_guide.gd
+	update_script_paths_documentation: step 39: test_guest_kinds.gd
+	update_script_paths_documentation: step 40: test_no_shampoo_days.gd
+	update_script_paths_documentation: step 41: test_retail_art.gd
+	update_script_paths_documentation: step 42: test_save_continue.gd
+	update_script_paths_documentation: step 43: test_settle_shop.gd
+	update_script_paths_documentation: step 44: test_v4_fp.gd
+	update_script_paths_documentation: step 45: test_wash_flow.gd
+	update_script_paths_documentation: step 46: test_wash_pace.gd
+	update_script_paths_documentation: step 47: wash_hands.gd
+	update_script_paths_documentation: step 48: enet_client_peer.gd
+	update_script_paths_documentation: step 49: enet_host_peer.gd
+	update_script_paths_documentation: step 50: test_client_leaves.gd
+	update_script_paths_documentation: step 51: test_connect_timeout.gd
+	update_script_paths_documentation: step 52: test_enet_two_peers.gd
+	update_script_paths_documentation: step 53: test_host_crash.gd
+	update_script_paths_documentation: step 54: test_room_full.gd
+	update_script_paths_documentation: step 55: test_station_sync.gd
+	update_script_paths_documentation: step 56: test_three_players.gd
+	update_script_paths_documentation: step 57: qa_test.gd
+	update_script_paths_documentation: step 58: test_balance.gd
+	update_script_paths_documentation: step 59: test_offline_session.gd
+	update_script_paths_documentation: step 60: test_paint_mask.gd
+	update_script_paths_documentation: step 61: test_seeded_rng.gd
+	update_script_paths_documentation: step 62: capture_game.gd
+	update_script_paths_documentation: step 63: verify_godot.gd
+update_script_paths_documentation: end
+update_scene_groups: begin: Updating Scene Groups steps: 54
+	update_scene_groups: step 0: cat_model.tscn
+	update_scene_groups: step 1: chair_model.tscn
+	update_scene_groups: step 2: dog_model.tscn
+	update_scene_groups: step 3: owner_model.tscn
+	update_scene_groups: step 4: plant_model.tscn
+	update_scene_groups: step 5: tub_model.tscn
+	update_scene_groups: step 6: turntable_model.tscn
+	update_scene_groups: step 7: ceiling_tile.tscn
+	update_scene_groups: step 8: floor_tile.tscn
+	update_scene_groups: step 9: wall_tile.tscn
+	update_scene_groups: step 10: player_model.tscn
+	update_scene_groups: step 11: hud.tscn
+	update_scene_groups: step 12: world.tscn
+	update_scene_groups: step 13: main_menu.tscn
+	update_scene_groups: step 14: player.tscn
+	update_scene_groups: step 15: wash_station.tscn
+	update_scene_groups: step 16: fp_shop.tscn
+	update_scene_groups: step 17: test_audio.tscn
+	update_scene_groups: step 18: test_day_loop.tscn
+	update_scene_groups: step 19: test_first_guide.tscn
+	update_scene_groups: step 20: test_guest_kinds.tscn
+	update_scene_groups: step 21: test_no_shampoo_days.tscn
+	update_scene_groups: step 22: test_retail_art.tscn
+	update_scene_groups: step 23: test_save_continue.tscn
+	update_scene_groups: step 24: test_settle_shop.tscn
+	update_scene_groups: step 25: test_v4_fp.tscn
+	update_scene_groups: step 26: test_wash_flow.tscn
+	update_scene_groups: step 27: test_wash_pace.tscn
+	update_scene_groups: step 28: enet_client_peer.tscn
+	update_scene_groups: step 29: enet_host_peer.tscn
+	update_scene_groups: step 30: test_client_leaves.tscn
+	update_scene_groups: step 31: test_connect_timeout.tscn
+	update_scene_groups: step 32: test_enet_two_peers.tscn
+	update_scene_groups: step 33: test_host_crash.tscn
+	update_scene_groups: step 34: test_room_full.tscn
+	update_scene_groups: step 35: test_station_sync.tscn
+	update_scene_groups: step 36: test_three_players.tscn
+	update_scene_groups: step 37: test_balance.tscn
+	update_scene_groups: step 38: test_offline_session.tscn
+	update_scene_groups: step 39: test_paint_mask.tscn
+	update_scene_groups: step 40: test_seeded_rng.tscn
+	update_scene_groups: step 41: capture_game.tscn
+	update_scene_groups: step 42: chair.glb
+	update_scene_groups: step 43: dog.glb
+	update_scene_groups: step 44: hands.glb
+	update_scene_groups: step 45: owner.glb
+	update_scene_groups: step 46: floor.glb
+	update_scene_groups: step 47: wall.glb
+	update_scene_groups: step 48: dryer.glb
+	update_scene_groups: step 49: shampoo.glb
+	update_scene_groups: step 50: shower.glb
+	update_scene_groups: step 51: towel.glb
+	update_scene_groups: step 52: tub.glb
+	update_scene_groups: step 53: turntable.glb
+update_scene_groups: end
+reimport: begin: (Re)Importing Assets steps: 59
+	reimport: step 0: Executing post-reimport operations...
+reimport: end
+loading_editor_layout: begin: Loading editor steps: 5
+	loading_editor_layout: step 0: Loading editor layout...
+loading_editor_layout: end
