@@ -1,0 +1,66 @@
+== 임포트: /workspace/scratch/3f7bc487c226/fuzzy-octo-goggles
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+first_scan_filesystem: begin: Project initialization steps: 5
+	first_scan_filesystem: step 0: Scanning file structure...
+	first_scan_filesystem: step 1: Loading global class names...
+	first_scan_filesystem: step 2: Verifying GDExtensions...
+	first_scan_filesystem: step 3: Creating autoload scripts...
+	first_scan_filesystem: step 4: Initializing plugins...
+	first_scan_filesystem: step 5: Starting file scan...
+first_scan_filesystem: end
+loading_editor_layout: begin: Loading editor steps: 5
+	loading_editor_layout: step 0: Loading editor layout...
+loading_editor_layout: end
+== 실행: tests/game/test_audio.tscn
+   통과
+== 실행: tests/game/test_day_loop.tscn
+   통과
+== 실행: tests/game/test_first_guide.tscn
+   통과
+== 실행: tests/game/test_guest_kinds.tscn
+   통과
+== 실행: tests/game/test_no_shampoo_days.tscn
+   통과
+== 실행: tests/game/test_retail_art.tscn
+   통과
+== 실행: tests/game/test_save_continue.tscn
+   통과
+== 실행: tests/game/test_settle_shop.tscn
+   통과
+== 실행: tests/game/test_v4_fp.tscn
+   통과
+== 실행: tests/game/test_v4_fp_art.tscn
+   통과
+== 실행: tests/game/test_wash_flow.tscn
+   통과
+== 실행: tests/game/test_wash_pace.tscn
+   통과
+== 실행: tests/net/test_client_leaves.tscn
+   역할: server client (포트 25000)
+   통과
+== 실행: tests/net/test_connect_timeout.tscn
+   통과
+== 실행: tests/net/test_enet_two_peers.tscn
+   통과
+== 실행: tests/net/test_host_crash.tscn
+   통과
+== 실행: tests/net/test_room_full.tscn
+   역할: server client client client client (포트 25010)
+   통과
+== 실행: tests/net/test_station_sync.tscn
+   역할: server client (포트 25020)
+   통과
+== 실행: tests/net/test_three_players.tscn
+   역할: server client client (포트 25030)
+   통과
+== 실행: tests/test_balance.tscn
+   통과
+== 실행: tests/test_offline_session.tscn
+   통과
+== 실행: tests/test_paint_mask.tscn
+   통과
+== 실행: tests/test_seeded_rng.tscn
+   통과
+
+결과: 통과 23 / 실패 0
