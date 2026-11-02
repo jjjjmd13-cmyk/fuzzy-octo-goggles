@@ -19,6 +19,9 @@ func run_test() -> void:
 	add_child(shop)
 	for i in 3:
 		await get_tree().physics_frame
+	# 진흙 무늬·거품 자리를 매번 같게 (흉내 손이 도는 점과 맞물려 걸리는 시간이 들쭉날쭉하지 않게)
+	shop._rng.seed = 11
+	shop.new_dog()
 
 	# 조준: 선반의 샤워기를 바라보면 hovered 가 된다
 	var pickup: Node3D = shop._pickups["shower"]
@@ -54,17 +57,22 @@ func run_test() -> void:
 	var t_scrub := _sweep("shampoo", "scrub")
 	_check_stage(2, "거품 끝", "shower")
 	check(shop.dog.foam_count() > 0, "샴푸하면 거품이 생김")
-	# 헹구다가 거품이 조금 남으면 그 자리에 둥근 표시
-	# 람다는 바깥 지역 변수를 값으로 잡으므로 배열에 담음
-	var marks_seen := [0]
+	# 헹구다가 거품이 몇 개 안 남으면 그 거품이 반짝 (고리 표시는 없음). 람다는 바깥 변수를 값으로 잡으므로 배열에 담음
+	var seen := {"sparkle": 0, "wrong": 0}
 	var t_rinse := _sweep_until("shower", func() -> bool:
 		shop._update_leftovers()
-		marks_seen[0] = maxi(marks_seen[0], shop.foam_marks_visible())
-		return shop.dog.foam_count() == 0)
-	check(marks_seen[0] > 0, "남은 거품 자리에 둥근 표시 (최대 %d 개)" % marks_seen[0])
+		var foam: int = shop.dog.foam_count()
+		if shop.foam_sparkle != (foam > 0 and foam <= shop.FOAM_SPARKLE_BELOW):
+			seen.wrong += 1
+		if shop.foam_sparkle:
+			seen.sparkle += 1
+		return foam == 0)
+	check_eq(seen.wrong, 0, "남은 거품이 %d 개 이하일 때만 반짝" % shop.FOAM_SPARKLE_BELOW)
+	check(seen.sparkle > 0, "헹굼 막바지에 남은 거품이 반짝 (%d 번)" % seen.sparkle)
 	_check_stage(3, "헹굼 끝", "towel")
 	shop._update_leftovers()
-	check_eq(shop.foam_marks_visible(), 0, "다 헹구면 표시가 사라짐")
+	check(not shop.foam_sparkle, "다 헹구면 반짝임 끝")
+	check(shop.find_children("FoamMark*", "", true, false).is_empty(), "남은 거품 고리 표시는 없음")
 	var t_dry := _sweep("towel", "dry")
 	_check_stage(4, "말리기 끝", "")
 	print("V4 한 마리: 물 %.1f / 샴푸 %.1f / 헹굼 %.1f / 수건 %.1f 초" % [t_wet, t_scrub, t_rinse, t_dry])
