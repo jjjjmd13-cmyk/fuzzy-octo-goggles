@@ -8,6 +8,7 @@ extends Node3D
 ## 주인·의자·안은 강아지는 V3 교체 씬을 그대로 쓴다. 위치는 모두 방(부모) 기준.
 
 signal guest_left(kind: String)
+signal guest_arrived
 
 const OWNER_SCENE := preload("res://scenes/art/sim/owner_model.tscn")
 const CHAIR_SCENE := preload("res://scenes/art/sim/chair_model.tscn")
@@ -86,6 +87,7 @@ func spawn(kind := "") -> void:
 	var icon := _make_icon(kind)
 	owner.add_child(icon)
 	guests.append({"kind": kind, "patience": patience_of(kind), "waited": 0.0, "owner": owner, "icon": icon})
+	guest_arrived.emit()
 	_seat_all()
 
 

@@ -28,6 +28,8 @@ var materials: Array[ShaderMaterial] = []
 ## 0 = 젖음/보통, 1 = 다 말라 뽀송
 var fluff := 0.0
 var foam_color := FOAM_WHITE
+## 거품이 스스로 빛나는 정도 (0 = 보통 재질). V4 는 남은 거품이 눈에 확 띄게 조금 켠다
+var foam_glow := 0.0
 
 ## 거품 공: 모형 기준 위치와 크기 (0 이 되면 사라짐)
 var _foam_pos := PackedVector3Array()
@@ -142,6 +144,10 @@ func setup(resolution: int, pattern: int, seed_value: int) -> void:
 	var foam_material := StandardMaterial3D.new()
 	foam_material.vertex_color_use_as_albedo = true
 	foam_material.roughness = 0.4
+	if foam_glow > 0.0:
+		foam_material.emission_enabled = true
+		foam_material.emission = Color(1, 1, 1)
+		foam_material.emission_energy_multiplier = foam_glow
 	ball.material = foam_material
 	_foam_mesh.multimesh.mesh = ball
 	model.add_child(_foam_mesh)
@@ -291,6 +297,14 @@ func show_drop_count(count: int) -> void:
 
 func foam_count() -> int:
 	return _foam_pos.size()
+
+
+## 남은 거품 공들의 월드 위치
+func foam_world_positions() -> PackedVector3Array:
+	var out := PackedVector3Array()
+	for local in _foam_pos:
+		out.append(model.to_global(local))
+	return out
 
 
 func clear_foam() -> void:

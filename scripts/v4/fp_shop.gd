@@ -24,6 +24,25 @@ const REACH := 2.4
 const DOG_SPOT := Vector3(0, 0.92, -1.6)
 ## 도구: 이름, 칠하는 채널, 색. 붓 크기·속도·완료 기준은 Tuning.data.v4_* (GDD_V4)
 ## 단계마다 처음 닿을 때 반응 하나: 적시기 다리 찰랑 / 거품 펄쩍 / 헹구기 몸 털기+물 튐 / 말리기 다리 찰랑
+## 단계 차례 (사람 대표 피드백: 단계가 끝난 순간을 분명하게). 끝나면 소리 + 반짝 + 가운데 글자,
+## 다음에 쓸 도구가 선반에서 살짝 빛난다. tool = 그 단계에 쓰는 도구
+const STAGES: Array[Dictionary] = [
+	{"id": "wet", "tool": "shower", "sound": "ding", "text": "적시기 끝! 샴푸로 거품 내요"},
+	{"id": "scrub", "tool": "shampoo", "sound": "bubble_pop", "text": "거품 끝! 샤워기로 헹궈요"},
+	{"id": "rinse", "tool": "shower", "sound": "squeak", "text": "뽀득! 헹굼 끝! 수건으로 닦아요"},
+	{"id": "dry", "tool": "towel", "sound": "poof", "text": "말리기 끝! 깨끗해졌어요"},
+]
+## 거품 공 크기 배수 (크고 하얗게), 스스로 빛나는 정도
+const FOAM_SIZE := 2.4
+const FOAM_GLOW := 0.45
+## 헹구기: 물줄기 둘레의 거품만 (붓 반경 × 이 값 × 1.5), 거품 공이 0.15초쯤 대면 녹음.
+## 예전엔 한 번 대면 몸 전체 거품이 사라져서 다 헹궜는지 알기 어려웠음 (사람 대표 피드백)
+const RINSE_REACH := 0.7
+const RINSE_SPEED := 14.0
+## 헹구기 시작한 뒤 남은 거품 자리에 둥근 표시 (가까운 공끼리는 하나로, 최대 개수)
+const FOAM_MARK_MAX := 6
+## 단계 진행이 이만큼 넘으면 아직 안 된 곳을 털 위에서 반짝임
+const BLINK_FROM := 0.5
 const STAGE_REACTION := {"wet": "wiggle_legs", "scrub": "jump", "rinse": "shake", "dry": "wiggle_legs"}
 const TOOLS := {
 	"shower": {"name": "샤워기", "channel": "wet", "color": Color(0.7, 0.8, 0.9)},
@@ -42,6 +61,8 @@ var hovered := ""
 ## 바라보는 강아지 위 점 (없으면 null)
 var aim_point: Variant = null
 var done := false
+## 지금 단계 (STAGES 번호, 4 = 다 끝남)
+var stage_index := 0
 var dog: WashDog
 var player: CharacterBody3D
 var sfx: Node
@@ -59,6 +80,11 @@ var _towel_tick := 0.0
 var _hint := ""
 var _hint_left := 0.0
 var _hud: Control
+var _banner := ""
+var _banner_left := 0.0
+var _sparkle: CPUParticles3D
+var _foam_marks: Array[MeshInstance3D] = []
+var _t := 0.0
 var _dogs := 0
 
 
@@ -72,11 +98,14 @@ func _ready() -> void:
 	dog.name = "Dog"
 	dog.position = DOG_SPOT
 	dog.rotation.y = PI * 0.15
+	dog.foam_glow = FOAM_GLOW
 	add_child(dog)
+	_build_stage_effects()
 	guests = FpGuests.new()
 	guests.name = "Guests"
 	add_child(guests)
 	guests.guest_left.connect(_on_guest_left)
+	guests.guest_arrived.connect(_on_guest_arrived)
 	_build_player()
 	_build_hud()
 	new_dog()
@@ -89,6 +118,8 @@ func new_dog() -> void:
 	dog.show_mask()
 	dog.react("set_mood", 1)
 	done = false
+	stage_index = 0
+	_banner_left = 0.0
 	_reacted.clear()
 	_show_hint("강아지를 씻겨 주세요: 샤워기 → 샴푸 → 샤워기로 헹구기 → 수건", 4.0)
 
@@ -181,7 +212,7 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 			dog.paint("wet", point, radius, Tuning.data.v4_rate_shower * delta)
 			if dog.foam_count() > 0:
 				stage = "rinse"
-				dog.rinse_foam(point, radius, delta * 40.0)
+				dog.rinse_foam(point, radius * RINSE_REACH, delta * RINSE_SPEED)
 				dog.paint("rinse", point, radius, Tuning.data.v4_rate_shower * delta)
 			dog.spray(point)
 			dog.show_stream(_tool_tip(), point, Color(0.55, 0.85, 1.0))
@@ -195,7 +226,7 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 			_foam_carry += delta * 10.0
 			while _foam_carry >= 1.0:
 				_foam_carry -= 1.0
-				dog.add_foam(point, 1, _rng, 1.4)
+				dog.add_foam(point, 1, _rng, FOAM_SIZE)
 			sfx.set_loop("scrub", 0.8)
 		"towel":
 			stage = "dry"
@@ -225,26 +256,62 @@ func brush_radius(point: Vector3) -> float:
 	return angle * maxf(dog.dir_of(point).length(), 0.05)
 
 
+## 단계가 끝났는지 차례로 본다 (앞 단계가 끝나야 다음 단계 끝을 알림)
 func _check_done() -> void:
 	var p := progress()
-	var done_at: float = Tuning.data.v4_done_ratio
-	if p.wet >= done_at and p.scrub >= done_at and p.dry >= done_at and p.foam == 0:
+	while stage_index < STAGES.size() and _stage_met(STAGES[stage_index].id, p):
+		_finish_stage(STAGES[stage_index])
+		stage_index += 1
+	if stage_index >= STAGES.size() and not done:
 		done = true
 		_stop_effects()
 		dog.react("set_mood", 2)
 		dog.react("jump")
-		sfx.play("poof")
 		sfx.play("clap")
-		_show_hint("깨끗해졌어요! R: 다음 손님", 999.0)
+		_show_hint("R: 다음 손님", 999.0)
+
+
+func _stage_met(id: String, p: Dictionary) -> bool:
+	var done_at: float = Tuning.data.v4_done_ratio
+	match id:
+		"wet":
+			return p.wet >= done_at
+		"scrub":
+			return p.scrub >= done_at
+		"rinse":
+			return p.foam == 0
+	return p.dry >= done_at
+
+
+## 단계 끝: 소리 + 반짝 파티클 + 가운데 큰 글자 (다음 도구 빛남은 _process)
+func _finish_stage(stage: Dictionary) -> void:
+	sfx.play(stage.sound)
+	sfx.play("ding")
+	_sparkle.global_position = dog.model.to_global(dog._body_center())
+	_sparkle.restart()
+	_sparkle.emitting = true
+	_banner = stage.text
+	_banner_left = 2.0
+	dog.set_blink(0.0, stage.id)
+
+
+## 지금 단계에 쓸 도구 ("" = 다 끝남)
+func stage_tool() -> String:
+	return STAGES[stage_index].tool if stage_index < STAGES.size() else ""
 
 
 func _process(delta: float) -> void:
 	_hint_left = maxf(_hint_left - delta, 0.0)
+	_banner_left = maxf(_banner_left - delta, 0.0)
+	_t += delta
 	if input_enabled:
 		using = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 	_update_aim()
+	# 바라보는 도구는 빛나고, 지금 단계에 쓸 도구는 손에 없으면 선반에서 깜빡깜빡 빛남
+	var next := stage_tool()
 	for tool_id in _pickups:
-		_set_glow(_pickups[tool_id], tool_id == hovered)
+		_set_glow(_pickups[tool_id], tool_id == hovered or (tool_id == next and held != next and fmod(_t, 0.8) < 0.5))
+	_update_leftovers()
 	var active := using and aim_point != null and not held.is_empty() and not done
 	_update_tool_views(delta, active)
 	if active:
@@ -306,6 +373,91 @@ func _stop_effects() -> void:
 	sfx.set_loop("scrub", 0.0)
 	dog.stop_spray()
 	dog.hide_stream()
+
+
+## 남은 곳 보이기: 단계가 반쯤 되면 털 위 안 된 곳이 반짝, 헹구기 시작하면 남은 거품 자리에 둥근 표시
+func _update_leftovers() -> void:
+	var stage_id: String = STAGES[stage_index].id if stage_index < STAGES.size() else ""
+	var p := progress()
+	var ratio: float = p.get(stage_id, 0.0) if stage_id != "rinse" else 1.0
+	dog.set_blink((0.5 + 0.5 * sin(_t * 5.0)) if stage_id != "" and stage_id != "rinse" and ratio >= BLINK_FROM else 0.0, stage_id if stage_id != "" else "wet")
+	var spots: Array[Vector3] = []
+	if stage_id == "rinse" and p.foam > 0 and _reacted.has("rinse"):
+		for pos in dog.foam_world_positions():
+			var near := false
+			for spot in spots:
+				if spot.distance_to(pos) < 0.15:
+					near = true
+					break
+			if not near and spots.size() < FOAM_MARK_MAX:
+				spots.append(pos)
+	var camera: Camera3D = player.camera
+	for i in _foam_marks.size():
+		var mark := _foam_marks[i]
+		mark.visible = i < spots.size()
+		if mark.visible:
+			# 카메라 쪽으로 조금 당겨서 털에 묻히지 않게, 고리가 카메라를 보게
+			var to_camera: Vector3 = (camera.global_position - spots[i]).normalized()
+			mark.global_position = spots[i] + to_camera * 0.06
+			mark.look_at(camera.global_position, Vector3.UP)
+			mark.rotate_object_local(Vector3.RIGHT, PI / 2.0)
+			mark.scale = Vector3.ONE * (1.0 + 0.2 * sin(_t * 8.0))
+
+
+## 보이는 남은 거품 표시 수 (테스트)
+func foam_marks_visible() -> int:
+	return _foam_marks.filter(func(m: MeshInstance3D) -> bool: return m.visible).size()
+
+
+func _build_stage_effects() -> void:
+	_sparkle = CPUParticles3D.new()
+	_sparkle.name = "StageSparkle"
+	_sparkle.emitting = false
+	_sparkle.one_shot = true
+	_sparkle.amount = 40
+	_sparkle.lifetime = 0.9
+	_sparkle.explosiveness = 1.0
+	_sparkle.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	_sparkle.emission_sphere_radius = 0.3
+	_sparkle.direction = Vector3.UP
+	_sparkle.spread = 180.0
+	_sparkle.initial_velocity_min = 0.6
+	_sparkle.initial_velocity_max = 1.6
+	_sparkle.gravity = Vector3(0, -1.0, 0)
+	_sparkle.scale_amount_min = 0.6
+	_sparkle.scale_amount_max = 1.2
+	var star := SphereMesh.new()
+	star.radius = 0.02
+	star.height = 0.04
+	var material := StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.albedo_color = Color(1.0, 0.95, 0.55)
+	star.material = material
+	_sparkle.mesh = star
+	add_child(_sparkle)
+	for i in FOAM_MARK_MAX:
+		var mark := MeshInstance3D.new()
+		mark.name = "FoamMark_%d" % i
+		var ring := TorusMesh.new()
+		ring.inner_radius = 0.07
+		ring.outer_radius = 0.09
+		mark.mesh = ring
+		var ring_material := StandardMaterial3D.new()
+		ring_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+		ring_material.albedo_color = Color(1.0, 0.85, 0.2)
+		ring_material.no_depth_test = true
+		ring_material.render_priority = 1
+		mark.material_override = ring_material
+		mark.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		mark.visible = false
+		add_child(mark)
+		_foam_marks.append(mark)
+
+
+func _on_guest_arrived() -> void:
+	sfx.play("bell")
+	if _hint_left <= 0.0:
+		_show_hint("손님이 왔어요 (오른쪽 대기 의자)", 2.0)
 
 
 func _show_hint(text: String, seconds: float) -> void:
@@ -492,6 +644,8 @@ func _draw_hud() -> void:
 	_text(font, Vector2(20, size.y - 20), "WASD 걷기 · 마우스 보기 · 클릭 집기/쓰기(누르고 있기) · Q 내려놓기 · R 다음 손님 · Esc 메뉴", 16, false)
 	if _hint_left > 0.0:
 		_text(font, Vector2(center.x, 120), _hint, 26, true)
+	if _banner_left > 0.0:
+		_text(font, center + Vector2(0, -90), _banner, 44, true)
 
 
 func _text(font: Font, at: Vector2, text: String, font_size: int, centered: bool, right := false) -> void:
