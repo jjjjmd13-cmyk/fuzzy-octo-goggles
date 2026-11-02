@@ -27,6 +27,8 @@ const HELD_ON_LAP := Vector3(0, 0.56, 0.1)
 const HELD_STANDING := Vector3(0, 0.82, 0.26)
 ## 남은 참을성이 이 비율 아래면 표시 깜빡임
 const BLINK_BELOW := 0.25
+## 손님 클릭 판정 층 (fp_shop.PICK_LAYER 와 같음). 판정 모양에 meta "guest" = 주인 노드
+const HIT_LAYER := 2
 
 ## 대기 의자의 손님 (앞이 먼저): {kind, patience(s, <0 = 안 떠남), waited, owner, icon}
 var guests: Array[Dictionary] = []
@@ -34,6 +36,8 @@ var guests: Array[Dictionary] = []
 var current: Variant = null
 var served := 0
 var left_count := 0
+## 영업 중 (false 면 새 손님이 안 옴, 남은 손님은 그대로)
+var open := true
 
 var _rng := RandomNumberGenerator.new()
 var _opening: Array = []
@@ -88,6 +92,7 @@ func spawn(kind := "") -> void:
 	owner.holding = true
 	var icon := _make_icon(kind)
 	owner.add_child(icon)
+	_add_hit(owner)
 	guests.append({"kind": kind, "patience": patience_of(kind), "waited": 0.0, "owner": owner, "icon": icon})
 	guest_arrived.emit()
 	_seat_all()
@@ -122,33 +127,51 @@ func remaining(index: int) -> float:
 	return clampf(1.0 - guest.waited / guest.patience, 0.0, 1.0)
 
 
-## 다 씻은 강아지를 주인에게 돌려줌: 주인은 박수치며 나감
-func return_current() -> void:
+## 다 씻은 강아지를 주인에게 돌려줌: 주인은 박수치며 (say: "+45" 같은 글자) 나감
+func return_current(say := "") -> void:
 	served += 1
 	if current != null:
-		_send_home(current, 2)
+		_send_home(current, 2, say)
 		current = null
 
 
-## 맨 앞 손님이 목욕통 옆으로 와서 강아지를 맡김. 맡긴 손님 성격, 기다리는 손님이 없으면 ""
-func take_next() -> String:
+## 맨 앞 손님이 강아지를 맡김 (take 참고). 기다리는 손님이 없으면 {}
+func take_next() -> Dictionary:
 	if guests.is_empty():
-		return ""
-	var guest: Dictionary = guests.pop_front()
-	var owner: Node3D = guest.owner
+		return {}
+	return take(guests[0].owner)
+
+
+## 대기 손님(owner)이 목욕통 옆으로 와서 강아지를 맡김.
+## 돌려줌: {kind, remaining (맡길 때 남은 참을성 0~1)}, 대기 손님이 아니면 {}
+func take(owner: Node3D) -> Dictionary:
+	var index := index_of(owner)
+	if index < 0:
+		return {}
+	var left := remaining(index)
+	var guest: Dictionary = guests[index]
+	guests.remove_at(index)
 	(guest.icon as Node3D).queue_free()
 	owner.get_node("HeldDog").queue_free()
 	owner.holding = false
 	owner.go_wait(to_global(TUB_SIDE), to_global(LOOK_AT), owner.position.distance_to(TUB_SIDE) / WALK_SPEED, false)
 	current = owner
 	_seat_all()
-	return guest.kind
+	return {"kind": guest.kind, "remaining": left}
+
+
+## 대기열에서 몇 번째인지 (없으면 -1)
+func index_of(owner: Node3D) -> int:
+	for i in guests.size():
+		if guests[i].owner == owner:
+			return i
+	return -1
 
 
 func _process(delta: float) -> void:
 	elapsed += delta
 	_spawn_left -= delta
-	if _spawn_left <= 0.0:
+	if _spawn_left <= 0.0 and open:
 		if not _opening.is_empty():
 			spawn(_opening.pop_front())
 			_spawn_left = 2.5 if not _opening.is_empty() else Tuning.data.v4_guest_every
@@ -198,6 +221,11 @@ func _process(delta: float) -> void:
 func _send_home(owner: Node3D, mood_level: int, say := "") -> void:
 	owner.wait_level = 0
 	owner.come_react(owner.global_position, mood_level)
+	# 떠나는 손님은 바로 클릭이 안 되게 (queue_free 는 프레임 끝까지 남으므로 먼저 떼어 냄)
+	var hit := owner.get_node_or_null("GuestHit")
+	if hit != null:
+		owner.remove_child(hit)
+		hit.queue_free()
 	if not say.is_empty():
 		var label := Label3D.new()
 		label.text = say
@@ -210,6 +238,23 @@ func _send_home(owner: Node3D, mood_level: int, say := "") -> void:
 		label.position.y = owner.height + 0.4
 		owner.add_child(label)
 	_leaving.append({"owner": owner, "t": 0.0, "walking": false})
+
+
+## 클릭 판정 모양 (앉아도 서도 몸을 덮는 캡슐)
+func _add_hit(owner: Node3D) -> void:
+	var body := StaticBody3D.new()
+	body.name = "GuestHit"
+	body.collision_layer = HIT_LAYER
+	body.collision_mask = 0
+	body.set_meta("guest", owner)
+	var shape := CollisionShape3D.new()
+	var capsule := CapsuleShape3D.new()
+	capsule.radius = 0.32
+	capsule.height = 1.3
+	shape.shape = capsule
+	shape.position.y = 0.65
+	body.add_child(shape)
+	owner.add_child(body)
 
 
 func _seat_all() -> void:

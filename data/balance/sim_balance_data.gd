@@ -200,6 +200,11 @@ extends Resource
 @export var v4_guest_every := 45.0
 ## 가게를 연 뒤 이 시간(s) 동안은 급한 손님이 안 나옴
 @export var v4_hurry_after := 120.0
+## 팁 = 맡길 때 남은 참을성 비율 × 이 값 × 성격 배수 (요금은 V3 money_wash_price, 하루 길이는 V3 day_open_minutes_real)
+@export var v4_tip_max := 15
+## 급한 손님을 제때 받으면 팁 배수, 끝까지 손님은 팁 적게
+@export var v4_tip_hurry_mult := 1.5
+@export var v4_tip_forever_mult := 0.3
 
 ## 기분 0~1 → 얼굴 단계 0(😣) / 1(😐) / 2(😊)
 func mood_face(mood: float) -> int:

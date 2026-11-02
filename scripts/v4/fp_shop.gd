@@ -15,6 +15,7 @@ const FpPlayer := preload("res://scripts/v4/fp_player.gd")
 const FpGuests := preload("res://scripts/v4/fp_guests.gd")
 const TUB_SCENE := preload("res://scenes/art/sim/tub_model.tscn")
 const MENU_SCENE := "res://scenes/menu/main_menu.tscn"
+const FpSettle := preload("res://scripts/v4/fp_settle.gd")
 
 const PICK_LAYER := 2
 const DOG_LAYER := 16
@@ -63,6 +64,19 @@ var aim_point: Variant = null
 var done := false
 ## 목욕통에 강아지가 있음 (손님이 맡기기 전엔 비어 있음)
 var has_dog := false
+## 바라보는 손님 (주인 노드, 없으면 null)
+var hovered_guest: Node3D = null
+## 오늘 번 돈 = 요금 + 팁
+var money := 0
+var fees := 0
+var tips := 0
+## 하루 영업 (s): 문 연 뒤 지난 시간 / 영업 시간 (V3 day_open_minutes_real, 9시~6시)
+var day_time := 0.0
+var day_seconds := 0.0
+var day_over := false
+## 지금 강아지 주인이 맡길 때 남은 참을성·성격 (팁 계산)
+var _taken := {}
+var _settle: Control
 ## 지금 단계 (STAGES 번호, 4 = 다 끝남)
 var stage_index := 0
 ## 남은 거품이 반짝이는 중 (헹굴 때 몇 개 안 남았을 때)
@@ -111,9 +125,10 @@ func _ready() -> void:
 	guests.guest_arrived.connect(_on_guest_arrived)
 	_build_player()
 	_build_hud()
+	day_seconds = Tuning.data.day_open_minutes_real * 60.0
 	new_dog()
 	_clear_tub()
-	_show_hint("손님이 오면 R: 강아지 받기", 4.0)
+	_show_hint("손님이 오면 다가가서 클릭: 강아지 맡기", 4.0)
 
 
 ## 새 강아지 (진흙 무늬 무작위)
@@ -140,20 +155,86 @@ func _clear_tub() -> void:
 	done = false
 
 
-## R: 다 씻었으면 주인에게 돌려주고, 목욕통이 비었으면 맨 앞 손님의 강아지를 받는다
+## 손님 클릭: 대기 손님이면 강아지를 맡기고, 목욕통 옆 주인이면 다 씻은 강아지를 돌려준다
+func interact_guest(owner: Node3D) -> void:
+	if day_over or owner == null:
+		return
+	if owner == guests.current:
+		if done:
+			give_back()
+		else:
+			_show_hint("다 씻기고 나서 주인을 클릭해 돌려줘요", 1.5)
+		return
+	if has_dog:
+		_show_hint("목욕통이 비면 받을 수 있어요", 1.5)
+		return
+	_taken = guests.take(owner)
+	if not _taken.is_empty():
+		new_dog()
+
+
+## 다 씻은 강아지를 주인에게: 요금 + 팁 (빨리 받았을수록 팁↑), 주인은 기뻐하며 떠남
+func give_back() -> void:
+	var fee: int = Tuning.data.money_wash_price
+	var tip := tip_for(_taken.get("kind", "normal"), _taken.get("remaining", 0.0))
+	fees += fee
+	tips += tip
+	money += fee + tip
+	guests.return_current("+%d" % (fee + tip))
+	sfx.play("coin")
+	_clear_tub()
+	_taken = {}
+	_show_hint("요금 %d + 팁 %d" % [fee, tip], 2.5)
+
+
+## 팁: 맡길 때 남은 참을성 비율 × v4_tip_max × 성격 배수 (급함은 제때 받으면 더, 끝까지 손님은 적게)
+static func tip_for(kind: String, remaining: float) -> int:
+	var mult := 1.0
+	match kind:
+		"hurry":
+			mult = Tuning.data.v4_tip_hurry_mult
+		"forever":
+			mult = Tuning.data.v4_tip_forever_mult
+	return roundi(Tuning.data.v4_tip_max * clampf(remaining, 0.0, 1.0) * mult)
+
+
+## 테스트·키 없이: 목욕통에 강아지가 있으면 그 주인, 없으면 맨 앞 손님과 상호작용
 func next_guest() -> void:
 	if has_dog:
-		if not done:
-			_show_hint("다 씻기고 나서 R: 주인에게 돌려주기", 1.5)
-			return
-		guests.return_current()
-		_clear_tub()
-		_show_hint("주인이 기뻐하며 데려갔어요" + ("  R: 다음 손님 받기" if not guests.guests.is_empty() else ""), 2.5)
+		interact_guest(guests.current)
+	elif not guests.guests.is_empty():
+		interact_guest(guests.guests[0].owner)
+
+
+## 시계 (9:00 ~ 18:00)
+func clock_text() -> String:
+	var minutes := 9 * 60 + int(minf(day_time / day_seconds, 1.0) * 9 * 60)
+	var hour := minutes / 60
+	return "%s %d:%02d" % ["오전" if hour < 12 else "오후", hour if hour <= 12 else hour - 12, minutes % 60]
+
+
+func _update_day(delta: float) -> void:
+	if day_over:
 		return
-	if guests.take_next().is_empty():
-		_show_hint("기다리는 손님이 없어요. 곧 와요", 2.0)
-		return
-	new_dog()
+	day_time += delta
+	if guests.open and day_time >= day_seconds:
+		guests.open = false
+		_show_hint("6시, 영업 끝! 남은 손님만 씻겨요", 3.0)
+	if not guests.open and not has_dog and guests.guests.is_empty() and guests.current == null:
+		end_day()
+
+
+## 영업 끝 → 정산 (씻긴·떠난·번 돈)
+func end_day() -> void:
+	day_over = true
+	_stop_effects()
+	using = false
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_settle = FpSettle.new()
+	_settle.name = "Settle"
+	_hud.get_parent().add_child(_settle)
+	_settle.show_result(guests.served, guests.left_count, fees, tips)
+	sfx.play("clap")
 
 
 func _on_guest_left(_kind: String) -> void:
@@ -285,7 +366,7 @@ func _check_done() -> void:
 		dog.react("set_mood", 2)
 		dog.react("jump")
 		sfx.play("clap")
-		_show_hint("R: 주인에게 돌려주기", 999.0)
+		_show_hint("주인을 클릭해서 돌려줘요", 999.0)
 
 
 func _stage_met(id: String, p: Dictionary) -> bool:
@@ -321,7 +402,8 @@ func _process(delta: float) -> void:
 	_hint_left = maxf(_hint_left - delta, 0.0)
 	_banner_left = maxf(_banner_left - delta, 0.0)
 	_t += delta
-	if input_enabled:
+	_update_day(delta)
+	if input_enabled and not day_over:
 		using = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 	_update_aim()
 	# 바라보는 도구는 빛나고, 지금 단계에 쓸 도구는 손에 없으면 선반에서 깜빡깜빡 빛남
@@ -349,12 +431,12 @@ func _unhandled_input(event: InputEvent) -> void:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		elif not hovered.is_empty():
 			pick(hovered)
+		elif hovered_guest != null:
+			interact_guest(hovered_guest)
 	elif event is InputEventKey and event.pressed and not event.echo:
 		match event.physical_keycode:
 			KEY_Q:
 				drop()
-			KEY_R:
-				next_guest()
 			KEY_ESCAPE:
 				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 				get_tree().change_scene_to_file(MENU_SCENE)
@@ -363,6 +445,7 @@ func _unhandled_input(event: InputEvent) -> void:
 ## 가운데 점이 가리키는 것: 집을 도구 / 강아지
 func _update_aim() -> void:
 	hovered = ""
+	hovered_guest = null
 	aim_point = null
 	var ray: Array[Vector3] = player.aim_ray(REACH)
 	var query := PhysicsRayQueryParameters3D.create(ray[0], ray[1], (1 << (PICK_LAYER - 1)) | DOG_LAYER)
@@ -373,6 +456,8 @@ func _update_aim() -> void:
 	var collider: Object = hit.collider
 	if collider.has_meta("tool"):
 		hovered = collider.get_meta("tool")
+	elif collider.has_meta("guest"):
+		hovered_guest = collider.get_meta("guest")
 	elif has_dog and collider is CollisionObject3D and (collider as CollisionObject3D).collision_layer & DOG_LAYER:
 		aim_point = hit.position
 
@@ -596,10 +681,15 @@ func _draw_hud() -> void:
 	# 가운데 점 (도구를 쓸 수 있는 곳이면 노랑)
 	var ready_to_use := aim_point != null and not held.is_empty()
 	_hud.draw_circle(center, 5.0, Color(0, 0, 0, 0.6))
-	_hud.draw_circle(center, 3.0, Color(1, 0.85, 0.3) if ready_to_use or not hovered.is_empty() else Color(1, 1, 1))
+	_hud.draw_circle(center, 3.0, Color(1, 0.85, 0.3) if ready_to_use or not hovered.is_empty() or hovered_guest != null else Color(1, 1, 1))
 	var under := ""
 	if not hovered.is_empty():
 		under = "클릭: %s 집기" % TOOLS[hovered].name
+	elif hovered_guest != null:
+		if hovered_guest == guests.current:
+			under = "클릭: 강아지 돌려주기" if done else "다 씻으면 돌려줘요"
+		else:
+			under = "목욕통이 비면 받아요" if has_dog else "클릭: 강아지 맡기"
 	elif aim_point != null and held.is_empty():
 		under = "선반에서 도구를 집어요"
 	elif ready_to_use and not using:
@@ -615,9 +705,11 @@ func _draw_hud() -> void:
 		_text(font, Vector2(250, y + 18), rows[i][0], 18, false)
 	if has_dog and p.foam > 0:
 		_text(font, Vector2(20, 30 + 3 * 34 + 18), "남은 거품 %d (샤워기로 헹구기)" % p.foam, 18, false)
-	_text(font, Vector2(size.x - 20, 48), "기다리는 손님 %d · 씻긴 %d · 떠난 %d" % [guests.guests.size(), guests.served, guests.left_count], 20, false, true)
+	_text(font, Vector2(size.x - 20, 40), "%s%s" % [clock_text(), "" if guests.open else " · 영업 끝"], 26, false, true)
+	_text(font, Vector2(size.x - 20, 74), "돈 %d" % money, 26, false, true)
+	_text(font, Vector2(size.x - 20, 104), "기다리는 손님 %d · 씻긴 %d · 떠난 %d" % [guests.guests.size(), guests.served, guests.left_count], 18, false, true)
 	_text(font, Vector2(size.x - 20, size.y - 60), "손: %s" % (TOOLS[held].name if not held.is_empty() else "빈손"), 22, false, true)
-	_text(font, Vector2(20, size.y - 20), "WASD 걷기 · 마우스 보기 · 클릭 집기/쓰기(누르고 있기) · Q 내려놓기 · R 강아지 받기/돌려주기 · Esc 메뉴", 16, false)
+	_text(font, Vector2(20, size.y - 20), "WASD 걷기 · 마우스 보기 · 클릭 집기/쓰기(누르고 있기) · Q 내려놓기 · 손님 클릭 맡기기/돌려주기 · Esc 메뉴", 16, false)
 	if _hint_left > 0.0:
 		_text(font, Vector2(center.x, 120), _hint, 26, true)
 	if _banner_left > 0.0:
