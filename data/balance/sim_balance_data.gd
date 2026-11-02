@@ -200,6 +200,16 @@ extends Resource
 @export var v4_guest_every := 45.0
 ## 가게를 연 뒤 이 시간(s) 동안은 급한 손님이 안 나옴
 @export var v4_hurry_after := 120.0
+## 시제품 2 하루 (TUNING_V4 3장): 목욕 요금, 기분 팁 [😣, 😐, 😊]
+@export var v4_price_wash := 30
+@export var v4_tip_mood := PackedInt32Array([0, 5, 15])
+## 빠른 서비스 팁: 손님이 들어온 뒤 돌려받기까지 v4_fast_times[0] 초 안 / [1] 초 안 / 그 뒤
+@export var v4_tip_fast := PackedInt32Array([15, 5, 0])
+@export var v4_fast_times := PackedFloat32Array([60, 120])
+## 급한 손님은 빠른 팁 배수
+@export var v4_tip_fast_hurry_mult := 2.0
+## 하루 영업 (분, 9시~6시)
+@export var v4_day_minutes := 8.0
 
 ## 기분 0~1 → 얼굴 단계 0(😣) / 1(😐) / 2(😊)
 func mood_face(mood: float) -> int:
