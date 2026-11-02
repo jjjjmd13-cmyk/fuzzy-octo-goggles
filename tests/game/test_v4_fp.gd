@@ -5,7 +5,7 @@ extends "res://tests/qa_test.gd"
 
 const SCENE := preload("res://scenes/v4/fp_shop.tscn")
 const STEP := 1.0 / 30.0
-## 도구 하나로 한 바퀴 훑는 데 이 시간(초) 안이어야 "짧고 시원하게"
+## 게임에는 씻는 시간 제한이 없다 (GDD_V4 0.2). 이건 붓이 너무 작아지지 않았는지 보는 테스트 기준일 뿐
 const TOOL_LIMIT_SEC := 25.0
 
 var shop: Node3D
@@ -48,11 +48,25 @@ func run_test() -> void:
 	shop.use_tool_at(points[0], 0.5)
 	check_eq(shop.dog.foam_count(), 0, "마른 털에는 거품이 안 생김")
 
+	check_eq(shop.stage_tool(), "shower", "처음 빛나는 도구는 샤워기")
 	var t_wet := _sweep("shower", "wet")
+	_check_stage(1, "적시기 끝", "shampoo")
 	var t_scrub := _sweep("shampoo", "scrub")
+	_check_stage(2, "거품 끝", "shower")
 	check(shop.dog.foam_count() > 0, "샴푸하면 거품이 생김")
-	var t_rinse := _sweep_until("shower", func() -> bool: return shop.dog.foam_count() == 0)
+	# 헹구다가 거품이 조금 남으면 그 자리에 둥근 표시
+	# 람다는 바깥 지역 변수를 값으로 잡으므로 배열에 담음
+	var marks_seen := [0]
+	var t_rinse := _sweep_until("shower", func() -> bool:
+		shop._update_leftovers()
+		marks_seen[0] = maxi(marks_seen[0], shop.foam_marks_visible())
+		return shop.dog.foam_count() == 0)
+	check(marks_seen[0] > 0, "남은 거품 자리에 둥근 표시 (최대 %d 개)" % marks_seen[0])
+	_check_stage(3, "헹굼 끝", "towel")
+	shop._update_leftovers()
+	check_eq(shop.foam_marks_visible(), 0, "다 헹구면 표시가 사라짐")
 	var t_dry := _sweep("towel", "dry")
+	_check_stage(4, "말리기 끝", "")
 	print("V4 한 마리: 물 %.1f / 샴푸 %.1f / 헹굼 %.1f / 수건 %.1f 초" % [t_wet, t_scrub, t_rinse, t_dry])
 	for pair in [["샤워기", t_wet], ["샴푸", t_scrub], ["헹굼", t_rinse], ["수건", t_dry]]:
 		check(pair[1] <= TOOL_LIMIT_SEC, "%s 가 %.0f초 안 (%.1f 초)" % [pair[0], TOOL_LIMIT_SEC, pair[1]])
@@ -66,9 +80,16 @@ func run_test() -> void:
 	check(not shop.done and shop.progress().scrub < 0.5, "R: 새 강아지는 다시 더러움")
 
 
+## 단계 끝 순간: 단계 번호·가운데 큰 글자·다음에 빛날 도구
+func _check_stage(index: int, text: String, next_tool: String) -> void:
+	check_eq(shop.stage_index, index, "%s: 단계 %d 로" % [text, index])
+	check(shop._banner_left > 0.0 and shop._banner.begins_with(text) or shop._banner.contains(text), "가운데 글자 \"%s\" (%s)" % [text, shop._banner])
+	check_eq(shop.stage_tool(), next_tool, "%s 뒤 빛나는 도구" % text)
+
+
 ## 도구를 집고 몸 위 점들을 차례로 훑는다. 채널이 다 차면 멈춤. 걸린 시간(초)
 func _sweep(tool_id: String, channel: String) -> float:
-	return _sweep_until(tool_id, func() -> bool: return shop.dog.mask.ratio(channel) >= shop.DONE_AT)
+	return _sweep_until(tool_id, func() -> bool: return shop.dog.mask.ratio(channel) >= Tuning.data.v4_done_ratio)
 
 
 func _sweep_until(tool_id: String, finished: Callable) -> float:

@@ -175,6 +175,30 @@ extends Resource
 ## 샴푸가 떨어져 물로만 씻으면 기분 (진행은 막히지 않음)
 @export var proto_no_shampoo_mood := -0.25
 
+
+@export_group("V4 1인칭 시제품 (GDD_V4 0.2)")
+## 단계 완료 기준: 칠한 비율 (씻는 시간 제한은 없음, 빨리 할수록 좋을 뿐)
+@export var v4_done_ratio := 0.8
+## 붓 크기: 한 번에 칠하는 몸 겉면 비율 (0.2 = 몸의 약 1/5)
+@export var v4_brush_share := 0.2
+## 도구를 대고 있는 동안 초당 칠하는 양 (붓 가운데 기준, 1 = 한 번에 다 참)
+@export var v4_rate_shower := 2.5
+@export var v4_rate_shampoo := 2.2
+@export var v4_rate_towel := 2.0
+
+## 대기 손님 참을성 (s, TUNING_V4 2장): 대기 의자에서 이만큼 기다리면 "다음에 올게요" 하고 떠남
+@export var v4_patience_hurry := 30.0
+@export var v4_patience_normal := 90.0
+@export var v4_patience_relaxed := 180.0
+## 끝까지 손님 (0 = 안 떠남)
+@export var v4_patience_forever := 0.0
+## 성격 나올 비율: 급함·보통·느긋·끝까지
+@export var v4_patience_mix := PackedFloat32Array([0.2, 0.45, 0.25, 0.1])
+## 시제품을 켜자마자 오는 손님 (다른 참을성을 바로 보게, 급함 포함, 개발 임시값). 그 뒤로는 비율대로
+@export var v4_first_guests: Array[String] = ["normal", "hurry", "relaxed"]
+## 새 손님이 오는 간격 (s, 대기 의자 3개가 다 차면 안 옴, 개발 임시값)
+@export var v4_guest_every := 30.0
+
 ## 기분 0~1 → 얼굴 단계 0(😣) / 1(😐) / 2(😊)
 func mood_face(mood: float) -> int:
 	if mood >= 0.66:
