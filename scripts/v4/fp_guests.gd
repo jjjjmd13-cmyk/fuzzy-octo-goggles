@@ -4,7 +4,7 @@ extends Node3D
 ## 손님(주인)마다 성격 하나, 머리 위 표시로 처음부터 보인다:
 ##   급함 = 빨간 시계 / 보통 = 노란 시계 / 느긋 = 초록 잎 / 끝까지 = 컵 (안 떠남)
 ## 참을성이 줄면 시계 보기 → 발 구르기 → 표시 깜빡임. 다 되면 일어나 "다음에 올게요" 하고 끄덕, 문으로 나감.
-## 목욕 중인 손님은 떠나지 않는다: call_next() 로 맨 앞 손님을 목욕통 옆으로 데려오면 대기열에서 빠진다.
+## 목욕 중인 손님은 떠나지 않는다: take_next() 로 맨 앞 손님이 목욕통 옆으로 와서 강아지를 맡기면 대기열에서 빠진다.
 ## 주인·의자·안은 강아지는 V3 교체 씬을 그대로 쓴다. 위치는 모두 방(부모) 기준.
 
 signal guest_left(kind: String)
@@ -122,13 +122,16 @@ func remaining(index: int) -> float:
 	return clampf(1.0 - guest.waited / guest.patience, 0.0, 1.0)
 
 
-## 다 씻었을 때 부름: 맨 앞 손님을 목욕통 옆으로 (지금 주인은 기뻐하며 나감). 데려온 손님 성격, 없으면 ""
-func call_next() -> String:
-	# 다 씻은 강아지 한 마리 (처음 강아지는 주인 없이 시작)
+## 다 씻은 강아지를 주인에게 돌려줌: 주인은 박수치며 나감
+func return_current() -> void:
 	served += 1
 	if current != null:
 		_send_home(current, 2)
 		current = null
+
+
+## 맨 앞 손님이 목욕통 옆으로 와서 강아지를 맡김. 맡긴 손님 성격, 기다리는 손님이 없으면 ""
+func take_next() -> String:
 	if guests.is_empty():
 		return ""
 	var guest: Dictionary = guests.pop_front()

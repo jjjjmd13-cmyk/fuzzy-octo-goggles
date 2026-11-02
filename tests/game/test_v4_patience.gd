@@ -46,23 +46,24 @@ func run_test() -> void:
 	check_eq(guests.guests[0].kind, "normal", "뒷사람이 앞자리로")
 	check(guests._leaving.size() == 1, "떠나는 손님은 손 흔들고 문으로 걸어감")
 
-	# 맨 앞(보통) 손님을 목욕통으로: 그 손님은 더 이상 안 떠남
-	shop.done = true
+	# 맨 앞(보통) 손님이 강아지를 맡김: 그 손님은 더 이상 안 떠남
 	shop.next_guest()
-	check_eq(guests.guests.size(), 1, "데려간 손님은 대기열에서 빠짐")
-	check(guests.current != null, "데려간 손님은 목욕통 옆에서 지켜봄")
-	check(not shop.done, "다음 손님 강아지는 다시 더러움")
+	check(shop.has_dog, "R: 맨 앞 손님 강아지를 받음")
+	check_eq(guests.guests.size(), 1, "맡긴 손님은 대기열에서 빠짐")
+	check(guests.current != null, "맡긴 손님은 목욕통 옆에서 지켜봄")
 	_advance(1000.0)
 	check_eq(guests.guests.size(), 1, "끝까지 손님은 1000초가 지나도 기다림")
 	check_eq(guests.guests[0].kind, "forever", "남은 손님은 끝까지 손님")
 	check_eq(guests.left_count, 1, "목욕 중인 손님은 안 떠남")
 
-	# 다 안 씻었으면 R 로 넘어가지 않음
+	# 다 안 씻었으면 R 로 돌려주지 않음
 	shop.next_guest()
-	check_eq(guests.guests.size(), 1, "다 씻기 전엔 다음 손님 안 받음")
+	check(shop.has_dog and guests.served == 0, "다 씻기 전엔 돌려주지 않음")
 	shop.done = true
 	shop.next_guest()
-	check_eq(guests.served, 2, "씻긴 손님 수 (다 씻고 다음 손님 받을 때마다)")
+	check_eq(guests.served, 1, "다 씻고 R: 주인에게 돌려줌")
+	check(guests.current == null and not shop.has_dog, "주인이 데려가면 목욕통이 빔")
+	check_eq(guests.guests.size(), 1, "돌려줄 때 다음 손님을 저절로 받지 않음")
 
 	# 성격 비율: 연 지 얼마 안 됐을 땐 급함이 없고, v4_hurry_after 뒤엔 섞임
 	guests.elapsed = 0.0

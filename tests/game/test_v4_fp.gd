@@ -19,9 +19,18 @@ func run_test() -> void:
 	add_child(shop)
 	for i in 3:
 		await get_tree().physics_frame
+	# 손님이 맡기기 전엔 목욕통이 비어 있음 (저절로 오는 손님은 멈춤)
+	shop.guests._opening.clear()
+	shop.guests._spawn_left = 1e9
+	check(not shop.has_dog and not shop.dog.visible, "손님이 맡기기 전엔 목욕통이 비어 있음")
+	shop.next_guest()
+	check(not shop.has_dog, "기다리는 손님이 없으면 R 을 눌러도 비어 있음")
+	shop.guests.spawn("forever")
 	# 진흙 무늬·거품 자리를 매번 같게 (흉내 손이 도는 점과 맞물려 걸리는 시간이 들쭉날쭉하지 않게)
 	shop._rng.seed = 11
-	shop.new_dog()
+	shop.next_guest()
+	check(shop.has_dog and shop.dog.visible, "R: 손님이 강아지를 맡김")
+	check(not shop._hint.contains("끝까지") and not shop._hint.contains("손님의 강아지"), "성격 글자 없음 (%s)" % shop._hint)
 
 	# 조준: 선반의 샤워기를 바라보면 hovered 가 된다
 	var pickup: Node3D = shop._pickups["shower"]
@@ -84,8 +93,12 @@ func run_test() -> void:
 	check_eq(shop.held, "", "Q: 내려놓기")
 	await get_tree().create_timer(0.4).timeout
 	check(shop._pickups["towel"].visible, "반납 손목 동작 뒤 도구는 선반으로")
-	shop.new_dog()
-	check(not shop.done and shop.progress().scrub < 0.5, "R: 새 강아지는 다시 더러움")
+	shop.next_guest()
+	check(not shop.has_dog and not shop.dog.visible, "R: 주인에게 돌려주면 목욕통이 빔")
+	check_eq(shop.guests.served, 1, "씻긴 손님 1")
+	shop.guests.spawn("normal")
+	shop.next_guest()
+	check(shop.has_dog and not shop.done and shop.progress().scrub < 0.5, "R: 다음 손님 강아지는 다시 더러움")
 
 
 ## 단계 끝 순간: 단계 번호·가운데 큰 글자·다음에 빛날 도구

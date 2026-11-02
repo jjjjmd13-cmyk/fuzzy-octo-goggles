@@ -61,6 +61,8 @@ var hovered := ""
 ## 바라보는 강아지 위 점 (없으면 null)
 var aim_point: Variant = null
 var done := false
+## 목욕통에 강아지가 있음 (손님이 맡기기 전엔 비어 있음)
+var has_dog := false
 ## 지금 단계 (STAGES 번호, 4 = 다 끝남)
 var stage_index := 0
 ## 남은 거품이 반짝이는 중 (헹굴 때 몇 개 안 남았을 때)
@@ -110,6 +112,8 @@ func _ready() -> void:
 	_build_player()
 	_build_hud()
 	new_dog()
+	_clear_tub()
+	_show_hint("손님이 오면 R: 강아지 받기", 4.0)
 
 
 ## 새 강아지 (진흙 무늬 무작위)
@@ -122,26 +126,38 @@ func new_dog() -> void:
 	stage_index = 0
 	_banner_left = 0.0
 	_reacted.clear()
+	has_dog = true
+	dog.visible = true
 	_show_hint("강아지를 씻겨 주세요: 샤워기 → 샴푸 → 샤워기로 헹구기 → 수건", 4.0)
 
 
-## 다 씻었으면 대기 의자 맨 앞 손님을 받는다 (지금 주인은 기뻐하며 나감)
+## 목욕통 비우기 (주인이 데려갔거나 아직 아무도 안 맡김)
+func _clear_tub() -> void:
+	has_dog = false
+	dog.visible = false
+	dog.clear_foam()
+	_stop_effects()
+	done = false
+
+
+## R: 다 씻었으면 주인에게 돌려주고, 목욕통이 비었으면 맨 앞 손님의 강아지를 받는다
 func next_guest() -> void:
-	if not done:
-		_show_hint("다 씻기고 나서 R: 다음 손님", 1.5)
+	if has_dog:
+		if not done:
+			_show_hint("다 씻기고 나서 R: 주인에게 돌려주기", 1.5)
+			return
+		guests.return_current()
+		_clear_tub()
+		_show_hint("주인이 기뻐하며 데려갔어요" + ("  R: 다음 손님 받기" if not guests.guests.is_empty() else ""), 2.5)
 		return
-	var kind := guests.call_next()
-	new_dog()
-	if kind.is_empty():
+	if guests.take_next().is_empty():
 		_show_hint("기다리는 손님이 없어요. 곧 와요", 2.0)
-	elif kind == "hurry":
-		_show_hint("급한 손님을 제때 받았어요! (팁 +)", 2.5)
-	else:
-		_show_hint("%s 손님의 강아지예요" % FpGuests.KIND_NAMES[kind], 2.0)
+		return
+	new_dog()
 
 
-func _on_guest_left(kind: String) -> void:
-	_show_hint("%s 손님이 \"다음에 올게요\" 하고 떠났어요" % FpGuests.KIND_NAMES[kind], 2.5)
+func _on_guest_left(_kind: String) -> void:
+	_show_hint("손님이 \"다음에 올게요\" 하고 떠났어요", 2.5)
 	sfx.play("bell")
 
 
@@ -269,7 +285,7 @@ func _check_done() -> void:
 		dog.react("set_mood", 2)
 		dog.react("jump")
 		sfx.play("clap")
-		_show_hint("R: 다음 손님", 999.0)
+		_show_hint("R: 주인에게 돌려주기", 999.0)
 
 
 func _stage_met(id: String, p: Dictionary) -> bool:
@@ -313,7 +329,7 @@ func _process(delta: float) -> void:
 	for tool_id in _pickups:
 		_set_glow(_pickups[tool_id], tool_id == hovered or (tool_id == next and held != next and fmod(_t, 0.8) < 0.5))
 	_update_leftovers()
-	var active := using and aim_point != null and not held.is_empty() and not done
+	var active := has_dog and using and aim_point != null and not held.is_empty() and not done
 	_update_tool_views(delta, active)
 	if active:
 		use_tool_at(aim_point, delta)
@@ -357,7 +373,7 @@ func _update_aim() -> void:
 	var collider: Object = hit.collider
 	if collider.has_meta("tool"):
 		hovered = collider.get_meta("tool")
-	elif collider is CollisionObject3D and (collider as CollisionObject3D).collision_layer & DOG_LAYER:
+	elif has_dog and collider is CollisionObject3D and (collider as CollisionObject3D).collision_layer & DOG_LAYER:
 		aim_point = hit.position
 
 
@@ -589,19 +605,19 @@ func _draw_hud() -> void:
 	elif ready_to_use and not using:
 		under = "누르고 있으면 %s" % {"shower": "물이 나와요", "shampoo": "거품이 나요", "towel": "닦아요"}[held]
 	_text(font, center + Vector2(0, 40), under, 22, true)
-	# 진행
+	# 진행 (목욕통에 강아지가 있을 때만)
 	var p := progress()
-	var rows := [["물", p.wet], ["거품 (진흙)", p.scrub], ["말리기", p.dry]]
+	var rows := [["물", p.wet], ["거품 (진흙)", p.scrub], ["말리기", p.dry]] if has_dog else []
 	for i in rows.size():
 		var y := 30.0 + i * 34.0
 		_hud.draw_rect(Rect2(20, y, 220, 22), Color(0, 0, 0, 0.5))
 		_hud.draw_rect(Rect2(20, y, 220 * clampf(rows[i][1] / Tuning.data.v4_done_ratio, 0.0, 1.0), 22), Color(0.5, 0.85, 0.55) if rows[i][1] >= Tuning.data.v4_done_ratio else Color(0.45, 0.7, 1.0))
 		_text(font, Vector2(250, y + 18), rows[i][0], 18, false)
-	if p.foam > 0:
+	if has_dog and p.foam > 0:
 		_text(font, Vector2(20, 30 + 3 * 34 + 18), "남은 거품 %d (샤워기로 헹구기)" % p.foam, 18, false)
 	_text(font, Vector2(size.x - 20, 48), "기다리는 손님 %d · 씻긴 %d · 떠난 %d" % [guests.guests.size(), guests.served, guests.left_count], 20, false, true)
 	_text(font, Vector2(size.x - 20, size.y - 60), "손: %s" % (TOOLS[held].name if not held.is_empty() else "빈손"), 22, false, true)
-	_text(font, Vector2(20, size.y - 20), "WASD 걷기 · 마우스 보기 · 클릭 집기/쓰기(누르고 있기) · Q 내려놓기 · R 다음 손님 · Esc 메뉴", 16, false)
+	_text(font, Vector2(20, size.y - 20), "WASD 걷기 · 마우스 보기 · 클릭 집기/쓰기(누르고 있기) · Q 내려놓기 · R 강아지 받기/돌려주기 · Esc 메뉴", 16, false)
 	if _hint_left > 0.0:
 		_text(font, Vector2(center.x, 120), _hint, 26, true)
 	if _banner_left > 0.0:
