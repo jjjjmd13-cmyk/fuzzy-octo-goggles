@@ -39,8 +39,8 @@ const FOAM_GLOW := 0.45
 ## 예전엔 한 번 대면 몸 전체 거품이 사라져서 다 헹궜는지 알기 어려웠음 (사람 대표 피드백)
 const RINSE_REACH := 0.7
 const RINSE_SPEED := 14.0
-## 헹구기 시작한 뒤 남은 거품 자리에 둥근 표시 (가까운 공끼리는 하나로, 최대 개수)
-const FOAM_MARK_MAX := 6
+## 헹굴 때 남은 거품 공이 이만큼 이하면 거품이 살짝 반짝임 (고리·원은 정신없어서 뺌, 사람 대표 피드백)
+const FOAM_SPARKLE_BELOW := 3
 ## 단계 진행이 이만큼 넘으면 아직 안 된 곳을 털 위에서 반짝임
 const BLINK_FROM := 0.5
 const STAGE_REACTION := {"wet": "wiggle_legs", "scrub": "jump", "rinse": "shake", "dry": "wiggle_legs"}
@@ -63,6 +63,8 @@ var aim_point: Variant = null
 var done := false
 ## 지금 단계 (STAGES 번호, 4 = 다 끝남)
 var stage_index := 0
+## 남은 거품이 반짝이는 중 (헹굴 때 몇 개 안 남았을 때)
+var foam_sparkle := false
 var dog: WashDog
 var player: CharacterBody3D
 var sfx: Node
@@ -83,7 +85,6 @@ var _hud: Control
 var _banner := ""
 var _banner_left := 0.0
 var _sparkle: CPUParticles3D
-var _foam_marks: Array[MeshInstance3D] = []
 var _t := 0.0
 var _dogs := 0
 
@@ -375,38 +376,14 @@ func _stop_effects() -> void:
 	dog.hide_stream()
 
 
-## 남은 곳 보이기: 단계가 반쯤 되면 털 위 안 된 곳이 반짝, 헹구기 시작하면 남은 거품 자리에 둥근 표시
+## 남은 곳 보이기: 단계가 반쯤 되면 털 위 안 된 곳이 반짝, 헹굴 때 거품이 몇 개 안 남으면 그 거품이 반짝
 func _update_leftovers() -> void:
 	var stage_id: String = STAGES[stage_index].id if stage_index < STAGES.size() else ""
 	var p := progress()
 	var ratio: float = p.get(stage_id, 0.0) if stage_id != "rinse" else 1.0
 	dog.set_blink((0.5 + 0.5 * sin(_t * 5.0)) if stage_id != "" and stage_id != "rinse" and ratio >= BLINK_FROM else 0.0, stage_id if stage_id != "" else "wet")
-	var spots: Array[Vector3] = []
-	if stage_id == "rinse" and p.foam > 0 and _reacted.has("rinse"):
-		for pos in dog.foam_world_positions():
-			var near := false
-			for spot in spots:
-				if spot.distance_to(pos) < 0.15:
-					near = true
-					break
-			if not near and spots.size() < FOAM_MARK_MAX:
-				spots.append(pos)
-	var camera: Camera3D = player.camera
-	for i in _foam_marks.size():
-		var mark := _foam_marks[i]
-		mark.visible = i < spots.size()
-		if mark.visible:
-			# 카메라 쪽으로 조금 당겨서 털에 묻히지 않게, 고리가 카메라를 보게
-			var to_camera: Vector3 = (camera.global_position - spots[i]).normalized()
-			mark.global_position = spots[i] + to_camera * 0.06
-			mark.look_at(camera.global_position, Vector3.UP)
-			mark.rotate_object_local(Vector3.RIGHT, PI / 2.0)
-			mark.scale = Vector3.ONE * (1.0 + 0.2 * sin(_t * 8.0))
-
-
-## 보이는 남은 거품 표시 수 (테스트)
-func foam_marks_visible() -> int:
-	return _foam_marks.filter(func(m: MeshInstance3D) -> bool: return m.visible).size()
+	foam_sparkle = stage_id == "rinse" and p.foam > 0 and p.foam <= FOAM_SPARKLE_BELOW
+	dog.set_foam_glow(FOAM_GLOW + (0.5 + 0.5 * sin(_t * 8.0)) * 1.2 if foam_sparkle else FOAM_GLOW)
 
 
 func _build_stage_effects() -> void:
@@ -435,23 +412,6 @@ func _build_stage_effects() -> void:
 	star.material = material
 	_sparkle.mesh = star
 	add_child(_sparkle)
-	for i in FOAM_MARK_MAX:
-		var mark := MeshInstance3D.new()
-		mark.name = "FoamMark_%d" % i
-		var ring := TorusMesh.new()
-		ring.inner_radius = 0.07
-		ring.outer_radius = 0.09
-		mark.mesh = ring
-		var ring_material := StandardMaterial3D.new()
-		ring_material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
-		ring_material.albedo_color = Color(1.0, 0.85, 0.2)
-		ring_material.no_depth_test = true
-		ring_material.render_priority = 1
-		mark.material_override = ring_material
-		mark.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		mark.visible = false
-		add_child(mark)
-		_foam_marks.append(mark)
 
 
 func _on_guest_arrived() -> void:

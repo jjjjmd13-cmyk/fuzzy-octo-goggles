@@ -187,17 +187,19 @@ extends Resource
 @export var v4_rate_towel := 2.0
 
 ## 대기 손님 참을성 (s, TUNING_V4 2장): 대기 의자에서 이만큼 기다리면 "다음에 올게요" 하고 떠남
-@export var v4_patience_hurry := 30.0
-@export var v4_patience_normal := 90.0
-@export var v4_patience_relaxed := 180.0
+@export var v4_patience_hurry := 60.0
+@export var v4_patience_normal := 150.0
+@export var v4_patience_relaxed := 300.0
 ## 끝까지 손님 (0 = 안 떠남)
 @export var v4_patience_forever := 0.0
 ## 성격 나올 비율: 급함·보통·느긋·끝까지
 @export var v4_patience_mix := PackedFloat32Array([0.2, 0.45, 0.25, 0.1])
-## 시제품을 켜자마자 오는 손님 (다른 참을성을 바로 보게, 급함 포함, 개발 임시값). 그 뒤로는 비율대로
-@export var v4_first_guests: Array[String] = ["normal", "hurry", "relaxed"]
+## 시제품을 켜자마자 오는 손님 (느긋한 1명으로 차분히 시작, 사람 대표 피드백). 그 뒤로는 v4_guest_every 마다 비율대로
+@export var v4_first_guests: Array[String] = ["relaxed"]
 ## 새 손님이 오는 간격 (s, 대기 의자 3개가 다 차면 안 옴, 개발 임시값)
-@export var v4_guest_every := 30.0
+@export var v4_guest_every := 45.0
+## 가게를 연 뒤 이 시간(s) 동안은 급한 손님이 안 나옴
+@export var v4_hurry_after := 120.0
 
 ## 기분 0~1 → 얼굴 단계 0(😣) / 1(😐) / 2(😊)
 func mood_face(mood: float) -> int:

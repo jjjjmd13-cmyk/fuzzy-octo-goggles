@@ -38,6 +38,8 @@ var left_count := 0
 var _rng := RandomNumberGenerator.new()
 var _opening: Array = []
 var _spawn_left := 0.0
+## 가게를 연 뒤 지난 시간 (s)
+var elapsed := 0.0
 var _variant := 0
 ## 떠나는 손님: {owner, t}
 var _leaving: Array[Dictionary] = []
@@ -91,9 +93,11 @@ func spawn(kind := "") -> void:
 	_seat_all()
 
 
-## 성격 뽑기: v4_patience_mix (급함·보통·느긋·끝까지)
+## 성격 뽑기: v4_patience_mix (급함·보통·느긋·끝까지). 연 뒤 v4_hurry_after 초 동안은 급함 없음
 func roll_kind() -> String:
-	var weights: PackedFloat32Array = Tuning.data.v4_patience_mix
+	var weights: PackedFloat32Array = Tuning.data.v4_patience_mix.duplicate()
+	if elapsed < Tuning.data.v4_hurry_after:
+		weights[KINDS.find("hurry")] = 0.0
 	var total := 0.0
 	for w in weights:
 		total += w
@@ -139,11 +143,12 @@ func call_next() -> String:
 
 
 func _process(delta: float) -> void:
+	elapsed += delta
 	_spawn_left -= delta
 	if _spawn_left <= 0.0:
 		if not _opening.is_empty():
 			spawn(_opening.pop_front())
-			_spawn_left = 2.5
+			_spawn_left = 2.5 if not _opening.is_empty() else Tuning.data.v4_guest_every
 		else:
 			spawn()
 			_spawn_left = Tuning.data.v4_guest_every

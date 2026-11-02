@@ -35,6 +35,7 @@ var foam_glow := 0.0
 var _foam_pos := PackedVector3Array()
 var _foam_size := PackedFloat32Array()
 var _foam_mesh: MultiMeshInstance3D
+var _foam_material: StandardMaterial3D
 ## 물방울 (헹군 뒤): 모형 기준 위치와 몸 중심에서 본 방향. 수건·드라이어로 닦은 곳부터 사라진다.
 var _drop_pos := PackedVector3Array()
 var _drop_dir := PackedVector3Array()
@@ -144,10 +145,8 @@ func setup(resolution: int, pattern: int, seed_value: int) -> void:
 	var foam_material := StandardMaterial3D.new()
 	foam_material.vertex_color_use_as_albedo = true
 	foam_material.roughness = 0.4
-	if foam_glow > 0.0:
-		foam_material.emission_enabled = true
-		foam_material.emission = Color(1, 1, 1)
-		foam_material.emission_energy_multiplier = foam_glow
+	_foam_material = foam_material
+	set_foam_glow(foam_glow)
 	ball.material = foam_material
 	_foam_mesh.multimesh.mesh = ball
 	model.add_child(_foam_mesh)
@@ -297,6 +296,15 @@ func show_drop_count(count: int) -> void:
 
 func foam_count() -> int:
 	return _foam_pos.size()
+
+
+## 거품 발광 세기 (0 = 끔). 반짝이게 하려면 매 프레임 바꿔 부른다
+func set_foam_glow(energy: float) -> void:
+	if _foam_material == null:
+		return
+	_foam_material.emission_enabled = energy > 0.0
+	_foam_material.emission = Color(1, 1, 1)
+	_foam_material.emission_energy_multiplier = energy
 
 
 ## 남은 거품 공들의 월드 위치

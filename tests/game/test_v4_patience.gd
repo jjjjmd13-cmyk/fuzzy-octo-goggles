@@ -17,6 +17,7 @@ func run_test() -> void:
 	add_child(shop)
 	guests = shop.guests
 	# 저절로 오는 손님은 멈추고 직접 들여보냄
+	check_eq(guests._opening, Tuning.data.v4_first_guests, "처음 줄은 수치표대로")
 	guests._opening.clear()
 	guests._spawn_left = 1e9
 	guests.guest_left.connect(func(kind: String) -> void: left_kinds.append(kind))
@@ -31,14 +32,15 @@ func run_test() -> void:
 	check_eq(guests.patience_of("hurry"), Tuning.data.v4_patience_hurry, "급함 참을성")
 	check(guests.patience_of("forever") <= 0.0, "끝까지 손님은 안 떠남 (0)")
 
-	# 25초: 급함은 아직 있음, 깜빡이는 구간 (남은 1/6 < 1/4)·발 구르기
-	_advance(25.0)
-	check_eq(guests.guests[0].kind, "hurry", "급함 손님 25초엔 아직 기다림")
+	# 참을성의 85%: 급함은 아직 있음, 깜빡이는 구간 (남은 < 1/4)·발 구르기
+	var hurry: float = Tuning.data.v4_patience_hurry
+	_advance(hurry * 0.85)
+	check_eq(guests.guests[0].kind, "hurry", "급함 손님 %.0f초엔 아직 기다림" % (hurry * 0.85))
 	check_eq(guests.guests[0].owner.wait_level, 2, "참을성이 거의 다 되면 발 구르기")
 	check(guests.guests[1].owner.wait_level <= 1, "보통 손님은 아직 느긋")
-	# 31초: 급함이 떠나고 뒷사람이 앞으로
-	_advance(6.0)
-	check_eq(left_kinds, ["hurry"] as Array[String], "급함 손님이 30초에 떠남")
+	# 참을성이 다 되면 급함이 떠나고 뒷사람이 앞으로
+	_advance(hurry * 0.2)
+	check_eq(left_kinds, ["hurry"] as Array[String], "급함 손님이 %.0f초에 떠남" % hurry)
 	check_eq(guests.left_count, 1, "떠난 손님 수")
 	check_eq(guests.guests.size(), 2, "남은 대기 손님 2명")
 	check_eq(guests.guests[0].kind, "normal", "뒷사람이 앞자리로")
@@ -50,8 +52,8 @@ func run_test() -> void:
 	check_eq(guests.guests.size(), 1, "데려간 손님은 대기열에서 빠짐")
 	check(guests.current != null, "데려간 손님은 목욕통 옆에서 지켜봄")
 	check(not shop.done, "다음 손님 강아지는 다시 더러움")
-	_advance(500.0)
-	check_eq(guests.guests.size(), 1, "끝까지 손님은 500초가 지나도 기다림")
+	_advance(1000.0)
+	check_eq(guests.guests.size(), 1, "끝까지 손님은 1000초가 지나도 기다림")
 	check_eq(guests.guests[0].kind, "forever", "남은 손님은 끝까지 손님")
 	check_eq(guests.left_count, 1, "목욕 중인 손님은 안 떠남")
 
@@ -62,7 +64,14 @@ func run_test() -> void:
 	shop.next_guest()
 	check_eq(guests.served, 2, "씻긴 손님 수 (다 씻고 다음 손님 받을 때마다)")
 
-	# 성격 비율
+	# 성격 비율: 연 지 얼마 안 됐을 땐 급함이 없고, v4_hurry_after 뒤엔 섞임
+	guests.elapsed = 0.0
+	var early := {}
+	for i in 1000:
+		var kind: String = guests.roll_kind()
+		early[kind] = early.get(kind, 0) + 1
+	check_eq(early.get("hurry", 0), 0, "처음 %.0f초 동안 급한 손님 없음" % Tuning.data.v4_hurry_after)
+	guests.elapsed = Tuning.data.v4_hurry_after + 1.0
 	var counts := {}
 	for i in 2000:
 		var kind: String = guests.roll_kind()
@@ -70,6 +79,7 @@ func run_test() -> void:
 	print("성격 2000번: ", counts)
 	check(counts.get("forever", 0) > 120 and counts.get("forever", 0) < 300, "끝까지 약 10%")
 	check(counts.get("normal", 0) > 780, "보통이 가장 많음 (약 45%)")
+	check(counts.get("hurry", 0) > 280, "%.0f초 뒤엔 급함도 나옴 (약 20%%)" % Tuning.data.v4_hurry_after)
 
 
 func _advance(seconds: float) -> void:
