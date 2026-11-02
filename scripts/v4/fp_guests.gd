@@ -38,9 +38,13 @@ var served := 0
 var left_count := 0
 ## 영업 중 (false 면 새 손님이 안 옴, 남은 손님은 그대로)
 var open := true
+## 빠른 확인 모드: 처음 줄(_opening) 손님만 오고, 아무도 떠나지 않음 (참을성 끔)
+var quick := false
 
 var _rng := RandomNumberGenerator.new()
 var _opening: Array = []
+## add_child 전에 정하면 v4_first_guests 대신 이 줄 (빠른 확인)
+var opening_override: Variant = null
 var _spawn_left := 0.0
 ## 가게를 연 뒤 지난 시간 (s)
 var elapsed := 0.0
@@ -51,7 +55,7 @@ var _leaving: Array[Dictionary] = []
 
 func _ready() -> void:
 	_rng.randomize()
-	_opening = Tuning.data.v4_first_guests.duplicate()
+	_opening = Tuning.data.v4_first_guests.duplicate() if opening_override == null else opening_override
 	_spawn_left = 1.0
 	for i in SEATS.size():
 		var chair := CHAIR_SCENE.instantiate() as Node3D
@@ -122,7 +126,7 @@ static func patience_of(kind: String) -> float:
 ## 남은 참을성 비율 (1 = 막 옴, 0 = 떠남). 끝까지 손님은 늘 1
 func remaining(index: int) -> float:
 	var guest: Dictionary = guests[index]
-	if guest.patience <= 0.0:
+	if guest.patience <= 0.0 or quick:
 		return 1.0
 	return clampf(1.0 - guest.waited / guest.patience, 0.0, 1.0)
 
@@ -175,7 +179,7 @@ func _process(delta: float) -> void:
 		if not _opening.is_empty():
 			spawn(_opening.pop_front())
 			_spawn_left = 2.5 if not _opening.is_empty() else Tuning.data.v4_guest_every
-		else:
+		elif not quick:
 			spawn()
 			_spawn_left = Tuning.data.v4_guest_every
 	var camera := get_viewport().get_camera_3d()

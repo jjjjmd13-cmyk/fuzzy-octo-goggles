@@ -14,6 +14,17 @@ func _ready() -> void:
 
 
 func show_result(served: int, left: int, fees: int, tips: int) -> void:
+	show_lines("오늘 영업 끝!", [
+		"받은 손님  %d" % served,
+		"떠난 손님  %d" % left,
+		"요금  %d" % fees,
+		"팁  %d" % tips,
+		"합계  %d" % (fees + tips),
+	], true)
+
+
+## 제목 + 줄들 + [다시 하기] [메뉴로] (again = false 면 메뉴로만)
+func show_lines(title: String, lines: Array, again: bool) -> void:
 	var shade := ColorRect.new()
 	shade.color = Color(0, 0, 0, 0.55)
 	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -31,14 +42,7 @@ func show_result(served: int, left: int, fees: int, tips: int) -> void:
 	var box := VBoxContainer.new()
 	box.add_theme_constant_override("separation", 14)
 	panel.add_child(box)
-	_label(box, "오늘 영업 끝!", 40)
-	var lines := [
-		"받은 손님  %d" % served,
-		"떠난 손님  %d" % left,
-		"요금  %d" % fees,
-		"팁  %d" % tips,
-		"합계  %d" % (fees + tips),
-	]
+	_label(box, title, 40)
 	for line in lines:
 		_label(box, line, 28)
 	summary_text = "\n".join(lines)
@@ -46,10 +50,15 @@ func show_result(served: int, left: int, fees: int, tips: int) -> void:
 	row.alignment = BoxContainer.ALIGNMENT_CENTER
 	row.add_theme_constant_override("separation", 20)
 	box.add_child(row)
-	var again := _button(row, "다시 하기")
-	again.pressed.connect(func() -> void: get_tree().reload_current_scene())
-	_button(row, "메뉴로").pressed.connect(func() -> void: get_tree().change_scene_to_file(MENU_SCENE))
-	again.grab_focus()
+	var menu := _button(row, "메뉴로")
+	menu.pressed.connect(func() -> void: get_tree().change_scene_to_file(MENU_SCENE))
+	if again:
+		var retry := _button(row, "다시 하기")
+		row.move_child(retry, 0)
+		retry.pressed.connect(func() -> void: get_tree().reload_current_scene())
+		retry.grab_focus()
+	else:
+		menu.grab_focus()
 
 
 func _label(parent: Node, text: String, font_size: int) -> void:
