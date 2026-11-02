@@ -1,6 +1,6 @@
 extends "res://tests/qa_test.gd"
 ## V4 하루 흐름: 손님을 클릭하면 강아지를 맡기고, 다 씻은 뒤 주인을 클릭하면 돌려주고 요금 + 팁을 받는다.
-## 빨리 받을수록 팁이 크고, 6시가 지나면 새 손님이 안 오며, 남은 손님까지 보내면 정산.
+## 기분 팁 + 빠른 팁 (들어와서 돌려받기까지 빠를수록, 급한 손님은 2배),  6시가 지나면 새 손님이 안 오며, 남은 손님까지 보내면 정산.
 
 const SCENE := preload("res://scenes/v4/fp_shop.tscn")
 
@@ -19,7 +19,7 @@ func run_test() -> void:
 	guests._spawn_left = 1e9
 	for i in 3:
 		await get_tree().physics_frame
-	check(is_equal_approx(shop.day_seconds, Tuning.data.day_open_minutes_real * 60.0), "하루 영업 = V3 벽시계 길이")
+	check(is_equal_approx(shop.day_seconds, Tuning.data.v4_day_minutes * 60.0), "하루 영업 = v4_day_minutes")
 	check_eq(shop.clock_text(), "오전 9:00", "문 열 때 시계")
 
 	# 대기 손님을 바라보면 클릭 대상이 됨
@@ -47,16 +47,20 @@ func run_test() -> void:
 	# 다 씻고 주인 클릭: 요금 + 팁 (급한 손님을 바로 받아서 팁이 큼)
 	shop.done = true
 	shop.interact_guest(first)
-	var fee: int = Tuning.data.money_wash_price
+	var fee: int = Tuning.data.v4_price_wash
 	check(not shop.has_dog and guests.current == null, "돌려주면 목욕통이 비고 주인이 떠남")
 	check_eq(shop.fees, fee, "요금")
-	check(shop.tips > Tuning.data.v4_tip_max, "급한 손님을 바로 받으면 팁이 큼 (%d)" % shop.tips)
+	var fast: int = Tuning.data.v4_tip_fast[0]
+	check_eq(shop.tips, Tuning.data.v4_tip_mood[2] + roundi(fast * Tuning.data.v4_tip_fast_hurry_mult), "급한 손님을 바로 돌려주면 기분 팁 + 빠른 팁 ×2")
 	check_eq(shop.money, shop.fees + shop.tips, "돈 = 요금 + 팁")
 	check(first.get_node_or_null("GuestHit") == null, "떠나는 주인은 더 클릭 안 됨")
 
 	# 팁 계산: 늦게 받을수록 작음, 끝까지 손님은 적음
-	check(shop.tip_for("normal", 1.0) > shop.tip_for("normal", 0.2), "빨리 받을수록 팁 큼")
-	check(shop.tip_for("forever", 1.0) < shop.tip_for("normal", 1.0), "끝까지 손님은 팁 적음")
+	var times: PackedFloat32Array = Tuning.data.v4_fast_times
+	check_eq(shop.fast_tip("normal", times[0] - 1.0), Tuning.data.v4_tip_fast[0], "%.0f초 안 = 빠른 팁 최대" % times[0])
+	check_eq(shop.fast_tip("normal", times[1] - 1.0), Tuning.data.v4_tip_fast[1], "%.0f초 안 = 빠른 팁 중간" % times[1])
+	check_eq(shop.fast_tip("normal", times[1] + 1.0), Tuning.data.v4_tip_fast[2], "그 뒤 = 빠른 팁 없음")
+	check(shop.fast_tip("hurry", 10.0) > shop.fast_tip("normal", 10.0), "급한 손님은 빠른 팁 배수")
 
 	# 6시: 새 손님 안 옴, 남은 손님(끝까지)을 씻겨 보내면 정산
 	shop.day_time = shop.day_seconds - 0.1
@@ -75,7 +79,7 @@ func run_test() -> void:
 	var settle: Control = shop._settle
 	check(settle != null and settle.is_inside_tree(), "정산 화면")
 	if settle != null:
-		check(settle.summary_text.contains("씻긴 손님  2"), "정산: 씻긴 손님 (%s)" % settle.summary_text)
-		check(settle.summary_text.contains("번 돈  %d" % shop.money), "정산: 번 돈")
+		check(settle.summary_text.contains("받은 손님  2"), "정산: 씻긴 손님 (%s)" % settle.summary_text)
+		check(settle.summary_text.contains("합계  %d" % shop.money), "정산: 합계")
 	shop.interact_guest(null)
 	check_eq(shop.money, shop.fees + shop.tips, "정산 뒤엔 손님 클릭 없음")

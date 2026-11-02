@@ -1,5 +1,5 @@
 extends Control
-## V4 하루 영업 끝 정산 (씻긴 손님 · 떠난 손님 · 번 돈 = 요금 + 팁). 다시 하기 / 메뉴로.
+## V4 하루 영업 끝 정산 (받은 손님 · 떠난 손님 · 요금 · 팁 · 합계, TUNING_V4 3장). 다시 하기 / 메뉴로.
 ## 화면 전체를 살짝 어둡게 덮고 가운데 판 하나. 글꼴은 프로젝트 기본 테마 (한글).
 
 const MENU_SCENE := "res://scenes/menu/main_menu.tscn"
@@ -33,9 +33,11 @@ func show_result(served: int, left: int, fees: int, tips: int) -> void:
 	panel.add_child(box)
 	_label(box, "오늘 영업 끝!", 40)
 	var lines := [
-		"씻긴 손님  %d" % served,
+		"받은 손님  %d" % served,
 		"떠난 손님  %d" % left,
-		"번 돈  %d  (요금 %d + 팁 %d)" % [fees + tips, fees, tips],
+		"요금  %d" % fees,
+		"팁  %d" % tips,
+		"합계  %d" % (fees + tips),
 	]
 	for line in lines:
 		_label(box, line, 28)

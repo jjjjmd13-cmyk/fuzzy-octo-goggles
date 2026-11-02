@@ -93,7 +93,7 @@ func spawn(kind := "") -> void:
 	var icon := _make_icon(kind)
 	owner.add_child(icon)
 	_add_hit(owner)
-	guests.append({"kind": kind, "patience": patience_of(kind), "waited": 0.0, "owner": owner, "icon": icon})
+	guests.append({"kind": kind, "patience": patience_of(kind), "waited": 0.0, "owner": owner, "icon": icon, "arrived": elapsed})
 	guest_arrived.emit()
 	_seat_all()
 
@@ -143,7 +143,7 @@ func take_next() -> Dictionary:
 
 
 ## 대기 손님(owner)이 목욕통 옆으로 와서 강아지를 맡김.
-## 돌려줌: {kind, remaining (맡길 때 남은 참을성 0~1)}, 대기 손님이 아니면 {}
+## 돌려줌: {kind, remaining (맡길 때 남은 참을성 0~1), arrived (들어온 시각, elapsed 기준)}, 대기 손님이 아니면 {}
 func take(owner: Node3D) -> Dictionary:
 	var index := index_of(owner)
 	if index < 0:
@@ -157,7 +157,7 @@ func take(owner: Node3D) -> Dictionary:
 	owner.go_wait(to_global(TUB_SIDE), to_global(LOOK_AT), owner.position.distance_to(TUB_SIDE) / WALK_SPEED, false)
 	current = owner
 	_seat_all()
-	return {"kind": guest.kind, "remaining": left}
+	return {"kind": guest.kind, "remaining": left, "arrived": guest.arrived}
 
 
 ## 대기열에서 몇 번째인지 (없으면 -1)

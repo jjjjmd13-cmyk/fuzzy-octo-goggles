@@ -70,11 +70,11 @@ var hovered_guest: Node3D = null
 var money := 0
 var fees := 0
 var tips := 0
-## 하루 영업 (s): 문 연 뒤 지난 시간 / 영업 시간 (V3 day_open_minutes_real, 9시~6시)
+## 하루 영업 (s): 문 연 뒤 지난 시간 / 영업 시간 (v4_day_minutes, 9시~6시)
 var day_time := 0.0
 var day_seconds := 0.0
 var day_over := false
-## 지금 강아지 주인이 맡길 때 남은 참을성·성격 (팁 계산)
+## 지금 강아지 주인 정보: 성격·들어온 시각 (팁 계산)
 var _taken := {}
 var _settle: Control
 ## 지금 단계 (STAGES 번호, 4 = 다 끝남)
@@ -125,7 +125,7 @@ func _ready() -> void:
 	guests.guest_arrived.connect(_on_guest_arrived)
 	_build_player()
 	_build_hud()
-	day_seconds = Tuning.data.day_open_minutes_real * 60.0
+	day_seconds = Tuning.data.v4_day_minutes * 60.0
 	new_dog()
 	_clear_tub()
 	_show_hint("손님이 오면 다가가서 클릭: 강아지 맡기", 4.0)
@@ -173,10 +173,11 @@ func interact_guest(owner: Node3D) -> void:
 		new_dog()
 
 
-## 다 씻은 강아지를 주인에게: 요금 + 팁 (빨리 받았을수록 팁↑), 주인은 기뻐하며 떠남
+## 다 씻은 강아지를 주인에게: 요금 + 기분 팁 + 빠른 팁 (TUNING_V4 3장), 주인은 기뻐하며 떠남
 func give_back() -> void:
-	var fee: int = Tuning.data.money_wash_price
-	var tip := tip_for(_taken.get("kind", "normal"), _taken.get("remaining", 0.0))
+	var fee: int = Tuning.data.v4_price_wash
+	# 기분: V4 에는 아직 벌점이 없어서 다 씻으면 😊
+	var tip: int = Tuning.data.v4_tip_mood[2] + fast_tip(_taken.get("kind", "normal"), guests.elapsed - _taken.get("arrived", guests.elapsed))
 	fees += fee
 	tips += tip
 	money += fee + tip
@@ -187,15 +188,16 @@ func give_back() -> void:
 	_show_hint("요금 %d + 팁 %d" % [fee, tip], 2.5)
 
 
-## 팁: 맡길 때 남은 참을성 비율 × v4_tip_max × 성격 배수 (급함은 제때 받으면 더, 끝까지 손님은 적게)
-static func tip_for(kind: String, remaining: float) -> int:
-	var mult := 1.0
-	match kind:
-		"hurry":
-			mult = Tuning.data.v4_tip_hurry_mult
-		"forever":
-			mult = Tuning.data.v4_tip_forever_mult
-	return roundi(Tuning.data.v4_tip_max * clampf(remaining, 0.0, 1.0) * mult)
+## 빠른 서비스 팁: 손님이 들어온 뒤 돌려받기까지 걸린 시간(s)으로. 급한 손님은 배수
+static func fast_tip(kind: String, seconds: float) -> int:
+	var times: PackedFloat32Array = Tuning.data.v4_fast_times
+	var tips_by_time: PackedInt32Array = Tuning.data.v4_tip_fast
+	var tip := tips_by_time[times.size()]
+	for i in times.size():
+		if seconds <= times[i]:
+			tip = tips_by_time[i]
+			break
+	return roundi(tip * (Tuning.data.v4_tip_fast_hurry_mult if kind == "hurry" else 1.0))
 
 
 ## 테스트·키 없이: 목욕통에 강아지가 있으면 그 주인, 없으면 맨 앞 손님과 상호작용
