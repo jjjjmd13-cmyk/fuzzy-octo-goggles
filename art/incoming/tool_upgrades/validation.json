@@ -1,0 +1,267 @@
+{
+  "brush": {
+    "triangles": 1100,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    "dimensions_m": [
+      0.081319,
+      0.2,
+      0.061538
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "y",
+    "target_size_m": 0.2,
+    "joints": {}
+  },
+  "brush_slicker": {
+    "triangles": 1824,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    "dimensions_m": [
+      0.116056,
+      0.2,
+      0.059718
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "y",
+    "target_size_m": 0.2,
+    "joints": {}
+  },
+  "brush_electric": {
+    "triangles": 1684,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    "dimensions_m": [
+      0.10392,
+      0.22,
+      0.071859
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "y",
+    "target_size_m": 0.22,
+    "joints": {
+      "Head": {
+        "pivot_m": [
+          0.0,
+          0.079598,
+          -0.011055
+        ],
+        "axis": "Z",
+        "motion": "rotate"
+      }
+    }
+  },
+  "shower_wide": {
+    "triangles": 744,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    "dimensions_m": [
+      0.119433,
+      0.28,
+      0.0471
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "y",
+    "target_size_m": 0.28,
+    "joints": {}
+  },
+  "shower_rain": {
+    "triangles": 1164,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    "dimensions_m": [
+      0.174652,
+      0.32,
+      0.049321
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "y",
+    "target_size_m": 0.32,
+    "joints": {}
+  },
+  "foam_pump": {
+    "triangles": 828,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    "dimensions_m": [
+      0.084771,
+      0.22,
+      0.115046
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "y",
+    "target_size_m": 0.22,
+    "joints": {
+      "Pump": {
+        "pivot_m": [
+          0.0,
+          0.080734,
+          -0.0
+        ],
+        "axis": "Y",
+        "motion": "translate"
+      }
+    }
+  },
+  "foam_cannon": {
+    "triangles": 1536,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    "dimensions_m": [
+      0.111315,
+      0.347859,
+      0.35
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "z",
+    "target_size_m": 0.35,
+    "joints": {}
+  },
+  "dryer_big": {
+    "triangles": 2646,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    "dimensions_m": [
+      0.169576,
+      0.281297,
+      0.4
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "z",
+    "target_size_m": 0.4,
+    "joints": {
+      "Fan": {
+        "pivot_m": [
+          0.0,
+          0.111721,
+          -0.247382
+        ],
+        "axis": "Z",
+        "motion": "rotate"
+      }
+    }
+  },
+  "scissors": {
+    "triangles": 1120,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        64,
+        64
+      ]
+    },
+    "dimensions_m": [
+      0.095923,
+      0.022594,
+      0.18
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "z",
+    "target_size_m": 0.18,
+    "joints": {
+      "Blade_L": {
+        "pivot_m": [
+          0.0,
+          0.0,
+          -0.054432
+        ],
+        "axis": "Y",
+        "motion": "rotate"
+      },
+      "Blade_R": {
+        "pivot_m": [
+          0.0,
+          0.0,
+          -0.054432
+        ],
+        "axis": "Y",
+        "motion": "rotate"
+      }
+    }
+  }
+}

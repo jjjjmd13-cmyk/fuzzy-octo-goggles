@@ -1,0 +1,12 @@
+Godot Engine v4.4.1.stable.official.49a5bc7b6 - https://godotengine.org
+
+TOOL_ASSET_CHECK: brush
+TOOL_ASSET_CHECK: brush_slicker
+TOOL_ASSET_CHECK: brush_electric
+TOOL_ASSET_CHECK: shower_wide
+TOOL_ASSET_CHECK: shower_rain
+TOOL_ASSET_CHECK: foam_pump
+TOOL_ASSET_CHECK: foam_cannon
+TOOL_ASSET_CHECK: dryer_big
+TOOL_ASSET_CHECK: scissors
+TOOL_ASSETS_PASS
