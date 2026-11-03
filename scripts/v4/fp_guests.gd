@@ -15,6 +15,7 @@ const CHAIR_SCENE := preload("res://scenes/art/sim/chair_model.tscn")
 const DOG_SCENE := preload("res://scenes/art/sim/dog_model.tscn")
 const FONT := preload("res://assets/fonts/pretendard/Pretendard-Bold.otf")
 const KINDS: Array[String] = ["hurry", "normal", "relaxed", "forever"]
+const TRIM_NAMES := {"bear": "곰돌이컷", "lion": "사자컷", "summer": "여름컷"}
 const KIND_NAMES := {"hurry": "급함", "normal": "보통", "relaxed": "느긋", "forever": "끝까지"}
 const DOOR := Vector3(3.5, 0, 2.6)
 const SEATS: Array[Vector3] = [Vector3(3.0, 0, -1.4), Vector3(3.0, 0, -0.5), Vector3(3.0, 0, 0.4)]
@@ -40,6 +41,10 @@ var left_count := 0
 var open := true
 ## 빠른 확인 모드: 처음 줄(_opening) 손님만 오고, 아무도 떠나지 않음 (참을성 끔)
 var quick := false
+## 미용을 요청하는 손님 비율 (가위를 사면 가게가 v4_trim_request_ratio 로 올림, 0 = 요청 없음)
+var trim_chance := 0.0
+## 요청 모양 목록 (fp_trim.gd SHAPES 의 id)
+var trim_shapes: Array = ["bear", "lion", "summer"]
 
 var _rng := RandomNumberGenerator.new()
 var _opening: Array = []
@@ -106,8 +111,12 @@ func spawn(kind := "") -> void:
 	owner.holding = true
 	var icon := _make_icon(kind)
 	owner.add_child(icon)
+	var trim := ""
+	if trim_chance > 0.0 and _rng.randf() < trim_chance:
+		trim = trim_shapes[_rng.randi() % trim_shapes.size()]
+		_add_trim_label(owner, trim)
 	_add_hit(owner)
-	guests.append({"kind": kind, "patience": patience_of(kind), "waited": 0.0, "owner": owner, "icon": icon, "arrived": elapsed})
+	guests.append({"kind": kind, "patience": patience_of(kind), "waited": 0.0, "owner": owner, "icon": icon, "arrived": elapsed, "trim": trim})
 	guest_arrived.emit()
 	_seat_all()
 
@@ -171,7 +180,10 @@ func take(owner: Node3D) -> Dictionary:
 	owner.go_wait(to_global(TUB_SIDE), to_global(LOOK_AT), owner.position.distance_to(TUB_SIDE) / WALK_SPEED, false)
 	current = owner
 	_seat_all()
-	return {"kind": guest.kind, "remaining": left, "arrived": guest.arrived}
+	var label := owner.get_node_or_null("TrimLabel")
+	if label != null:
+		label.queue_free()
+	return {"kind": guest.kind, "remaining": left, "arrived": guest.arrived, "trim": guest.trim}
 
 
 ## 대기열에서 몇 번째인지 (없으면 -1)
@@ -252,6 +264,22 @@ func _send_home(owner: Node3D, mood_level: int, say := "") -> void:
 		label.position.y = owner.height + 0.4
 		owner.add_child(label)
 	_leaving.append({"owner": owner, "t": 0.0, "walking": false})
+
+
+## 미용 요청 손님: 머리 위 표시 위에 "미용: 곰돌이컷"
+func _add_trim_label(owner: Node3D, trim: String) -> void:
+	var label := Label3D.new()
+	label.name = "TrimLabel"
+	label.text = "미용: %s" % TRIM_NAMES.get(trim, trim)
+	label.font = FONT
+	label.font_size = 36
+	label.outline_size = 10
+	label.modulate = Color(1.0, 0.75, 0.85)
+	label.pixel_size = 0.004
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.no_depth_test = true
+	label.position.y = 1.75
+	owner.add_child(label)
 
 
 ## 클릭 판정 모양 (앉아도 서도 몸을 덮는 캡슐)

@@ -17,6 +17,7 @@ const TUB_SCENE := preload("res://scenes/art/sim/tub_model.tscn")
 const MENU_SCENE := "res://scenes/menu/main_menu.tscn"
 const FpSettle := preload("res://scripts/v4/fp_settle.gd")
 const FpTangles := preload("res://scripts/v4/fp_tangles.gd")
+const FpTrim := preload("res://scripts/v4/fp_trim.gd")
 
 ## 빠른 확인에서 강아지를 다 돌려줌 (개발용 scenes/dev/quick_check.tscn 이 끝 화면을 띄움)
 signal quick_finished
@@ -37,6 +38,8 @@ const STAGES: Array[Dictionary] = [
 	{"id": "rinse", "tool": "shower", "sound": "squeak", "text": "뽀득! 헹굼 끝! 수건으로 닦아요"},
 	{"id": "dry", "tool": "dryer", "sound": "poof", "text": "뽕! 드라이 끝! 빗으로 엉킨 털을 풀어요"},
 	{"id": "brush", "tool": "brush", "sound": "squeak", "text": "빗질 끝! 반짝반짝 깨끗해졌어요"},
+	# 미용은 요청 손님만 (요청이 없으면 이 단계를 건너뜀)
+	{"id": "trim", "tool": "scissors", "sound": "clap", "text": "미용 끝! 모양이 남았어요"},
 ]
 ## 거품 공 크기 배수 (크고 하얗게), 스스로 빛나는 정도
 const FOAM_SIZE := 2.4
@@ -49,7 +52,7 @@ const RINSE_SPEED := 14.0
 const FOAM_SPARKLE_BELOW := 3
 ## 단계 진행이 이만큼 넘으면 아직 안 된 곳을 털 위에서 반짝임
 const BLINK_FROM := 0.5
-const STAGE_REACTION := {"wet": "wiggle_legs", "scrub": "jump", "rinse": "shake", "dry": "wiggle_legs", "brush": "jump"}
+const STAGE_REACTION := {"wet": "wiggle_legs", "scrub": "jump", "rinse": "shake", "dry": "wiggle_legs", "brush": "jump", "trim": "wiggle_legs"}
 ## 빗이 닿는 거리 = 붓 반경 × 이 값 (뭉치 하나씩 겨냥하게 붓보다 좁게)
 const BRUSH_REACH := 0.8
 ## 임시 털색 (엉킨 뭉치는 이보다 진하게)
@@ -76,6 +79,7 @@ const TOOLS := {
 	"shampoo": {"name": "샴푸", "channel": "scrub", "color": Color(1.0, 0.6, 0.75)},
 	"dryer": {"name": "드라이기", "channel": "dry", "color": Color(0.95, 0.85, 0.9)},
 	"brush": {"name": "빗", "channel": "brush", "color": Color(0.75, 0.55, 0.4)},
+	"scissors": {"name": "가위", "channel": "trim", "color": Color(0.85, 0.85, 0.9)},
 }
 
 ## false 면 마우스·키 입력을 읽지 않는다 (테스트가 using 등을 직접 넣음)
@@ -113,6 +117,12 @@ var tangles: FpTangles
 var tool_level := {"shower": 0, "shampoo": 0, "dryer": 0, "brush": 0}
 ## 며칠째 (가진 돈·도구는 다음 날로 이어짐, 저장은 아직 없음)
 var day := 1
+## 가위를 샀음 (다음 손님부터 미용 요청이 옴)
+var owns_scissors := false
+## 지금 강아지의 미용 요청 모양 ("" = 없음)
+var trim_request := ""
+## 미용 다발 (강아지 모형의 자식, 새 강아지마다 새로)
+var trim: FpTrim
 var _settle: Control
 ## 지금 단계 (STAGES 번호, 4 = 다 끝남)
 var stage_index := 0
@@ -167,6 +177,10 @@ func _ready() -> void:
 	_build_player()
 	_build_hud()
 	day_seconds = Tuning.data.v4_day_minutes * 60.0
+	# 가위는 사기 전엔 선반에 없음
+	if quick_feature == "trim":
+		owns_scissors = true
+	_set_pickup_available("scissors", owns_scissors)
 	if quick_feature == "upgrade":
 		# 빠른 확인 [도구 업그레이드]: 모든 도구를 가장 좋은 것으로 산 상태
 		for tool_id in tool_level:
@@ -194,13 +208,18 @@ func new_dog() -> void:
 	tangles.name = "Tangles"
 	dog.model.add_child(tangles)
 	tangles.untangled.connect(_on_untangled)
+	trim = FpTrim.new()
+	trim.name = "Trim"
+	dog.model.add_child(trim)
+	trim.snipped.connect(_on_snipped)
+	trim_request = _taken.get("trim", "") if quick_feature != "trim" else "bear"
 	_show_hint("강아지를 씻겨 주세요: 샤워기 → 샴푸 → 샤워기로 헹구기 → 드라이기 → 빗", 4.0)
 	_start_quick_stage()
 
 
 ## 빠른 확인: 그 기능의 단계부터 바로 시작 (앞 단계는 이미 끝난 강아지)
 func _start_quick_stage() -> void:
-	var start: String = {"dryer": "dry", "brush": "brush"}.get(quick_feature, "")
+	var start: String = {"dryer": "dry", "brush": "brush", "trim": "trim"}.get(quick_feature, "")
 	if start.is_empty():
 		return
 	for i in STAGES.size():
@@ -214,6 +233,10 @@ func _start_quick_stage() -> void:
 		if channel == "dry":
 			dog.fluff = 1.0
 			_spawn_tangles()
+		elif channel == "brush":
+			tangles.clear()
+	if start == "trim":
+		_spawn_trim()
 	_show_hint("%s 집어서 바로 해 봐요" % TOOLS[stage_tool()].name, 4.0)
 
 
@@ -249,6 +272,9 @@ func give_back() -> void:
 	var fee: int = Tuning.data.v4_price_wash
 	# 기분: V4 에는 아직 벌점이 없어서 다 씻으면 😊
 	var tip: int = Tuning.data.v4_tip_mood[2] + fast_tip(_taken.get("kind", "normal"), guests.elapsed - _taken.get("arrived", guests.elapsed))
+	if not trim_request.is_empty():
+		fee += Tuning.data.v4_price_trim
+		tip += trim_tip(trim.match_score())
 	fees += fee
 	tips += tip
 	money += fee + tip
@@ -335,6 +361,8 @@ func size_mult(tool_id: String) -> float:
 
 ## 지금 단계 모형 이름: 그 단계 GLB 가 있으면 그것, 없으면 기본 도구
 func model_id(tool_id: String) -> String:
+	if not LEVEL_MODELS.has(tool_id):
+		return tool_id
 	var id: String = LEVEL_MODELS[tool_id][tool_level[tool_id]]
 	if id != tool_id and not ResourceLoader.exists("res://assets/models/tools/%s.glb" % id):
 		return tool_id
@@ -347,11 +375,15 @@ func model_scale(tool_id: String) -> float:
 
 
 func tool_name(tool_id: String) -> String:
+	if not TOOL_LEVEL_NAMES.has(tool_id):
+		return TOOLS[tool_id].name
 	return TOOL_LEVEL_NAMES[tool_id][tool_level[tool_id]]
 
 
 ## 다음 단계 값 (더 없으면 -1)
 func next_price(tool_id: String) -> int:
+	if tool_id == "scissors":
+		return -1 if owns_scissors else Tuning.data.v4_price_scissors
 	var prices: PackedInt32Array = Tuning.data.get(PRICE_KEY[tool_id])
 	var next: int = tool_level[tool_id] + 1
 	return prices[next] if next < prices.size() and next < TOOL_LEVEL_NAMES[tool_id].size() else -1
@@ -363,6 +395,12 @@ func buy(tool_id: String) -> bool:
 	if price < 0 or money < price:
 		return false
 	money -= price
+	if tool_id == "scissors":
+		owns_scissors = true
+		guests.trim_chance = Tuning.data.v4_trim_request_ratio
+		_set_pickup_available("scissors", true)
+		sfx.play("coin")
+		return true
 	tool_level[tool_id] += 1
 	# 선반 모형을 새 단계 모형으로 (그림이 없으면 기본 모형을 키움)
 	var pickup: Node3D = _pickups[tool_id]
@@ -386,6 +424,9 @@ func store_rows() -> Array:
 	for tool_id in TOOL_LEVEL_NAMES:
 		var price := next_price(tool_id)
 		rows.append({"id": tool_id, "name": tool_name(tool_id), "next": TOOL_LEVEL_NAMES[tool_id][tool_level[tool_id] + 1] if price >= 0 else "", "price": price, "can_buy": price >= 0 and money >= price})
+	if not owns_scissors:
+		var scissors := next_price("scissors")
+		rows.append({"id": "scissors", "name": "가위 없음", "next": "가위 (다음 날부터 미용 요청 손님)", "price": scissors, "can_buy": money >= scissors})
 	return rows
 
 
@@ -421,7 +462,7 @@ func _on_guest_left(_kind: String) -> void:
 
 ## 진행 (0~1): 물·거품(진흙)·말리기, 남은 거품 수
 func progress() -> Dictionary:
-	return {"wet": dog.mask.ratio("wet"), "scrub": dog.mask.ratio("scrub"), "dry": dog.mask.ratio("dry"), "foam": dog.foam_count(), "brush": tangles.ratio() if is_instance_valid(tangles) else 0.0, "tangles": tangles.count() if is_instance_valid(tangles) else 0}
+	return {"wet": dog.mask.ratio("wet"), "scrub": dog.mask.ratio("scrub"), "dry": dog.mask.ratio("dry"), "foam": dog.foam_count(), "brush": tangles.ratio() if is_instance_valid(tangles) else 0.0, "tangles": tangles.count() if is_instance_valid(tangles) else 0, "trim_left": trim.wanted_left() if is_instance_valid(trim) else 0}
 
 
 func pick(tool_id: String) -> void:
@@ -512,6 +553,15 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 			stage = "brush"
 			tangles.brush(point, radius * BRUSH_REACH, Tuning.data.v4_rate_brush * speed * delta)
 			sfx.set_loop("scrub", 0.4)
+		"scissors":
+			if trim_request.is_empty():
+				_show_hint("미용을 요청한 손님 강아지만 잘라요", 1.5)
+				return
+			if stage_index < STAGES.size() and STAGES[stage_index].id != "trim":
+				_show_hint("빗질까지 끝난 뒤에 잘라요", 1.5)
+				return
+			stage = "trim"
+			trim.snip(point, radius * BRUSH_REACH, Tuning.data.v4_rate_trim * speed * delta)
 		"dryer":
 			# 따뜻한 바람: 젖은 곳일수록 빨리 마르고, 마를수록 털이 뽕 부풀고 귀가 펄럭
 			stage = "dry"
@@ -544,7 +594,13 @@ func brush_radius(point: Vector3) -> float:
 ## 단계가 끝났는지 차례로 본다 (앞 단계가 끝나야 다음 단계 끝을 알림)
 func _check_done() -> void:
 	var p := progress()
-	while stage_index < STAGES.size() and _stage_met(STAGES[stage_index].id, p):
+	while stage_index < STAGES.size():
+		var id: String = STAGES[stage_index].id
+		if id == "trim" and trim_request.is_empty():
+			stage_index += 1
+			continue
+		if not _stage_met(id, p):
+			break
 		_finish_stage(STAGES[stage_index])
 		stage_index += 1
 		# 단계가 끝나며 바뀐 것 (드라이 끝 → 엉킨 뭉치) 을 다시 읽음
@@ -569,6 +625,8 @@ func _stage_met(id: String, p: Dictionary) -> bool:
 			return p.foam == 0
 		"dry":
 			return p.dry >= done_at
+		"trim":
+			return p.trim_left == 0
 	# 빗질: 엉킨 뭉치를 다 풂
 	return p.tangles == 0
 
@@ -585,11 +643,40 @@ func _finish_stage(stage: Dictionary) -> void:
 	dog.set_blink(0.0, stage.id)
 	if stage.id == "dry":
 		_spawn_tangles()
+	elif stage.id == "brush" and not trim_request.is_empty():
+		_spawn_trim()
+		_banner = "빗질 끝! 이제 가위로 %s" % FpTrim.SHAPES[trim_request].name
 
 
 ## 드라이가 끝나면 엉킨 털 뭉치가 보임
 func _spawn_tangles() -> void:
 	tangles.spawn(dog.model, dog._body_center(), Tuning.data.v4_tangles, _rng, FUR_COLOR)
+
+
+## 미용 다발을 만듦 (빗질이 끝나면, 요청 손님만)
+func _spawn_trim() -> void:
+	trim.spawn(trim_request, dog.model, dog._body_center(), _rng, FUR_COLOR)
+
+
+## 다발 하나가 사각 잘림: 털 조각이 떨어짐 (작은 반짝), 잘못 자른 곳이면 한숨
+func _on_snipped(world_point: Vector3, wanted: bool) -> void:
+	_sparkle.global_position = world_point
+	_sparkle.restart()
+	_sparkle.emitting = true
+	sfx.play("press")
+	if not wanted:
+		_show_hint("앗, 남길 곳을 잘랐어요 (모양이 덜 비슷해져요)", 1.5)
+
+
+## 미용 팁: 요청 모양과 비슷한 정도 (v4_trim_match_at 넘으면 비슷함 / 똑같음)
+func trim_tip(score: float) -> int:
+	var at: PackedFloat32Array = Tuning.data.v4_trim_match_at
+	var tip_table: PackedInt32Array = Tuning.data.v4_trim_match_tip
+	if score >= at[1]:
+		return tip_table[2]
+	if score >= at[0]:
+		return tip_table[1]
+	return tip_table[0]
 
 
 ## 뭉치 하나가 쓱 풀림: 작은 반짝 + 소리
@@ -770,7 +857,7 @@ func _build_room() -> void:
 
 func _build_shelf() -> void:
 	_box("Shelf", Vector3(-2.2, 0.45, -0.8), Vector3(0.6, 0.9, 1.8), Color(0.72, 0.55, 0.38))
-	var z := -1.4
+	var z := -1.6
 	for tool_id in TOOLS:
 		var pickup := StaticBody3D.new()
 		pickup.name = "Pickup_" + tool_id
@@ -786,14 +873,14 @@ func _build_shelf() -> void:
 		pickup.add_child(shape)
 		var view := _make_tool_mesh(tool_id)
 		# GLB 는 쥐는 곳이 원점: 각 메시 최저점을 선반 위에 맞춘다.
-		view.position.y = {"shower": 0.130, "shampoo": 0.074, "dryer": 0.056, "brush": 0.02}[tool_id]
+		view.position.y = {"shower": 0.130, "shampoo": 0.074, "dryer": 0.056, "brush": 0.02, "scissors": 0.01}[tool_id]
 		view.rotation.y = PI / 2.0 # -Z 앞면을 선반 바깥(+X)으로
 		view.name = "View"
 		pickup.add_child(view)
 		_cache_glow_materials(tool_id, view)
 		add_child(pickup)
 		_pickups[tool_id] = pickup
-		z += 0.6
+		z += 0.42
 
 
 func _build_player() -> void:
@@ -902,11 +989,15 @@ func _draw_hud() -> void:
 	elif aim_point != null and held.is_empty():
 		under = "선반에서 도구를 집어요"
 	elif ready_to_use and not using:
-		under = "누르고 있으면 %s" % {"shower": "물이 나와요", "shampoo": "거품이 나요", "dryer": "바람이 나와요", "brush": "빗어요"}[held]
+		under = "누르고 있으면 %s" % {"shower": "물이 나와요", "shampoo": "거품이 나요", "dryer": "바람이 나와요", "brush": "빗어요", "scissors": "사각사각 잘라요"}[held]
 	_text(font, center + Vector2(0, 40), under, 22, true)
 	# 진행 (목욕통에 강아지가 있을 때만)
 	var p := progress()
 	var rows := [["물", p.wet], ["거품 (진흙)", p.scrub], ["말리기", p.dry], ["빗질 (엉킨 털 %d)" % p.tangles, p.brush * Tuning.data.v4_done_ratio]] if has_dog else []
+	if has_dog and not trim_request.is_empty():
+		var total: int = maxi(trim.wanted_total(), 1)
+		rows.append(["미용 (자를 곳 %d)" % p.trim_left, (1.0 - float(p.trim_left) / total) * Tuning.data.v4_done_ratio if trim.wanted_total() > 0 else 0.0])
+		_draw_trim_card(font, Vector2(20, 30 + 6 * 34))
 	for i in rows.size():
 		var y := 30.0 + i * 34.0
 		_hud.draw_rect(Rect2(20, y, 220, 22), Color(0, 0, 0, 0.5))
@@ -926,6 +1017,23 @@ func _draw_hud() -> void:
 		_text(font, Vector2(center.x, 120), _hint, 26, true)
 	if _banner_left > 0.0:
 		_text(font, center + Vector2(0, -90), _banner, 44, true)
+
+
+## 미용 요청 카드: 모양 이름 + 한 줄 + 강아지 옆모습 (자를 곳은 분홍, 남길 곳은 털색). 임시 그림
+func _draw_trim_card(font: Font, at: Vector2) -> void:
+	var shape: Dictionary = FpTrim.SHAPES[trim_request]
+	_hud.draw_rect(Rect2(at, Vector2(250, 150)), Color(0, 0, 0, 0.5))
+	_text(font, at + Vector2(12, 26), "미용 요청: %s" % shape.name, 20, false)
+	_text(font, at + Vector2(12, 50), shape.about, 15, false)
+	var cut: Array = shape.cut
+	var base := at + Vector2(70, 105)
+	var paint := func(zone: String) -> Color: return Color(1.0, 0.55, 0.7) if zone in cut else Color(0.96, 0.87, 0.7)
+	_hud.draw_circle(base + Vector2(-38, -6), 9, paint.call("tail"))
+	for x in [-18, 22]:
+		_hud.draw_rect(Rect2(base + Vector2(x, 10), Vector2(10, 26)), paint.call("legs"))
+	_hud.draw_circle(base, 30, paint.call("body"))
+	_hud.draw_circle(base + Vector2(38, -26), 20, paint.call("head"))
+	_text(font, at + Vector2(150, 100), "분홍 = 자를 곳", 14, false)
 
 
 func _text(font: Font, at: Vector2, text: String, font_size: int, centered: bool, right := false) -> void:

@@ -9,7 +9,7 @@ func run_test() -> void:
 	add_child(shop)
 	shop.player.set_physics_process(false)
 	await get_tree().physics_frame
-	check_eq(shop.TOOLS.keys(), ["shower", "shampoo", "dryer", "brush"], "V4 도구: 샤워기·샴푸·드라이기·빗 (수건은 기본 순서에서 빠짐)")
+	check_eq(shop.TOOLS.keys(), ["shower", "shampoo", "dryer", "brush", "scissors"], "V4 도구: 샤워기·샴푸·드라이기·빗·가위 (수건은 기본 순서에서 빠짐)")
 	check(ResourceLoader.exists("res://assets/models/tools/dryer.glb"), "드라이어 자산 보존")
 	for id in shop.TOOLS:
 		# 아직 그림이 없는 도구(빗)는 임시 모형이라 건너뜀. assets/models/tools/<id>.glb 가 오면 저절로 검사됨
@@ -68,5 +68,5 @@ func run_test() -> void:
 	check(shop._pickups.shower.visible and shop._pickups.shampoo.visible, "이전 도구 모두 반환")
 	check(not shop._pickups.dryer.visible, "현재 든 드라이기 중복 생성 없음")
 	check_eq(shop._returning_views.size(), 0, "반납 뷰 누적 없음")
-	shop.pick("scissors")
+	shop.pick("comb")
 	check_eq(shop.held, "dryer", "미등록 도구가 든 도구를 대체하지 않음")
