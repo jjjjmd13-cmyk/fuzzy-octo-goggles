@@ -24,6 +24,9 @@ static var _autostart_done := false
 
 ## 이어하기 (저장이 있을 때만 보임)
 const V4_SCENE := "res://scenes/v4/fp_shop.tscn"
+## 빠른 확인 (개발용). 스팀 출시 빌드에는 dev 폴더가 빠져서 이 씬이 없고, 그러면 버튼도 안 만든다
+const QUICK_SCENE := "res://scenes/dev/quick_check.tscn"
+const QUICK_SCRIPT := "res://scripts/dev/quick_check.gd"
 
 var continue_button: Button
 
@@ -49,6 +52,7 @@ func _ready() -> void:
 	solo_button.get_parent().add_child(v4_button)
 	solo_button.get_parent().move_child(v4_button, solo_button.get_index() + 1)
 	v4_button.pressed.connect(func() -> void: get_tree().change_scene_to_file(V4_SCENE))
+	_add_quick_check(v4_button)
 	continue_button.visible = SaveGame.can_continue()
 	if continue_button.visible:
 		continue_button.text = "이어하기 (%d일차 아침부터)" % SaveGame.continue_day()
@@ -71,6 +75,35 @@ func _ready() -> void:
 	message_label.text = Net.last_end_reason
 	(continue_button if continue_button.visible else solo_button).grab_focus()
 	_autostart()
+
+
+## 빠른 확인 줄: 기능마다 버튼 하나 (강아지 1~2마리로 그 기능이 바로 나옴). dev 씬이 없으면 아무것도 안 만듦
+func _add_quick_check(after: Control) -> void:
+	if not ResourceLoader.exists(QUICK_SCENE) or not ResourceLoader.exists(QUICK_SCRIPT):
+		return
+	var features: Array = (load(QUICK_SCRIPT) as GDScript).get_script_constant_map().get("FEATURES", [])
+	var box := after.get_parent()
+	var title := Label.new()
+	title.name = "QuickCheckTitle"
+	title.text = "빠른 확인 (개발용)"
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	box.add_child(title)
+	box.move_child(title, after.get_index() + 1)
+	var row := HFlowContainer.new()
+	row.name = "QuickCheckRow"
+	row.alignment = FlowContainer.ALIGNMENT_CENTER
+	box.add_child(row)
+	box.move_child(row, title.get_index() + 1)
+	for feature in features:
+		var button := Button.new()
+		button.name = "Quick_" + feature.id
+		button.text = feature.name
+		button.custom_minimum_size = Vector2(0, 40)
+		var id: String = feature.id
+		button.pressed.connect(func() -> void:
+			Engine.set_meta("quick_check_feature", id)
+			get_tree().change_scene_to_file(QUICK_SCENE))
+		row.add_child(button)
 
 
 ## 가게 간판 그림 (assets/ui/sign.png, 가게 벽과 같은 그림)이 있으면 제목 뒤에 건다. 글자는 그림 위에.

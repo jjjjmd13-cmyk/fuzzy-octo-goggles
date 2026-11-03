@@ -17,6 +17,9 @@ const TUB_SCENE := preload("res://scenes/art/sim/tub_model.tscn")
 const MENU_SCENE := "res://scenes/menu/main_menu.tscn"
 const FpSettle := preload("res://scripts/v4/fp_settle.gd")
 
+## 빠른 확인에서 강아지를 다 돌려줌 (개발용 scenes/dev/quick_check.tscn 이 끝 화면을 띄움)
+signal quick_finished
+
 const PICK_LAYER := 2
 const DOG_LAYER := 16
 ## 손이 닿는 거리 (m)
@@ -64,6 +67,10 @@ var aim_point: Variant = null
 var done := false
 ## 목욕통에 강아지가 있음 (손님이 맡기기 전엔 비어 있음)
 var has_dog := false
+## 빠른 확인 (개발용, add_child 전에 정함): 강아지 수 (0 = 보통 하루). 참을성·벽시계 끔, 처음부터 손님이 대기
+var quick_dogs := 0
+## 빠른 확인으로 볼 기능 이름 ("day", 다음 기능들이 늘어남)
+var quick_feature := ""
 ## 바라보는 손님 (주인 노드, 없으면 null)
 var hovered_guest: Node3D = null
 ## 오늘 번 돈 = 요금 + 팁
@@ -120,6 +127,11 @@ func _ready() -> void:
 	_build_stage_effects()
 	guests = FpGuests.new()
 	guests.name = "Guests"
+	if quick_dogs > 0:
+		guests.quick = true
+		guests.opening_override = []
+		for i in quick_dogs:
+			guests.opening_override.append("normal")
 	add_child(guests)
 	guests.guest_left.connect(_on_guest_left)
 	guests.guest_arrived.connect(_on_guest_arrived)
@@ -217,6 +229,14 @@ func clock_text() -> String:
 
 func _update_day(delta: float) -> void:
 	if day_over:
+		return
+	if quick_dogs > 0:
+		if guests.served >= quick_dogs:
+			day_over = true
+			_stop_effects()
+			using = false
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+			quick_finished.emit()
 		return
 	day_time += delta
 	if guests.open and day_time >= day_seconds:
@@ -707,7 +727,10 @@ func _draw_hud() -> void:
 		_text(font, Vector2(250, y + 18), rows[i][0], 18, false)
 	if has_dog and p.foam > 0:
 		_text(font, Vector2(20, 30 + 3 * 34 + 18), "남은 거품 %d (샤워기로 헹구기)" % p.foam, 18, false)
-	_text(font, Vector2(size.x - 20, 40), "%s%s" % [clock_text(), "" if guests.open else " · 영업 끝"], 26, false, true)
+	if quick_dogs > 0:
+		_text(font, Vector2(size.x - 20, 40), "빠른 확인 · 강아지 %d / %d" % [guests.served, quick_dogs], 26, false, true)
+	else:
+		_text(font, Vector2(size.x - 20, 40), "%s%s" % [clock_text(), "" if guests.open else " · 영업 끝"], 26, false, true)
 	_text(font, Vector2(size.x - 20, 74), "돈 %d" % money, 26, false, true)
 	_text(font, Vector2(size.x - 20, 104), "기다리는 손님 %d · 씻긴 %d · 떠난 %d" % [guests.guests.size(), guests.served, guests.left_count], 18, false, true)
 	_text(font, Vector2(size.x - 20, size.y - 60), "손: %s" % (TOOLS[held].name if not held.is_empty() else "빈손"), 22, false, true)
