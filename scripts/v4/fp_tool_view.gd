@@ -30,7 +30,34 @@ var _left_rest := Transform3D.IDENTITY
 
 
 static func make_model(id: String) -> Node3D:
-	return (MODELS[id] as PackedScene).instantiate() as Node3D
+	if MODELS.has(id):
+		return (MODELS[id] as PackedScene).instantiate() as Node3D
+	# 그래픽 교체 지점: assets/models/tools/<id>.glb 가 오면 그걸 쓰고, 없으면 임시 상자 모형
+	var path := "res://assets/models/tools/%s.glb" % id
+	if ResourceLoader.exists(path):
+		return (load(path) as PackedScene).instantiate() as Node3D
+	return _placeholder(id)
+
+
+## 임시 모형 (지금은 빗: 나무 손잡이 + 흰 빗살 머리). 쥐는 곳이 원점, 앞이 -Z
+static func _placeholder(_id: String) -> Node3D:
+	var root := Node3D.new()
+	var parts := [
+		[Vector3(0.03, 0.025, 0.16), Vector3(0, 0, 0.02), Color(0.72, 0.5, 0.32)],
+		[Vector3(0.085, 0.03, 0.06), Vector3(0, 0.005, -0.08), Color(0.72, 0.5, 0.32)],
+		[Vector3(0.075, 0.03, 0.05), Vector3(0, -0.025, -0.08), Color(0.97, 0.97, 0.95)],
+	]
+	for part in parts:
+		var mesh := MeshInstance3D.new()
+		var box := BoxMesh.new()
+		box.size = part[0]
+		var material := StandardMaterial3D.new()
+		material.albedo_color = part[2]
+		box.material = material
+		mesh.mesh = box
+		mesh.position = part[1]
+		root.add_child(mesh)
+	return root
 
 
 func setup(id: String, pick_delay := 0.0) -> void:
@@ -123,6 +150,10 @@ func update_motion(delta: float, active: bool) -> bool:
 		"shampoo":
 			offset = Vector3(-0.035, 0.02 + sin(_phase) * 0.009, -0.04) * _use_blend
 			angles = Vector3(-0.85, -0.12, -0.18) * _use_blend
+		"brush":
+			# 앞으로 쓱쓱 빗기
+			offset = Vector3(0.0, 0.01, -0.04 + sin(_phase * 1.5) * 0.05) * _use_blend
+			angles = Vector3(-0.35 + sin(_phase * 1.5) * 0.15, 0.0, 0.0) * _use_blend
 		"dryer":
 			# 바람을 쓸듯이 좌우로 천천히 흔듦
 			offset = Vector3(sin(_phase * 0.6) * 0.03, 0.02, -0.04) * _use_blend

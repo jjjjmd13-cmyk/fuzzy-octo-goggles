@@ -16,6 +16,7 @@ const FpGuests := preload("res://scripts/v4/fp_guests.gd")
 const TUB_SCENE := preload("res://scenes/art/sim/tub_model.tscn")
 const MENU_SCENE := "res://scenes/menu/main_menu.tscn"
 const FpSettle := preload("res://scripts/v4/fp_settle.gd")
+const FpTangles := preload("res://scripts/v4/fp_tangles.gd")
 
 ## 빠른 확인에서 강아지를 다 돌려줌 (개발용 scenes/dev/quick_check.tscn 이 끝 화면을 띄움)
 signal quick_finished
@@ -34,7 +35,8 @@ const STAGES: Array[Dictionary] = [
 	{"id": "wet", "tool": "shower", "sound": "ding", "text": "적시기 끝! 샴푸로 거품 내요"},
 	{"id": "scrub", "tool": "shampoo", "sound": "bubble_pop", "text": "거품 끝! 샤워기로 헹궈요"},
 	{"id": "rinse", "tool": "shower", "sound": "squeak", "text": "뽀득! 헹굼 끝! 수건으로 닦아요"},
-	{"id": "dry", "tool": "dryer", "sound": "poof", "text": "뽕! 드라이 끝! 깨끗해졌어요"},
+	{"id": "dry", "tool": "dryer", "sound": "poof", "text": "뽕! 드라이 끝! 빗으로 엉킨 털을 풀어요"},
+	{"id": "brush", "tool": "brush", "sound": "squeak", "text": "빗질 끝! 반짝반짝 깨끗해졌어요"},
 ]
 ## 거품 공 크기 배수 (크고 하얗게), 스스로 빛나는 정도
 const FOAM_SIZE := 2.4
@@ -47,11 +49,16 @@ const RINSE_SPEED := 14.0
 const FOAM_SPARKLE_BELOW := 3
 ## 단계 진행이 이만큼 넘으면 아직 안 된 곳을 털 위에서 반짝임
 const BLINK_FROM := 0.5
-const STAGE_REACTION := {"wet": "wiggle_legs", "scrub": "jump", "rinse": "shake", "dry": "wiggle_legs"}
+const STAGE_REACTION := {"wet": "wiggle_legs", "scrub": "jump", "rinse": "shake", "dry": "wiggle_legs", "brush": "jump"}
+## 빗이 닿는 거리 = 붓 반경 × 이 값 (뭉치 하나씩 겨냥하게 붓보다 좁게)
+const BRUSH_REACH := 0.8
+## 임시 털색 (엉킨 뭉치는 이보다 진하게)
+const FUR_COLOR := Color(0.96, 0.87, 0.7)
 const TOOLS := {
 	"shower": {"name": "샤워기", "channel": "wet", "color": Color(0.7, 0.8, 0.9)},
 	"shampoo": {"name": "샴푸", "channel": "scrub", "color": Color(1.0, 0.6, 0.75)},
 	"dryer": {"name": "드라이기", "channel": "dry", "color": Color(0.95, 0.85, 0.9)},
+	"brush": {"name": "빗", "channel": "brush", "color": Color(0.75, 0.55, 0.4)},
 }
 
 ## false 면 마우스·키 입력을 읽지 않는다 (테스트가 using 등을 직접 넣음)
@@ -83,6 +90,8 @@ var day_seconds := 0.0
 var day_over := false
 ## 지금 강아지 주인 정보: 성격·들어온 시각 (팁 계산)
 var _taken := {}
+## 엉킨 털 뭉치 (강아지 모형의 자식, 새 강아지마다 새로)
+var tangles: FpTangles
 var _settle: Control
 ## 지금 단계 (STAGES 번호, 4 = 다 끝남)
 var stage_index := 0
@@ -154,22 +163,30 @@ func new_dog() -> void:
 	_reacted.clear()
 	has_dog = true
 	dog.visible = true
-	_show_hint("강아지를 씻겨 주세요: 샤워기 → 샴푸 → 샤워기로 헹구기 → 드라이기", 4.0)
+	tangles = FpTangles.new()
+	tangles.name = "Tangles"
+	dog.model.add_child(tangles)
+	tangles.untangled.connect(_on_untangled)
+	_show_hint("강아지를 씻겨 주세요: 샤워기 → 샴푸 → 샤워기로 헹구기 → 드라이기 → 빗", 4.0)
 	_start_quick_stage()
 
 
 ## 빠른 확인: 그 기능의 단계부터 바로 시작 (앞 단계는 이미 끝난 강아지)
 func _start_quick_stage() -> void:
-	var start: String = {"dryer": "dry"}.get(quick_feature, "")
+	var start: String = {"dryer": "dry", "brush": "brush"}.get(quick_feature, "")
 	if start.is_empty():
 		return
 	for i in STAGES.size():
 		if STAGES[i].id == start:
 			break
 		var channel: String = STAGES[i].id
-		dog.mask.fill(channel, 1.0)
+		if dog.mask.CHANNELS.has(channel):
+			dog.mask.fill(channel, 1.0)
 		_reacted[channel] = true
 		stage_index = i + 1
+		if channel == "dry":
+			dog.fluff = 1.0
+			_spawn_tangles()
 	_show_hint("%s 집어서 바로 해 봐요" % TOOLS[stage_tool()].name, 4.0)
 
 
@@ -281,7 +298,7 @@ func _on_guest_left(_kind: String) -> void:
 
 ## 진행 (0~1): 물·거품(진흙)·말리기, 남은 거품 수
 func progress() -> Dictionary:
-	return {"wet": dog.mask.ratio("wet"), "scrub": dog.mask.ratio("scrub"), "dry": dog.mask.ratio("dry"), "foam": dog.foam_count()}
+	return {"wet": dog.mask.ratio("wet"), "scrub": dog.mask.ratio("scrub"), "dry": dog.mask.ratio("dry"), "foam": dog.foam_count(), "brush": tangles.ratio() if is_instance_valid(tangles) else 0.0, "tangles": tangles.count() if is_instance_valid(tangles) else 0}
 
 
 func pick(tool_id: String) -> void:
@@ -363,6 +380,13 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 				_foam_carry -= 1.0
 				dog.add_foam(point, 1, _rng, FOAM_SIZE)
 			sfx.set_loop("scrub", 0.8)
+		"brush":
+			if stage_index < STAGES.size() and STAGES[stage_index].id != "brush":
+				_show_hint("드라이기로 다 말린 뒤에 빗어요", 1.5)
+				return
+			stage = "brush"
+			tangles.brush(point, radius * BRUSH_REACH, Tuning.data.v4_rate_brush * delta)
+			sfx.set_loop("scrub", 0.4)
 		"dryer":
 			# 따뜻한 바람: 젖은 곳일수록 빨리 마르고, 마를수록 털이 뽕 부풀고 귀가 펄럭
 			stage = "dry"
@@ -398,6 +422,8 @@ func _check_done() -> void:
 	while stage_index < STAGES.size() and _stage_met(STAGES[stage_index].id, p):
 		_finish_stage(STAGES[stage_index])
 		stage_index += 1
+		# 단계가 끝나며 바뀐 것 (드라이 끝 → 엉킨 뭉치) 을 다시 읽음
+		p = progress()
 	if stage_index >= STAGES.size() and not done:
 		done = true
 		_stop_effects()
@@ -416,7 +442,10 @@ func _stage_met(id: String, p: Dictionary) -> bool:
 			return p.scrub >= done_at
 		"rinse":
 			return p.foam == 0
-	return p.dry >= done_at
+		"dry":
+			return p.dry >= done_at
+	# 빗질: 엉킨 뭉치를 다 풂
+	return p.tangles == 0
 
 
 ## 단계 끝: 소리 + 반짝 파티클 + 가운데 큰 글자 (다음 도구 빛남은 _process)
@@ -429,6 +458,21 @@ func _finish_stage(stage: Dictionary) -> void:
 	_banner = stage.text
 	_banner_left = 2.0
 	dog.set_blink(0.0, stage.id)
+	if stage.id == "dry":
+		_spawn_tangles()
+
+
+## 드라이가 끝나면 엉킨 털 뭉치가 보임
+func _spawn_tangles() -> void:
+	tangles.spawn(dog.model, dog._body_center(), Tuning.data.v4_tangles, _rng, FUR_COLOR)
+
+
+## 뭉치 하나가 쓱 풀림: 작은 반짝 + 소리
+func _on_untangled(world_point: Vector3) -> void:
+	_sparkle.global_position = world_point
+	_sparkle.restart()
+	_sparkle.emitting = true
+	sfx.play("squeak")
 
 
 ## 지금 단계에 쓸 도구 ("" = 다 끝남)
@@ -617,7 +661,7 @@ func _build_shelf() -> void:
 		pickup.add_child(shape)
 		var view := _make_tool_mesh(tool_id)
 		# GLB 는 쥐는 곳이 원점: 각 메시 최저점을 선반 위에 맞춘다.
-		view.position.y = {"shower": 0.130, "shampoo": 0.074, "dryer": 0.056}[tool_id]
+		view.position.y = {"shower": 0.130, "shampoo": 0.074, "dryer": 0.056, "brush": 0.02}[tool_id]
 		view.rotation.y = PI / 2.0 # -Z 앞면을 선반 바깥(+X)으로
 		pickup.add_child(view)
 		_cache_glow_materials(tool_id, view)
@@ -732,18 +776,18 @@ func _draw_hud() -> void:
 	elif aim_point != null and held.is_empty():
 		under = "선반에서 도구를 집어요"
 	elif ready_to_use and not using:
-		under = "누르고 있으면 %s" % {"shower": "물이 나와요", "shampoo": "거품이 나요", "dryer": "바람이 나와요"}[held]
+		under = "누르고 있으면 %s" % {"shower": "물이 나와요", "shampoo": "거품이 나요", "dryer": "바람이 나와요", "brush": "빗어요"}[held]
 	_text(font, center + Vector2(0, 40), under, 22, true)
 	# 진행 (목욕통에 강아지가 있을 때만)
 	var p := progress()
-	var rows := [["물", p.wet], ["거품 (진흙)", p.scrub], ["말리기", p.dry]] if has_dog else []
+	var rows := [["물", p.wet], ["거품 (진흙)", p.scrub], ["말리기", p.dry], ["빗질 (엉킨 털 %d)" % p.tangles, p.brush * Tuning.data.v4_done_ratio]] if has_dog else []
 	for i in rows.size():
 		var y := 30.0 + i * 34.0
 		_hud.draw_rect(Rect2(20, y, 220, 22), Color(0, 0, 0, 0.5))
 		_hud.draw_rect(Rect2(20, y, 220 * clampf(rows[i][1] / Tuning.data.v4_done_ratio, 0.0, 1.0), 22), Color(0.5, 0.85, 0.55) if rows[i][1] >= Tuning.data.v4_done_ratio else Color(0.45, 0.7, 1.0))
 		_text(font, Vector2(250, y + 18), rows[i][0], 18, false)
 	if has_dog and p.foam > 0:
-		_text(font, Vector2(20, 30 + 3 * 34 + 18), "남은 거품 %d (샤워기로 헹구기)" % p.foam, 18, false)
+		_text(font, Vector2(20, 30 + 4 * 34 + 18), "남은 거품 %d (샤워기로 헹구기)" % p.foam, 18, false)
 	if quick_dogs > 0:
 		_text(font, Vector2(size.x - 20, 40), "빠른 확인 · 강아지 %d / %d" % [guests.served, quick_dogs], 26, false, true)
 	else:
