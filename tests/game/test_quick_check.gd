@@ -81,6 +81,25 @@ func run_test() -> void:
 		shop.use_tool_at(p, 1.0 / 30.0)
 		if shop.done:
 			break
-	check(shop.done, "드라이만으로 끝 (%s)" % str(shop.progress()))
+	check_eq(shop.stage_tool(), "brush", "드라이 뒤엔 빗질 (%s)" % str(shop.progress()))
 	check(shop.dog.fluff > 0.9, "털 뽕")
+	quick.queue_free()
+	await get_tree().process_frame
+
+	# 빗질 빠른 확인: 드라이까지 끝난 강아지, 엉킨 뭉치만 풀면 끝
+	Engine.set_meta("quick_check_feature", "brush")
+	quick = load(QUICK_SCENE).instantiate()
+	add_child(quick)
+	shop = quick.shop
+	shop.input_enabled = false
+	shop.guests._process(1.5)
+	shop.next_guest()
+	await get_tree().physics_frame
+	check_eq(shop.stage_tool(), "brush", "빗질: 바로 빗질 단계")
+	check(shop.progress().tangles > 0, "엉킨 뭉치가 보임 (%d)" % shop.progress().tangles)
+	shop.pick("brush")
+	for pos in shop.tangles.world_positions():
+		for k in 30:
+			shop.use_tool_at(pos, 1.0 / 30.0)
+	check(shop.done, "뭉치를 다 풀면 끝 (%s)" % str(shop.progress()))
 	Engine.remove_meta("quick_check_feature")

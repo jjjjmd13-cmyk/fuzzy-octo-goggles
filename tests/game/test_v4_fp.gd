@@ -1,6 +1,6 @@
 extends "res://tests/qa_test.gd"
 ## V4 1인칭 시제품 (scenes/v4/fp_shop.tscn): 도구를 바라보면 집을 수 있고, 강아지에 대고
-## 누르고 있으면 샤워기 → 샴푸 → 샤워기(헹굼) → 드라이기 순서로 빨리 깨끗해지는지 본다.
+## 누르고 있으면 샤워기 → 샴푸 → 샤워기(헹굼) → 드라이기 → 빗 순서로 빨리 깨끗해지는지 본다.
 ## 입력은 끄고(input_enabled = false) 쓰는 함수를 직접 부른다. 1인용이라 동기화 검사는 없음.
 
 const SCENE := preload("res://scenes/v4/fp_shop.tscn")
@@ -85,9 +85,13 @@ func run_test() -> void:
 	check_eq(shop.dog.fluff, 0.0, "말리기 전엔 털이 안 부풂")
 	var t_dry := _sweep("dryer", "dry")
 	check(shop.dog.fluff >= 0.99, "다 말리면 털이 뽕 (%.2f)" % shop.dog.fluff)
-	_check_stage(4, "드라이 끝", "")
-	print("V4 한 마리: 물 %.1f / 샴푸 %.1f / 헹굼 %.1f / 드라이 %.1f 초" % [t_wet, t_scrub, t_rinse, t_dry])
-	for pair in [["샤워기", t_wet], ["샴푸", t_scrub], ["헹굼", t_rinse], ["드라이기", t_dry]]:
+	_check_stage(4, "드라이 끝", "brush")
+	var lumps: int = shop.progress().tangles
+	check_eq(lumps, Tuning.data.v4_tangles, "드라이 뒤 엉킨 털 뭉치가 다 보임")
+	var t_brush := _sweep_until("brush", func() -> bool: return shop.progress().tangles == 0)
+	_check_stage(5, "빗질 끝", "")
+	print("V4 한 마리: 물 %.1f / 샴푸 %.1f / 헹굼 %.1f / 드라이 %.1f / 빗질 %.1f 초" % [t_wet, t_scrub, t_rinse, t_dry, t_brush])
+	for pair in [["샤워기", t_wet], ["샴푸", t_scrub], ["헹굼", t_rinse], ["드라이기", t_dry], ["빗", t_brush]]:
 		check(pair[1] <= TOOL_LIMIT_SEC, "%s 가 %.0f초 안 (%.1f 초)" % [pair[0], TOOL_LIMIT_SEC, pair[1]])
 	check(shop.done, "다 씻으면 끝 (%s)" % str(shop.progress()))
 
