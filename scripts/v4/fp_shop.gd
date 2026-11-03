@@ -54,6 +54,16 @@ const STAGE_REACTION := {"wet": "wiggle_legs", "scrub": "jump", "rinse": "shake"
 const BRUSH_REACH := 0.8
 ## 임시 털색 (엉킨 뭉치는 이보다 진하게)
 const FUR_COLOR := Color(0.96, 0.87, 0.7)
+## 도구 단계 이름 (TUNING_V4 3-1, GDD_V4 기본 순서와 도구 키우기). 단계마다 칠하는 속도 v4_tool_speed_mult
+const TOOL_LEVEL_NAMES := {
+	"shower": ["작은 샤워기", "넓은 샤워기", "레인 샤워기"],
+	"shampoo": ["샴푸병", "거품 펌프", "거품 대포"],
+	"dryer": ["작은 드라이기", "큰 송풍 드라이기"],
+	"brush": ["일반 빗", "슬리커 브러시", "전동 브러시"],
+}
+const PRICE_KEY := {"shower": "v4_price_shower", "shampoo": "v4_price_foam", "dryer": "v4_price_dryer", "brush": "v4_price_brush"}
+## 속도 배수 중 붓 크기로 가는 몫 (1.6배 빠른 도구 = 붓 1.15배)
+const SIZE_SHARE := 0.25
 const TOOLS := {
 	"shower": {"name": "샤워기", "channel": "wet", "color": Color(0.7, 0.8, 0.9)},
 	"shampoo": {"name": "샴푸", "channel": "scrub", "color": Color(1.0, 0.6, 0.75)},
@@ -92,6 +102,10 @@ var day_over := false
 var _taken := {}
 ## 엉킨 털 뭉치 (강아지 모형의 자식, 새 강아지마다 새로)
 var tangles: FpTangles
+## 도구 단계 (0 = 기본). 정산 뒤 가게에서 사면 오름
+var tool_level := {"shower": 0, "shampoo": 0, "dryer": 0, "brush": 0}
+## 며칠째 (가진 돈·도구는 다음 날로 이어짐, 저장은 아직 없음)
+var day := 1
 var _settle: Control
 ## 지금 단계 (STAGES 번호, 4 = 다 끝남)
 var stage_index := 0
@@ -146,6 +160,12 @@ func _ready() -> void:
 	_build_player()
 	_build_hud()
 	day_seconds = Tuning.data.v4_day_minutes * 60.0
+	if quick_feature == "upgrade":
+		# 빠른 확인 [도구 업그레이드]: 모든 도구를 가장 좋은 것으로 산 상태
+		for tool_id in tool_level:
+			while next_price(tool_id) >= 0:
+				money += next_price(tool_id)
+				buy(tool_id)
 	new_dog()
 	_clear_tub()
 	_show_hint("손님이 오면 다가가서 클릭: 강아지 맡기", 4.0)
@@ -287,8 +307,82 @@ func end_day() -> void:
 	_settle = FpSettle.new()
 	_settle.name = "Settle"
 	_hud.get_parent().add_child(_settle)
-	_settle.show_result(guests.served, guests.left_count, fees, tips)
+	_settle.buy_requested.connect(func(tool_id: String) -> void:
+		buy(tool_id)
+		_show_settle())
+	_settle.next_day_requested.connect(start_next_day)
+	_show_settle()
 	sfx.play("clap")
+
+
+## 도구 단계별 칠하는 속도 배수
+func speed_mult(tool_id: String) -> float:
+	var mults: PackedFloat32Array = Tuning.data.v4_tool_speed_mult
+	return mults[mini(tool_level.get(tool_id, 0), mults.size() - 1)]
+
+
+## 도구 단계별 붓·모형 크기 배수
+func size_mult(tool_id: String) -> float:
+	return 1.0 + (speed_mult(tool_id) - 1.0) * SIZE_SHARE
+
+
+func tool_name(tool_id: String) -> String:
+	return TOOL_LEVEL_NAMES[tool_id][tool_level[tool_id]]
+
+
+## 다음 단계 값 (더 없으면 -1)
+func next_price(tool_id: String) -> int:
+	var prices: PackedInt32Array = Tuning.data.get(PRICE_KEY[tool_id])
+	var next: int = tool_level[tool_id] + 1
+	return prices[next] if next < prices.size() and next < TOOL_LEVEL_NAMES[tool_id].size() else -1
+
+
+## 가게에서 사기: 돈이 모자라거나 더 없으면 false
+func buy(tool_id: String) -> bool:
+	var price := next_price(tool_id)
+	if price < 0 or money < price:
+		return false
+	money -= price
+	tool_level[tool_id] += 1
+	var view := _pickups[tool_id].get_node_or_null("View") as Node3D
+	if view != null:
+		view.scale = Vector3.ONE * size_mult(tool_id)
+	sfx.play("coin")
+	return true
+
+
+## 정산 판 아래 가게 줄: 도구마다 다음 단계 이름·값
+func store_rows() -> Array:
+	var rows := []
+	for tool_id in TOOL_LEVEL_NAMES:
+		var price := next_price(tool_id)
+		rows.append({"id": tool_id, "name": tool_name(tool_id), "next": TOOL_LEVEL_NAMES[tool_id][tool_level[tool_id] + 1] if price >= 0 else "", "price": price, "can_buy": price >= 0 and money >= price})
+	return rows
+
+
+## 정산 뒤 "다음 날": 가진 돈·도구는 그대로, 시계·손님·오늘 번 돈은 새로
+func start_next_day() -> void:
+	if is_instance_valid(_settle):
+		_settle.queue_free()
+	_settle = null
+	day += 1
+	day_time = 0.0
+	day_over = false
+	fees = 0
+	tips = 0
+	guests.start_day()
+	_clear_tub()
+	if input_enabled:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+	_show_hint("%d일차 영업 시작!" % day, 3.0)
+
+
+func _show_settle() -> void:
+	_settle.show_day_end("%d일차 영업 끝!" % day, [
+		"받은 손님  %d · 떠난 손님  %d" % [guests.served, guests.left_count],
+		"요금  %d + 팁  %d = 오늘  %d" % [fees, tips, fees + tips],
+		"가진 돈  %d" % money,
+	], store_rows())
 
 
 func _on_guest_left(_kind: String) -> void:
@@ -315,6 +409,7 @@ func pick(tool_id: String) -> void:
 	_held_view = FpToolView.new()
 	_held_view.setup(tool_id, FpToolView.RETURN_SECONDS if not _returning_views.is_empty() else 0.0)
 	player.camera.add_child(_held_view)
+	_held_view.model.scale = Vector3.ONE * size_mult(tool_id)
 	sfx.play("press")
 
 
@@ -356,16 +451,17 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 		return
 	var dir := dog.dir_of(point)
 	var wet_here := dog.mask.value_at("wet", dir)
-	var radius := brush_radius(point)
+	var radius := brush_radius(point) * size_mult(held)
+	var speed := speed_mult(held)
 	var stage := ""
 	match held:
 		"shower":
 			stage = "wet"
-			dog.paint("wet", point, radius, Tuning.data.v4_rate_shower * delta)
+			dog.paint("wet", point, radius, Tuning.data.v4_rate_shower * speed * delta)
 			if dog.foam_count() > 0:
 				stage = "rinse"
-				dog.rinse_foam(point, radius * RINSE_REACH, delta * RINSE_SPEED)
-				dog.paint("rinse", point, radius, Tuning.data.v4_rate_shower * delta)
+				dog.rinse_foam(point, radius * RINSE_REACH, delta * RINSE_SPEED * speed)
+				dog.paint("rinse", point, radius, Tuning.data.v4_rate_shower * speed * delta)
 			dog.spray(point)
 			dog.show_stream(_tool_tip(), point, Color(0.55, 0.85, 1.0))
 			sfx.set_loop("shower", 0.8)
@@ -374,25 +470,25 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 				_show_hint("먼저 샤워기로 물을 뿌려요", 1.5)
 				return
 			stage = "scrub"
-			dog.paint("scrub", point, radius, Tuning.data.v4_rate_shampoo * delta)
-			_foam_carry += delta * 10.0
+			dog.paint("scrub", point, radius, Tuning.data.v4_rate_shampoo * speed * delta)
+			_foam_carry += delta * 10.0 * speed
 			while _foam_carry >= 1.0:
 				_foam_carry -= 1.0
-				dog.add_foam(point, 1, _rng, FOAM_SIZE)
+				dog.add_foam(point, 1, _rng, FOAM_SIZE * size_mult("shampoo"))
 			sfx.set_loop("scrub", 0.8)
 		"brush":
 			if stage_index < STAGES.size() and STAGES[stage_index].id != "brush":
 				_show_hint("드라이기로 다 말린 뒤에 빗어요", 1.5)
 				return
 			stage = "brush"
-			tangles.brush(point, radius * BRUSH_REACH, Tuning.data.v4_rate_brush * delta)
+			tangles.brush(point, radius * BRUSH_REACH, Tuning.data.v4_rate_brush * speed * delta)
 			sfx.set_loop("scrub", 0.4)
 		"dryer":
 			# 따뜻한 바람: 젖은 곳일수록 빨리 마르고, 마를수록 털이 뽕 부풀고 귀가 펄럭
 			stage = "dry"
 			if dog.foam_count() > 0 and dog.mask.value_at("scrub", dir) > 0.5:
 				_show_hint("거품을 샤워기로 먼저 헹궈요", 1.5)
-			dog.paint("dry", point, radius, Tuning.data.v4_rate_dryer * delta * clampf(wet_here + 0.2, 0.0, 1.0))
+			dog.paint("dry", point, radius, Tuning.data.v4_rate_dryer * speed * delta * clampf(wet_here + 0.2, 0.0, 1.0))
 			dog.fluff = clampf(dog.mask.ratio("dry") / Tuning.data.v4_done_ratio, 0.0, 1.0)
 			if dog.model.has_method("blow"):
 				dog.model.blow(1.0)
@@ -663,6 +759,7 @@ func _build_shelf() -> void:
 		# GLB 는 쥐는 곳이 원점: 각 메시 최저점을 선반 위에 맞춘다.
 		view.position.y = {"shower": 0.130, "shampoo": 0.074, "dryer": 0.056, "brush": 0.02}[tool_id]
 		view.rotation.y = PI / 2.0 # -Z 앞면을 선반 바깥(+X)으로
+		view.name = "View"
 		pickup.add_child(view)
 		_cache_glow_materials(tool_id, view)
 		add_child(pickup)
@@ -791,10 +888,10 @@ func _draw_hud() -> void:
 	if quick_dogs > 0:
 		_text(font, Vector2(size.x - 20, 40), "빠른 확인 · 강아지 %d / %d" % [guests.served, quick_dogs], 26, false, true)
 	else:
-		_text(font, Vector2(size.x - 20, 40), "%s%s" % [clock_text(), "" if guests.open else " · 영업 끝"], 26, false, true)
+		_text(font, Vector2(size.x - 20, 40), "%d일차 · %s%s" % [day, clock_text(), "" if guests.open else " · 영업 끝"], 26, false, true)
 	_text(font, Vector2(size.x - 20, 74), "돈 %d" % money, 26, false, true)
 	_text(font, Vector2(size.x - 20, 104), "기다리는 손님 %d · 씻긴 %d · 떠난 %d" % [guests.guests.size(), guests.served, guests.left_count], 18, false, true)
-	_text(font, Vector2(size.x - 20, size.y - 60), "손: %s" % (TOOLS[held].name if not held.is_empty() else "빈손"), 22, false, true)
+	_text(font, Vector2(size.x - 20, size.y - 60), "손: %s" % (tool_name(held) if not held.is_empty() else "빈손"), 22, false, true)
 	_text(font, Vector2(20, size.y - 20), "WASD 걷기 · 마우스 보기 · 클릭 집기/쓰기(누르고 있기) · Q 내려놓기 · 손님 클릭 맡기기/돌려주기 · Esc 메뉴", 16, false)
 	if _hint_left > 0.0:
 		_text(font, Vector2(center.x, 120), _hint, 26, true)

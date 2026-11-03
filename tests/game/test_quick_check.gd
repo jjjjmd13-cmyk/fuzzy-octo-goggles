@@ -102,4 +102,15 @@ func run_test() -> void:
 		for k in 30:
 			shop.use_tool_at(pos, 1.0 / 30.0)
 	check(shop.done, "뭉치를 다 풀면 끝 (%s)" % str(shop.progress()))
+	quick.queue_free()
+	await get_tree().process_frame
+
+	# 도구 업그레이드 빠른 확인: 가장 좋은 도구를 산 상태
+	Engine.set_meta("quick_check_feature", "upgrade")
+	quick = load(QUICK_SCENE).instantiate()
+	add_child(quick)
+	shop = quick.shop
+	for tool_id in shop.tool_level:
+		check_eq(shop.next_price(tool_id), -1, "업그레이드 확인: %s 가 최고 단계 (%s)" % [tool_id, shop.tool_name(tool_id)])
+	check_eq(shop.money, 0, "산 값은 미리 채워서 돈은 0")
 	Engine.remove_meta("quick_check_feature")

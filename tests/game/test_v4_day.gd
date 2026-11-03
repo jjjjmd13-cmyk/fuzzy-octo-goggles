@@ -79,7 +79,8 @@ func run_test() -> void:
 	var settle: Control = shop._settle
 	check(settle != null and settle.is_inside_tree(), "정산 화면")
 	if settle != null:
-		check(settle.summary_text.contains("받은 손님  2"), "정산: 씻긴 손님 (%s)" % settle.summary_text)
-		check(settle.summary_text.contains("합계  %d" % shop.money), "정산: 합계")
+		check(settle.summary_text.contains("받은 손님  2"), "정산: 받은 손님 (%s)" % settle.summary_text)
+		check(settle.summary_text.contains("오늘  %d" % (shop.fees + shop.tips)), "정산: 오늘 번 돈")
+		check(settle.summary_text.contains("가진 돈  %d" % shop.money), "정산: 가진 돈")
 	shop.interact_guest(null)
 	check_eq(shop.money, shop.fees + shop.tips, "정산 뒤엔 손님 클릭 없음")

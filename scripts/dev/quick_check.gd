@@ -15,6 +15,7 @@ const FEATURES: Array[Dictionary] = [
 	{"id": "day", "name": "하루 돌리기", "dogs": 2, "new": "손님 클릭으로 맡기기·돌려주기, 요금 + 팁"},
 	{"id": "dryer", "name": "드라이기", "dogs": 1, "new": "헹군 뒤 드라이기로 말리기 (털 뽕·귀 펄럭), 수건 대신"},
 	{"id": "brush", "name": "빗질", "dogs": 1, "new": "드라이 뒤 빗으로 엉킨 털 뭉치 풀기 (쓱 풀리며 반짝)"},
+	{"id": "upgrade", "name": "도구 업그레이드", "dogs": 1, "new": "가장 좋은 도구 (레인 샤워기·거품 대포·큰 송풍 드라이기·전동 브러시) 로 한 마리 — 하루 끝 도구 가게에서 사는 것"},
 ]
 
 var shop: Node3D

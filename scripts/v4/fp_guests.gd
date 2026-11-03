@@ -75,6 +75,16 @@ func _ready() -> void:
 	add_child(door)
 
 
+## 다음 날: 오늘 센 것과 처음 줄을 새로 (시간 elapsed 도 0 부터, 급함은 다시 v4_hurry_after 뒤에)
+func start_day() -> void:
+	served = 0
+	left_count = 0
+	elapsed = 0.0
+	open = true
+	_opening = Tuning.data.v4_first_guests.duplicate()
+	_spawn_left = 1.0
+
+
 ## 손님 한 명을 바로 들여보냄 (테스트·처음 줄). kind = "" 이면 비율대로 뽑음
 func spawn(kind := "") -> void:
 	if guests.size() >= SEATS.size():
