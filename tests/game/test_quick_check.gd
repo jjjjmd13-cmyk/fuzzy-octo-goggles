@@ -113,4 +113,21 @@ func run_test() -> void:
 	for tool_id in shop.tool_level:
 		check_eq(shop.next_price(tool_id), -1, "업그레이드 확인: %s 가 최고 단계 (%s)" % [tool_id, shop.tool_name(tool_id)])
 	check_eq(shop.money, 0, "산 값은 미리 채워서 돈은 0")
+	quick.queue_free()
+	await get_tree().process_frame
+
+	# 미용 빠른 확인: 가위 있음, 곰돌이컷 요청, 바로 미용 단계
+	Engine.set_meta("quick_check_feature", "trim")
+	quick = load(QUICK_SCENE).instantiate()
+	add_child(quick)
+	shop = quick.shop
+	shop.input_enabled = false
+	shop.guests._process(1.5)
+	shop.next_guest()
+	await get_tree().physics_frame
+	check(shop.owns_scissors and shop._pickups.scissors.visible, "미용: 가위가 선반에")
+	check_eq(shop.trim_request, "bear", "미용: 곰돌이컷 요청")
+	check_eq(shop.stage_tool(), "scissors", "미용: 바로 가위 단계")
+	check_eq(shop.progress().tangles, 0, "미용: 빗질은 끝난 상태")
+	check(shop.trim.wanted_total() > 0, "미용: 자를 곳 다발")
 	Engine.remove_meta("quick_check_feature")

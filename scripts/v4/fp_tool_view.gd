@@ -39,14 +39,21 @@ static func make_model(id: String) -> Node3D:
 	return _placeholder(id)
 
 
-## 임시 모형 (지금은 빗: 나무 손잡이 + 흰 빗살 머리). 쥐는 곳이 원점, 앞이 -Z
-static func _placeholder(_id: String) -> Node3D:
+## 임시 모형 (빗: 나무 손잡이 + 흰 빗살 머리 / 가위: 분홍 손잡이 + 은색 날 둘). 쥐는 곳이 원점, 앞이 -Z
+static func _placeholder(id: String) -> Node3D:
 	var root := Node3D.new()
 	var parts := [
 		[Vector3(0.03, 0.025, 0.16), Vector3(0, 0, 0.02), Color(0.72, 0.5, 0.32)],
 		[Vector3(0.085, 0.03, 0.06), Vector3(0, 0.005, -0.08), Color(0.72, 0.5, 0.32)],
 		[Vector3(0.075, 0.03, 0.05), Vector3(0, -0.025, -0.08), Color(0.97, 0.97, 0.95)],
 	]
+	if id == "scissors":
+		parts = [
+			[Vector3(0.035, 0.012, 0.04), Vector3(-0.02, 0, 0.03), Color(1.0, 0.6, 0.75)],
+			[Vector3(0.035, 0.012, 0.04), Vector3(0.02, 0, 0.03), Color(1.0, 0.6, 0.75)],
+			[Vector3(0.012, 0.008, 0.11), Vector3(-0.006, 0.002, -0.05), Color(0.85, 0.87, 0.92)],
+			[Vector3(0.012, 0.008, 0.11), Vector3(0.006, -0.002, -0.05), Color(0.85, 0.87, 0.92)],
+		]
 	for part in parts:
 		var mesh := MeshInstance3D.new()
 		var box := BoxMesh.new()
@@ -151,6 +158,10 @@ func update_motion(delta: float, active: bool) -> bool:
 		"shampoo":
 			offset = Vector3(-0.035, 0.02 + sin(_phase) * 0.009, -0.04) * _use_blend
 			angles = Vector3(-0.85, -0.12, -0.18) * _use_blend
+		"scissors":
+			# 사각사각: 작게 빨리 떨림
+			offset = Vector3(0.0, 0.01, -0.03) * _use_blend
+			angles = Vector3(-0.2, sin(_phase * 3.0) * 0.08, 0.0) * _use_blend
 		"brush":
 			# 앞으로 쓱쓱 빗기
 			offset = Vector3(0.0, 0.01, -0.04 + sin(_phase * 1.5) * 0.05) * _use_blend

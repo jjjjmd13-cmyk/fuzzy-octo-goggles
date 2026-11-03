@@ -188,6 +188,14 @@ extends Resource
 ## 빗질: 드라이가 끝나면 보이는 엉킨 털 뭉치 수, 뭉치 하나를 푸는 속도 (/s, 1 이면 1초 대면 풀림)
 @export var v4_tangles := 6
 @export var v4_rate_brush := 2.5
+## 미용 (TUNING_V4 3-1): 가위 값, 미용 추가 요금, 가위를 산 뒤 요청 손님 비율, 모양 팁 [안 비슷 / 비슷 / 똑같음]
+@export var v4_price_scissors := 250
+@export var v4_price_trim := 40
+@export var v4_trim_request_ratio := 0.25
+@export var v4_trim_match_tip := PackedInt32Array([0, 10, 25])
+## 모양 비슷함 기준 [비슷함, 똑같음] (0~1, 자를 곳을 자른 비율 − 잘못 자른 수×0.5/자를 곳 수), 다발 자르는 속도 (/s)
+@export var v4_trim_match_at := PackedFloat32Array([0.7, 0.95])
+@export var v4_rate_trim := 3.0
 
 ## 대기 손님 참을성 (s, TUNING_V4 2장): 대기 의자에서 이만큼 기다리면 "다음에 올게요" 하고 떠남
 @export var v4_patience_hurry := 60.0

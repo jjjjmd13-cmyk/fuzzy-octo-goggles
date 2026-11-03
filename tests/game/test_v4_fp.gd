@@ -89,7 +89,8 @@ func run_test() -> void:
 	var lumps: int = shop.progress().tangles
 	check_eq(lumps, Tuning.data.v4_tangles, "드라이 뒤 엉킨 털 뭉치가 다 보임")
 	var t_brush := _sweep_until("brush", func() -> bool: return shop.progress().tangles == 0)
-	_check_stage(5, "빗질 끝", "")
+	# 미용 요청이 없는 손님이라 미용 단계는 건너뛰고 끝 (STAGES 끝 = 6)
+	_check_stage(shop.STAGES.size(), "빗질 끝", "")
 	print("V4 한 마리: 물 %.1f / 샴푸 %.1f / 헹굼 %.1f / 드라이 %.1f / 빗질 %.1f 초" % [t_wet, t_scrub, t_rinse, t_dry, t_brush])
 	for pair in [["샤워기", t_wet], ["샴푸", t_scrub], ["헹굼", t_rinse], ["드라이기", t_dry], ["빗", t_brush]]:
 		check(pair[1] <= TOOL_LIMIT_SEC, "%s 가 %.0f초 안 (%.1f 초)" % [pair[0], TOOL_LIMIT_SEC, pair[1]])
