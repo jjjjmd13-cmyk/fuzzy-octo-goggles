@@ -1,6 +1,6 @@
 extends "res://tests/qa_test.gd"
 ## V4 1인칭 시제품 (scenes/v4/fp_shop.tscn): 도구를 바라보면 집을 수 있고, 강아지에 대고
-## 누르고 있으면 샤워기 → 샴푸 → 샤워기(헹굼) → 수건 순서로 빨리 깨끗해지는지 본다.
+## 누르고 있으면 샤워기 → 샴푸 → 샤워기(헹굼) → 드라이기 순서로 빨리 깨끗해지는지 본다.
 ## 입력은 끄고(input_enabled = false) 쓰는 함수를 직접 부른다. 1인용이라 동기화 검사는 없음.
 
 const SCENE := preload("res://scenes/v4/fp_shop.tscn")
@@ -78,21 +78,23 @@ func run_test() -> void:
 		return foam == 0)
 	check_eq(seen.wrong, 0, "남은 거품이 %d 개 이하일 때만 반짝" % shop.FOAM_SPARKLE_BELOW)
 	check(seen.sparkle > 0, "헹굼 막바지에 남은 거품이 반짝 (%d 번)" % seen.sparkle)
-	_check_stage(3, "헹굼 끝", "towel")
+	_check_stage(3, "헹굼 끝", "dryer")
 	shop._update_leftovers()
 	check(not shop.foam_sparkle, "다 헹구면 반짝임 끝")
 	check(shop.find_children("FoamMark*", "", true, false).is_empty(), "남은 거품 고리 표시는 없음")
-	var t_dry := _sweep("towel", "dry")
-	_check_stage(4, "말리기 끝", "")
-	print("V4 한 마리: 물 %.1f / 샴푸 %.1f / 헹굼 %.1f / 수건 %.1f 초" % [t_wet, t_scrub, t_rinse, t_dry])
-	for pair in [["샤워기", t_wet], ["샴푸", t_scrub], ["헹굼", t_rinse], ["수건", t_dry]]:
+	check_eq(shop.dog.fluff, 0.0, "말리기 전엔 털이 안 부풂")
+	var t_dry := _sweep("dryer", "dry")
+	check(shop.dog.fluff >= 0.99, "다 말리면 털이 뽕 (%.2f)" % shop.dog.fluff)
+	_check_stage(4, "드라이 끝", "")
+	print("V4 한 마리: 물 %.1f / 샴푸 %.1f / 헹굼 %.1f / 드라이 %.1f 초" % [t_wet, t_scrub, t_rinse, t_dry])
+	for pair in [["샤워기", t_wet], ["샴푸", t_scrub], ["헹굼", t_rinse], ["드라이기", t_dry]]:
 		check(pair[1] <= TOOL_LIMIT_SEC, "%s 가 %.0f초 안 (%.1f 초)" % [pair[0], TOOL_LIMIT_SEC, pair[1]])
 	check(shop.done, "다 씻으면 끝 (%s)" % str(shop.progress()))
 
 	shop.drop()
 	check_eq(shop.held, "", "Q: 내려놓기")
 	await get_tree().create_timer(0.4).timeout
-	check(shop._pickups["towel"].visible, "반납 손목 동작 뒤 도구는 선반으로")
+	check(shop._pickups["dryer"].visible, "반납 손목 동작 뒤 도구는 선반으로")
 	shop.next_guest()
 	check(not shop.has_dog and not shop.dog.visible, "R: 주인에게 돌려주면 목욕통이 빔")
 	check_eq(shop.guests.served, 1, "씻긴 손님 1")

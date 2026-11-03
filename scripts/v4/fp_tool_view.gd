@@ -6,8 +6,9 @@ const MODELS := {
 	"shower": preload("res://assets/models/tools/shower.glb"),
 	"shampoo": preload("res://assets/models/tools/shampoo.glb"),
 	"towel": preload("res://assets/models/tools/towel.glb"),
+	"dryer": preload("res://assets/models/tools/dryer.glb"),
 }
-# 드라이어는 assets/models/tools/dryer.glb 에 보존. V4 도구 목록에는 넣지 않는다.
+# 수건은 V4 기본 순서에서 빠짐 (드라이기가 처음부터, 사람 대표 결정 2026-11-02). 모형은 남겨 둠.
 const HANDS := preload("res://assets/models/hands/hands.glb")
 const PICK_SECONDS := 0.42
 const RETURN_SECONDS := 0.28
@@ -122,6 +123,10 @@ func update_motion(delta: float, active: bool) -> bool:
 		"shampoo":
 			offset = Vector3(-0.035, 0.02 + sin(_phase) * 0.009, -0.04) * _use_blend
 			angles = Vector3(-0.85, -0.12, -0.18) * _use_blend
+		"dryer":
+			# 바람을 쓸듯이 좌우로 천천히 흔듦
+			offset = Vector3(sin(_phase * 0.6) * 0.03, 0.02, -0.04) * _use_blend
+			angles = Vector3(-0.1, sin(_phase * 0.6) * 0.12, 0.0) * _use_blend
 		"towel":
 			offset = Vector3(sin(_phase) * 0.07, 0.035, -0.07) * _use_blend
 			angles = Vector3(-0.12, 0.0, sin(_phase) * 0.08) * _use_blend
@@ -141,5 +146,9 @@ func update_motion(delta: float, active: bool) -> bool:
 
 
 func tip_position() -> Vector3:
-	# 샤워기 GLB 의 실제 분사구 중심 (손목 모션을 그대로 따라감).
-	return model.to_global(Vector3(0.0, 0.093, -0.028))
+	return model.to_global(tip_offset())
+
+
+## 도구 모형 기준 물·바람이 나오는 곳: 드라이기는 앞(-Z) 바람구멍, 그 밖에는 샤워기 GLB 의 분사구 중심
+func tip_offset() -> Vector3:
+	return Vector3(0.0, 0.07, -0.12) if tool_id == "dryer" else Vector3(0.0, 0.093, -0.028)

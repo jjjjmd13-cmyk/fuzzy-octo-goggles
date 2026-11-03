@@ -34,7 +34,7 @@ const STAGES: Array[Dictionary] = [
 	{"id": "wet", "tool": "shower", "sound": "ding", "text": "적시기 끝! 샴푸로 거품 내요"},
 	{"id": "scrub", "tool": "shampoo", "sound": "bubble_pop", "text": "거품 끝! 샤워기로 헹궈요"},
 	{"id": "rinse", "tool": "shower", "sound": "squeak", "text": "뽀득! 헹굼 끝! 수건으로 닦아요"},
-	{"id": "dry", "tool": "towel", "sound": "poof", "text": "말리기 끝! 깨끗해졌어요"},
+	{"id": "dry", "tool": "dryer", "sound": "poof", "text": "뽕! 드라이 끝! 깨끗해졌어요"},
 ]
 ## 거품 공 크기 배수 (크고 하얗게), 스스로 빛나는 정도
 const FOAM_SIZE := 2.4
@@ -51,7 +51,7 @@ const STAGE_REACTION := {"wet": "wiggle_legs", "scrub": "jump", "rinse": "shake"
 const TOOLS := {
 	"shower": {"name": "샤워기", "channel": "wet", "color": Color(0.7, 0.8, 0.9)},
 	"shampoo": {"name": "샴푸", "channel": "scrub", "color": Color(1.0, 0.6, 0.75)},
-	"towel": {"name": "수건", "channel": "dry", "color": Color(0.95, 0.95, 0.85)},
+	"dryer": {"name": "드라이기", "channel": "dry", "color": Color(0.95, 0.85, 0.9)},
 }
 
 ## false 면 마우스·키 입력을 읽지 않는다 (테스트가 using 등을 직접 넣음)
@@ -101,7 +101,6 @@ var _glow_materials := {}
 var _rng := RandomNumberGenerator.new()
 var _foam_carry := 0.0
 var _reacted := {}
-var _towel_tick := 0.0
 var _hint := ""
 var _hint_left := 0.0
 var _hud: Control
@@ -155,7 +154,23 @@ func new_dog() -> void:
 	_reacted.clear()
 	has_dog = true
 	dog.visible = true
-	_show_hint("강아지를 씻겨 주세요: 샤워기 → 샴푸 → 샤워기로 헹구기 → 수건", 4.0)
+	_show_hint("강아지를 씻겨 주세요: 샤워기 → 샴푸 → 샤워기로 헹구기 → 드라이기", 4.0)
+	_start_quick_stage()
+
+
+## 빠른 확인: 그 기능의 단계부터 바로 시작 (앞 단계는 이미 끝난 강아지)
+func _start_quick_stage() -> void:
+	var start: String = {"dryer": "dry"}.get(quick_feature, "")
+	if start.is_empty():
+		return
+	for i in STAGES.size():
+		if STAGES[i].id == start:
+			break
+		var channel: String = STAGES[i].id
+		dog.mask.fill(channel, 1.0)
+		_reacted[channel] = true
+		stage_index = i + 1
+	_show_hint("%s 집어서 바로 해 봐요" % TOOLS[stage_tool()].name, 4.0)
 
 
 ## 목욕통 비우기 (주인이 데려갔거나 아직 아무도 안 맡김)
@@ -348,16 +363,17 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 				_foam_carry -= 1.0
 				dog.add_foam(point, 1, _rng, FOAM_SIZE)
 			sfx.set_loop("scrub", 0.8)
-		"towel":
+		"dryer":
+			# 따뜻한 바람: 젖은 곳일수록 빨리 마르고, 마를수록 털이 뽕 부풀고 귀가 펄럭
 			stage = "dry"
 			if dog.foam_count() > 0 and dog.mask.value_at("scrub", dir) > 0.5:
 				_show_hint("거품을 샤워기로 먼저 헹궈요", 1.5)
-			dog.paint("dry", point, radius, Tuning.data.v4_rate_towel * delta * clampf(wet_here + 0.2, 0.0, 1.0))
-			_towel_tick -= delta
-			if _towel_tick <= 0.0:
-				_towel_tick = 0.35
-				dog.press_effect(point)
-				sfx.play("towel")
+			dog.paint("dry", point, radius, Tuning.data.v4_rate_dryer * delta * clampf(wet_here + 0.2, 0.0, 1.0))
+			dog.fluff = clampf(dog.mask.ratio("dry") / Tuning.data.v4_done_ratio, 0.0, 1.0)
+			if dog.model.has_method("blow"):
+				dog.model.blow(1.0)
+			dog.show_stream(_tool_tip(), point, Color(1.0, 0.93, 0.8))
+			sfx.set_loop("dryer", 0.8)
 	# 반응: 씻는 동안 꼬리 흔들기 + 도구를 바라봄, 단계마다 처음 한 번 몸짓 (칠하기는 멈추지 않음)
 	dog.react("set_mood", 2)
 	if dog.model.has_method("watch"): dog.model.watch(point, true)
@@ -495,6 +511,7 @@ func _stop_effects() -> void:
 		return
 	sfx.set_loop("shower", 0.0)
 	sfx.set_loop("scrub", 0.0)
+	sfx.set_loop("dryer", 0.0)
 	dog.stop_spray()
 	dog.hide_stream()
 
@@ -600,7 +617,7 @@ func _build_shelf() -> void:
 		pickup.add_child(shape)
 		var view := _make_tool_mesh(tool_id)
 		# GLB 는 쥐는 곳이 원점: 각 메시 최저점을 선반 위에 맞춘다.
-		view.position.y = {"shower": 0.130, "shampoo": 0.074, "towel": 0.002}[tool_id]
+		view.position.y = {"shower": 0.130, "shampoo": 0.074, "dryer": 0.056}[tool_id]
 		view.rotation.y = PI / 2.0 # -Z 앞면을 선반 바깥(+X)으로
 		pickup.add_child(view)
 		_cache_glow_materials(tool_id, view)
@@ -715,7 +732,7 @@ func _draw_hud() -> void:
 	elif aim_point != null and held.is_empty():
 		under = "선반에서 도구를 집어요"
 	elif ready_to_use and not using:
-		under = "누르고 있으면 %s" % {"shower": "물이 나와요", "shampoo": "거품이 나요", "towel": "닦아요"}[held]
+		under = "누르고 있으면 %s" % {"shower": "물이 나와요", "shampoo": "거품이 나요", "dryer": "바람이 나와요"}[held]
 	_text(font, center + Vector2(0, 40), under, 22, true)
 	# 진행 (목욕통에 강아지가 있을 때만)
 	var p := progress()
