@@ -60,11 +60,12 @@ static func _placeholder(_id: String) -> Node3D:
 	return root
 
 
-func setup(id: String, pick_delay := 0.0) -> void:
+## model_id: 단계별 모형 (예: "shower_wide"), 비우면 id
+func setup(id: String, pick_delay := 0.0, model_id := "") -> void:
 	_pick_delay = pick_delay
 	tool_id = id
 	name = "Held_" + id
-	model = make_model(id)
+	model = make_model(model_id if not model_id.is_empty() else id)
 	model.name = "ToolModel"
 	add_child(model)
 	# GLB Hand_L/R 의 손목 원점을 재사용하고 배치용 ±0.105m 를 제거한다.
