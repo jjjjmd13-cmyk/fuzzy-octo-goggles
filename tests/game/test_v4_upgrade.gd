@@ -29,7 +29,10 @@ func run_test() -> void:
 	check(shop.buy("shower"), "샤워기 사기")
 	check_eq(shop.money, 1000 - Tuning.data.v4_price_shower[1], "값만큼 돈이 줆")
 	check_eq(shop.tool_name("shower"), "넓은 샤워기", "넓은 샤워기")
-	check(shop._pickups.shower.get_node("View").scale.x > 1.0, "선반 도구가 조금 커짐")
+	if ResourceLoader.exists("res://assets/models/tools/shower_wide.glb"):
+		check_eq(shop.model_id("shower"), "shower_wide", "넓은 샤워기 그림")
+	else:
+		check(shop._pickups.shower.get_node("View").scale.x > 1.0, "그림이 오기 전엔 선반 샤워기가 조금 커짐")
 	var fast := _wet_after(0.4)
 	check(fast > slow * 1.3, "넓은 샤워기가 더 빨리 적심 (%.2f → %.2f)" % [slow, fast])
 	check(shop.buy("shower"), "레인 샤워기까지")

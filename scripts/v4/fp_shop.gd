@@ -61,6 +61,13 @@ const TOOL_LEVEL_NAMES := {
 	"dryer": ["작은 드라이기", "큰 송풍 드라이기"],
 	"brush": ["일반 빗", "슬리커 브러시", "전동 브러시"],
 }
+## 단계별 모형 파일 (docs/art/ART_SLOTS.md V4 손 도구, assets/models/tools/<이름>.glb). 없으면 기본 모형을 조금 키워 씀
+const LEVEL_MODELS := {
+	"shower": ["shower", "shower_wide", "shower_rain"],
+	"shampoo": ["shampoo", "foam_pump", "foam_cannon"],
+	"dryer": ["dryer", "dryer_big"],
+	"brush": ["brush", "brush_slicker", "brush_electric"],
+}
 const PRICE_KEY := {"shower": "v4_price_shower", "shampoo": "v4_price_foam", "dryer": "v4_price_dryer", "brush": "v4_price_brush"}
 ## 속도 배수 중 붓 크기로 가는 몫 (1.6배 빠른 도구 = 붓 1.15배)
 const SIZE_SHARE := 0.25
@@ -326,6 +333,19 @@ func size_mult(tool_id: String) -> float:
 	return 1.0 + (speed_mult(tool_id) - 1.0) * SIZE_SHARE
 
 
+## 지금 단계 모형 이름: 그 단계 GLB 가 있으면 그것, 없으면 기본 도구
+func model_id(tool_id: String) -> String:
+	var id: String = LEVEL_MODELS[tool_id][tool_level[tool_id]]
+	if id != tool_id and not ResourceLoader.exists("res://assets/models/tools/%s.glb" % id):
+		return tool_id
+	return id
+
+
+## 단계 그림이 없어 기본 모형을 쓸 때만 크기로 단계를 보여 줌
+func model_scale(tool_id: String) -> float:
+	return size_mult(tool_id) if model_id(tool_id) == tool_id else 1.0
+
+
 func tool_name(tool_id: String) -> String:
 	return TOOL_LEVEL_NAMES[tool_id][tool_level[tool_id]]
 
@@ -344,9 +364,18 @@ func buy(tool_id: String) -> bool:
 		return false
 	money -= price
 	tool_level[tool_id] += 1
-	var view := _pickups[tool_id].get_node_or_null("View") as Node3D
-	if view != null:
-		view.scale = Vector3.ONE * size_mult(tool_id)
+	# 선반 모형을 새 단계 모형으로 (그림이 없으면 기본 모형을 키움)
+	var pickup: Node3D = _pickups[tool_id]
+	var old := pickup.get_node_or_null("View") as Node3D
+	var view := _make_tool_mesh(model_id(tool_id))
+	if old != null:
+		view.transform = old.transform
+		# 바로 지움 (queue_free 로 한 프레임 남기면 더미 렌더러에서 "material is null" 오류가 남)
+		old.free()
+	view.name = "View"
+	view.scale = Vector3.ONE * model_scale(tool_id)
+	pickup.add_child(view)
+	_cache_glow_materials(tool_id, view)
 	sfx.play("coin")
 	return true
 
@@ -407,9 +436,9 @@ func pick(tool_id: String) -> void:
 	held = tool_id
 	_set_pickup_available(tool_id, false)
 	_held_view = FpToolView.new()
-	_held_view.setup(tool_id, FpToolView.RETURN_SECONDS if not _returning_views.is_empty() else 0.0)
+	_held_view.setup(tool_id, FpToolView.RETURN_SECONDS if not _returning_views.is_empty() else 0.0, model_id(tool_id))
 	player.camera.add_child(_held_view)
-	_held_view.model.scale = Vector3.ONE * size_mult(tool_id)
+	_held_view.model.scale = Vector3.ONE * model_scale(tool_id)
 	sfx.play("press")
 
 
