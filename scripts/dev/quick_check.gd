@@ -13,6 +13,7 @@ const FpSettle := preload("res://scripts/v4/fp_settle.gd")
 ## id, 메뉴 버튼, 강아지 수, 끝 화면의 "새로 들어간 것"
 const FEATURES: Array[Dictionary] = [
 	{"id": "day", "name": "하루 돌리기", "dogs": 2, "new": "손님 클릭으로 맡기기·돌려주기, 요금 + 팁"},
+	{"id": "dryer", "name": "드라이기", "dogs": 1, "new": "헹군 뒤 드라이기로 말리기 (털 뽕·귀 펄럭), 수건 대신"},
 ]
 
 var shop: Node3D

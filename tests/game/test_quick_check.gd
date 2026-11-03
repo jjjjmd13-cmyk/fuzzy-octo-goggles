@@ -60,4 +60,27 @@ func run_test() -> void:
 	check(done_panel != null, "확인 끝 화면")
 	if done_panel != null:
 		check(done_panel.summary_text.contains("새로 들어간 것: 하루 돌리기"), "새로 들어간 것 (%s)" % done_panel.summary_text)
+	quick.queue_free()
+	await get_tree().process_frame
+
+	# 드라이기 빠른 확인: 헹굼까지 끝난 강아지, 드라이기만 하면 끝
+	Engine.set_meta("quick_check_feature", "dryer")
+	quick = load(QUICK_SCENE).instantiate()
+	add_child(quick)
+	shop = quick.shop
+	shop.input_enabled = false
+	shop.guests._process(1.5)
+	shop.next_guest()
+	check(shop.has_dog, "드라이기 확인: 강아지 맡김")
+	check_eq(shop.stage_tool(), "dryer", "바로 드라이 단계")
+	check(shop.dog.mask.ratio("scrub") >= 0.99 and shop.dog.foam_count() == 0, "적시기·거품·헹굼은 끝난 상태")
+	check(shop._hint.contains("드라이기"), "드라이기를 집으라는 글 (%s)" % shop._hint)
+	shop.pick("dryer")
+	for i in 200:
+		var p: Vector3 = shop.dog.model.to_global(shop.dog._body_center() + Vector3(cos(i * 0.7), 0.4 * sin(i * 0.3), sin(i * 0.7)) * 0.3)
+		shop.use_tool_at(p, 1.0 / 30.0)
+		if shop.done:
+			break
+	check(shop.done, "드라이만으로 끝 (%s)" % str(shop.progress()))
+	check(shop.dog.fluff > 0.9, "털 뽕")
 	Engine.remove_meta("quick_check_feature")

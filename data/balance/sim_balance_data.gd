@@ -184,7 +184,7 @@ extends Resource
 ## 도구를 대고 있는 동안 초당 칠하는 양 (붓 가운데 기준, 1 = 한 번에 다 참)
 @export var v4_rate_shower := 2.5
 @export var v4_rate_shampoo := 2.2
-@export var v4_rate_towel := 2.0
+@export var v4_rate_dryer := 2.0
 
 ## 대기 손님 참을성 (s, TUNING_V4 2장): 대기 의자에서 이만큼 기다리면 "다음에 올게요" 하고 떠남
 @export var v4_patience_hurry := 60.0
