@@ -1,0 +1,446 @@
+{
+  "box_large.glb": {
+    "status": "PASS",
+    "triangles": 338,
+    "dimensions_m": [
+      0.9003,
+      0.60001,
+      0.6
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        64
+      ],
+      [
+        256,
+        256
+      ]
+    ],
+    "joints": {
+      "Lid_L": {
+        "pivot": [
+          -0.449,
+          0.5945,
+          0
+        ],
+        "axis": "Z",
+        "test_angle_radians": 1.9
+      },
+      "Lid_R": {
+        "pivot": [
+          0.449,
+          0.5945,
+          0
+        ],
+        "axis": "Z",
+        "test_angle_radians": -1.9
+      }
+    },
+    "empty_nodes": {}
+  },
+  "box_medium.glb": {
+    "status": "PASS",
+    "triangles": 338,
+    "dimensions_m": [
+      0.5003,
+      0.40001,
+      0.4
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        64
+      ],
+      [
+        256,
+        256
+      ]
+    ],
+    "joints": {
+      "Lid_L": {
+        "pivot": [
+          -0.249,
+          0.3945,
+          0
+        ],
+        "axis": "Z",
+        "test_angle_radians": 1.9
+      },
+      "Lid_R": {
+        "pivot": [
+          0.249,
+          0.3945,
+          0
+        ],
+        "axis": "Z",
+        "test_angle_radians": -1.9
+      }
+    },
+    "empty_nodes": {}
+  },
+  "box_small.glb": {
+    "status": "PASS",
+    "triangles": 338,
+    "dimensions_m": [
+      0.3003,
+      0.25001,
+      0.25
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        64
+      ],
+      [
+        256,
+        256
+      ]
+    ],
+    "joints": {
+      "Lid_L": {
+        "pivot": [
+          -0.149,
+          0.2445,
+          0
+        ],
+        "axis": "Z",
+        "test_angle_radians": 1.9
+      },
+      "Lid_R": {
+        "pivot": [
+          0.149,
+          0.2445,
+          0
+        ],
+        "axis": "Z",
+        "test_angle_radians": -1.9
+      }
+    },
+    "empty_nodes": {}
+  },
+  "cart.glb": {
+    "status": "PASS",
+    "triangles": 1584,
+    "dimensions_m": [
+      1.058,
+      1.0,
+      0.775
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        64
+      ]
+    ],
+    "joints": {
+      "Wheel_L": {
+        "pivot": [
+          -0.46,
+          0.16,
+          0.16
+        ],
+        "axis": "X",
+        "test_angle_radians": 1.2
+      },
+      "Wheel_R": {
+        "pivot": [
+          0.46,
+          0.16,
+          0.16
+        ],
+        "axis": "X",
+        "test_angle_radians": 1.2
+      }
+    },
+    "empty_nodes": {}
+  },
+  "delivery_mat.glb": {
+    "status": "PASS",
+    "triangles": 122,
+    "dimensions_m": [
+      1.6,
+      0.02,
+      1.0
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        64
+      ],
+      [
+        1024,
+        640
+      ]
+    ],
+    "joints": {},
+    "empty_nodes": {}
+  },
+  "fence.glb": {
+    "status": "PASS",
+    "triangles": 488,
+    "dimensions_m": [
+      2.0,
+      0.8,
+      0.07
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        64
+      ]
+    ],
+    "joints": {},
+    "empty_nodes": {}
+  },
+  "flower_bed.glb": {
+    "status": "PASS",
+    "triangles": 1928,
+    "dimensions_m": [
+      2.0,
+      0.4,
+      0.6
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        64
+      ]
+    ],
+    "joints": {},
+    "empty_nodes": {}
+  },
+  "mailbox.glb": {
+    "status": "PASS",
+    "triangles": 700,
+    "dimensions_m": [
+      0.403,
+      1.2,
+      0.51131
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        64
+      ]
+    ],
+    "joints": {
+      "Flag": {
+        "pivot": [
+          0.215,
+          0.99,
+          0.02
+        ],
+        "axis": "X",
+        "test_angle_radians": -1.5707963267948966
+      }
+    },
+    "empty_nodes": {}
+  },
+  "open_sign.glb": {
+    "status": "PASS",
+    "triangles": 260,
+    "dimensions_m": [
+      0.35,
+      0.25,
+      0.0248
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        64
+      ],
+      [
+        512,
+        256
+      ],
+      [
+        512,
+        256
+      ]
+    ],
+    "joints": {
+      "Plate": {
+        "pivot": [
+          0,
+          -0.07,
+          0
+        ],
+        "axis": "Y",
+        "test_angle_radians": 3.141592653589793
+      }
+    },
+    "empty_nodes": {}
+  },
+  "shop_front.glb": {
+    "status": "PASS",
+    "triangles": 4838,
+    "dimensions_m": [
+      7.0,
+      3.0,
+      0.92378
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        64
+      ]
+    ],
+    "joints": {
+      "Door": {
+        "pivot": [
+          2.02,
+          0.02,
+          -0.035
+        ],
+        "axis": "Y",
+        "test_angle_radians": -1.5
+      },
+      "Bell": {
+        "pivot": [
+          2.6,
+          2.36,
+          -0.36
+        ],
+        "axis": "Z",
+        "test_angle_radians": 0.4
+      }
+    },
+    "empty_nodes": {}
+  },
+  "sign_outside.glb": {
+    "status": "PASS",
+    "triangles": 1212,
+    "dimensions_m": [
+      2.0,
+      0.6,
+      0.1
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        64
+      ],
+      [
+        256,
+        256
+      ]
+    ],
+    "joints": {},
+    "empty_nodes": {}
+  },
+  "street_lamp.glb": {
+    "status": "PASS",
+    "triangles": 1028,
+    "dimensions_m": [
+      0.4,
+      3.0,
+      0.4
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        64
+      ]
+    ],
+    "joints": {},
+    "empty_nodes": {
+      "Bulb": [
+        0,
+        2.6844742261147565,
+        0
+      ]
+    }
+  },
+  "truck.glb": {
+    "status": "PASS",
+    "triangles": 3728,
+    "dimensions_m": [
+      1.8,
+      2.0,
+      3.5
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        64
+      ],
+      [
+        512,
+        512
+      ]
+    ],
+    "joints": {
+      "Door_Back": {
+        "pivot": [
+          0.0,
+          1.92,
+          1.7024708613853798
+        ],
+        "axis": "X",
+        "test_angle_radians": -1.8
+      },
+      "Wheel_FL": {
+        "pivot": [
+          -0.7722772451427624,
+          0.3,
+          -1.0297144467566932
+        ],
+        "axis": "X",
+        "test_angle_radians": 1.2
+      },
+      "Wheel_BL": {
+        "pivot": [
+          -0.7722772451427624,
+          0.3,
+          1.0968429846164411
+        ],
+        "axis": "X",
+        "test_angle_radians": 1.2
+      },
+      "Wheel_FR": {
+        "pivot": [
+          0.7722772451427624,
+          0.3,
+          -1.0297144467566932
+        ],
+        "axis": "X",
+        "test_angle_radians": 1.2
+      },
+      "Wheel_BR": {
+        "pivot": [
+          0.7722772451427624,
+          0.3,
+          1.0968429846164411
+        ],
+        "axis": "X",
+        "test_angle_radians": 1.2
+      }
+    },
+    "empty_nodes": {}
+  },
+  "paving.png": {
+    "status": "PASS",
+    "pixels": [
+      1024,
+      1024
+    ],
+    "metres_per_tile": 1
+  },
+  "road.png": {
+    "status": "PASS",
+    "pixels": [
+      1024,
+      1024
+    ],
+    "metres_per_tile": 1
+  },
+  "road_line.png": {
+    "status": "PASS",
+    "pixels": [
+      1024,
+      1024
+    ],
+    "metres_per_tile": 1
+  }
+}
