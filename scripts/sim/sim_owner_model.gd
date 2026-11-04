@@ -120,15 +120,15 @@ func come_react(front: Vector3, mood_level: int) -> void:
 		_hearts.emitting = true
 
 
-func leave(door: Vector3, duration: float) -> void:
+func leave(door: Vector3, duration: float, via: Array = []) -> void:
 	_react = -1
 	_face_target = null
-	_walk(door, duration, "walk")
+	_walk(door, duration, "walk", via)
 
 
 ## 대기열 자리로 (의자면 앉고, 문밖 줄이면 서서 기다림)
-func go_wait(spot: Vector3, look: Vector3, duration: float, seated: bool) -> void:
-	_walk(spot, duration, "sit" if seated else "stand")
+func go_wait(spot: Vector3, look: Vector3, duration: float, seated: bool, via: Array = []) -> void:
+	_walk(spot, duration, "sit" if seated else "stand", via)
 	_face_target = look
 	_react = -1
 
