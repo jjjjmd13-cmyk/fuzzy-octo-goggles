@@ -18,6 +18,11 @@ const KINDS: Array[String] = ["hurry", "normal", "relaxed", "forever"]
 const TRIM_NAMES := {"bear": "곰돌이컷", "lion": "사자컷", "summer": "여름컷"}
 const KIND_NAMES := {"hurry": "급함", "normal": "보통", "relaxed": "느긋", "forever": "끝까지"}
 const DOOR := Vector3(3.5, 0, 2.6)
+## 가게 밖 손님 길 (GDD_V4 '가게 밖'): 찻길 쪽 울타리 틈 → 정문 바로 밖 → 정문 (z ≈ 2.6 한 줄)
+const STREET := Vector3(9.6, 0, 2.6)
+const OUTSIDE_DOOR := Vector3(4.6, 0, 2.6)
+## 이 x 보다 안쪽이면 가게 안 (참을성은 안에 들어와서부터)
+const INSIDE_X := 3.9
 const SEATS: Array[Vector3] = [Vector3(3.0, 0, -1.4), Vector3(3.0, 0, -0.5), Vector3(3.0, 0, 0.4)]
 ## 목욕 중인 강아지 주인이 서서 지켜보는 곳
 const TUB_SIDE := Vector3(1.15, 0, -1.0)
@@ -84,14 +89,16 @@ func start_day() -> void:
 
 
 ## 손님 한 명을 바로 들여보냄 (테스트·처음 줄). kind = "" 이면 비율대로 뽑음
-func spawn(kind := "") -> void:
+## walk_in = true 면 찻길에서 마당을 지나 정문으로 걸어 들어옴 (영업 중 손님), false 면 정문 안쪽에서 바로 (테스트·빠른 확인)
+func spawn(kind := "", walk_in := false) -> void:
 	if guests.size() >= SEATS.size():
 		return
 	if kind.is_empty():
 		kind = roll_kind()
 	var owner := OWNER_SCENE.instantiate() as Node3D
 	add_child(owner)
-	owner.position = DOOR
+	owner.add_to_group("door_users")
+	owner.position = STREET if walk_in else DOOR
 	owner.set_variant(_variant % 6)
 	_variant += 1
 	var holder := Node3D.new()
@@ -162,7 +169,8 @@ func take_next() -> Dictionary:
 ## 돌려줌: {kind, remaining (맡길 때 남은 참을성 0~1), arrived (들어온 시각, elapsed 기준)}, 대기 손님이 아니면 {}
 func take(owner: Node3D) -> Dictionary:
 	var index := index_of(owner)
-	if index < 0:
+	# 아직 마당을 걸어오는 손님은 들어온 뒤에 받음
+	if index < 0 or owner.position.x > INSIDE_X:
 		return {}
 	var left := remaining(index)
 	var guest: Dictionary = guests[index]
@@ -192,16 +200,21 @@ func _process(delta: float) -> void:
 	_spawn_left -= delta
 	if _spawn_left <= 0.0 and open:
 		if not _opening.is_empty():
-			spawn(_opening.pop_front())
+			spawn(_opening.pop_front(), not quick)
 			_spawn_left = 2.5 if not _opening.is_empty() else Tuning.data.v4_guest_every
 		elif not quick:
-			spawn()
+			spawn("", true)
 			_spawn_left = Tuning.data.v4_guest_every
 	var camera := get_viewport().get_camera_3d()
 	var i := 0
 	while i < guests.size():
 		var guest: Dictionary = guests[i]
 		var owner: Node3D = guest.owner
+		# 마당을 걸어오는 동안은 참을성이 안 줄고, 들어온 때부터 빠른 팁 시간을 셈
+		if owner.position.x > INSIDE_X:
+			guest.arrived = elapsed
+			i += 1
+			continue
 		guest.waited += delta
 		var left := remaining(i)
 		if left <= 0.0:
@@ -230,8 +243,11 @@ func _process(delta: float) -> void:
 		if item.t >= 0.9 and not item.walking:
 			item.walking = true
 			var owner: Node3D = item.owner
-			owner.leave(to_global(DOOR), owner.position.distance_to(DOOR) / WALK_SPEED)
-		elif item.t > 0.9 + 6.0:
+			# 정문으로 나가 마당을 지나 찻길로
+			var length := owner.position.distance_to(DOOR) + DOOR.distance_to(OUTSIDE_DOOR) + OUTSIDE_DOOR.distance_to(STREET)
+			item.leave_time = length / WALK_SPEED
+			owner.leave(to_global(STREET), item.leave_time, [to_global(DOOR), to_global(OUTSIDE_DOOR)])
+		elif item.t > 0.9 + item.get("leave_time", 6.0) + 0.3:
 			(item.owner as Node3D).queue_free()
 			_leaving.erase(item)
 
@@ -296,7 +312,13 @@ func _seat_all() -> void:
 	for i in guests.size():
 		var owner: Node3D = guests[i].owner
 		var seat := SEATS[i]
-		owner.go_wait(to_global(seat), to_global(LOOK_AT), maxf(owner.position.distance_to(seat), 0.3) / WALK_SPEED, true)
+		# 아직 밖이면 정문을 지나서 (벽을 뚫지 않게)
+		var via: Array = []
+		var length := owner.position.distance_to(seat)
+		if owner.position.x > INSIDE_X:
+			via = [to_global(OUTSIDE_DOOR), to_global(DOOR)] if owner.position.x > OUTSIDE_DOOR.x else [to_global(DOOR)]
+			length = owner.position.distance_to(DOOR) + DOOR.distance_to(seat)
+		owner.go_wait(to_global(seat), to_global(LOOK_AT), maxf(length, 0.3) / WALK_SPEED, true, via)
 
 
 # --- 머리 위 표시 (임시 모형: 진짜 그림이 오면 교체)
