@@ -3,7 +3,7 @@ extends Node3D
 ##
 ## 가게를 걸어다니며(WASD + 마우스) 선반의 3D 도구를 집고(클릭), 목욕통의 강아지에 대고
 ## 누르고 있으면 쓱쓱 바로 씻긴다. 원 그리기·고정 카메라·2D 커서 없음. 큰 붓·빠른 진행.
-##   샤워기 = 적시기 + 거품 헹구기 / 샴푸 = 젖은 곳에 거품 (진흙이 지워짐) / 수건 = 젖은 곳 말리기
+##   샤워기 = 적시기 + 거품 헹구기 / 샴푸 = 젖은 곳에 거품 (진흙이 지워짐) / 드라이기 = 젖은 곳 말리기 (털 뽕) / 빗 = 엉킨 털 풀기 / 가위 = 미용 (요청 손님)
 ## 다 되면 강아지가 펄쩍 + 꼬리 흔들기. 쓰는 동안 가끔 몸 털기(물 튀김).
 ## 방은 코드로 만드는 임시 상자. 강아지는 V3 의 WashDog(GLB·털 셰이더·칠하기 마스크)를 그대로 쓴다.
 ## V3 코드는 그대로 두고 이 씬만 새로 (scenes/v4/fp_shop.tscn).
@@ -35,7 +35,7 @@ const DOG_SPOT := Vector3(0, 0.92, -1.6)
 const STAGES: Array[Dictionary] = [
 	{"id": "wet", "tool": "shower", "sound": "ding", "text": "적시기 끝! 샴푸로 거품 내요"},
 	{"id": "scrub", "tool": "shampoo", "sound": "bubble_pop", "text": "거품 끝! 샤워기로 헹궈요"},
-	{"id": "rinse", "tool": "shower", "sound": "squeak", "text": "뽀득! 헹굼 끝! 수건으로 닦아요"},
+	{"id": "rinse", "tool": "shower", "sound": "squeak", "text": "뽀득! 헹굼 끝! 드라이기로 말려요"},
 	{"id": "dry", "tool": "dryer", "sound": "poof", "text": "뽕! 드라이 끝! 빗으로 엉킨 털을 풀어요"},
 	{"id": "brush", "tool": "brush", "sound": "squeak", "text": "빗질 끝! 반짝반짝 깨끗해졌어요"},
 	# 미용은 요청 손님만 (요청이 없으면 이 단계를 건너뜀)
@@ -55,6 +55,8 @@ const BLINK_FROM := 0.5
 const STAGE_REACTION := {"wet": "wiggle_legs", "scrub": "jump", "rinse": "shake", "dry": "wiggle_legs", "brush": "jump", "trim": "wiggle_legs"}
 ## 빗이 닿는 거리 = 붓 반경 × 이 값 (뭉치 하나씩 겨냥하게 붓보다 좁게)
 const BRUSH_REACH := 0.8
+## 가위·빗을 들면 가운데 점에서 이 거리(m) 안의 다발·뭉치를 겨눔
+const TARGET_PICK := 0.12
 ## 임시 털색 (엉킨 뭉치는 이보다 진하게)
 const FUR_COLOR := Color(0.96, 0.87, 0.7)
 ## 도구 단계 이름 (TUNING_V4 3-1, GDD_V4 기본 순서와 도구 키우기). 단계마다 칠하는 속도 v4_tool_speed_mult
@@ -745,15 +747,40 @@ func _update_aim() -> void:
 	var query := PhysicsRayQueryParameters3D.create(ray[0], ray[1], (1 << (PICK_LAYER - 1)) | DOG_LAYER)
 	query.exclude = [player.get_rid()]
 	var hit := get_world_3d().direct_space_state.intersect_ray(query)
-	if hit.is_empty():
-		return
-	var collider: Object = hit.collider
-	if collider.has_meta("tool"):
+	var collider: Object = hit.collider if not hit.is_empty() else null
+	if collider != null and collider.has_meta("tool"):
 		hovered = collider.get_meta("tool")
-	elif collider.has_meta("guest"):
+		return
+	if collider != null and collider.has_meta("guest"):
 		hovered_guest = collider.get_meta("guest")
+		return
+	# 가위·빗: 가운데 점 둘레의 다발·뭉치를 바로 겨눔 (몸 겉면 판정이 다른 부위에 먼저 닿거나
+	# 강아지가 고개를 돌려도 바라보는 다발이 잘리게, 사람 대표 플레이 버그)
+	var target: Variant = _target_on_ray(ray[0], ray[1])
+	if target != null:
+		aim_point = target
 	elif has_dog and collider is CollisionObject3D and (collider as CollisionObject3D).collision_layer & DOG_LAYER:
 		aim_point = hit.position
+
+
+## 가위면 미용 다발, 빗이면 엉킨 뭉치 중 광선에서 TARGET_PICK 안에 있는 가장 가까운 것 (없으면 null)
+func _target_on_ray(from: Vector3, to: Vector3) -> Variant:
+	if not has_dog or done:
+		return null
+	var points := PackedVector3Array()
+	if held == "scissors" and is_instance_valid(trim):
+		points = trim.world_positions(true) + trim.world_positions(false)
+	elif held == "brush" and is_instance_valid(tangles):
+		points = tangles.world_positions()
+	var best: Variant = null
+	var best_distance := TARGET_PICK
+	for point in points:
+		var on_ray := Geometry3D.get_closest_point_to_segment(point, from, to)
+		var distance := on_ray.distance_to(point)
+		if distance <= best_distance:
+			best_distance = distance
+			best = point
+	return best
 
 
 func _tool_tip() -> Vector3:
