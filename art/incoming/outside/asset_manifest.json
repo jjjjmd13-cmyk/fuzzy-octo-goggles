@@ -1,0 +1,544 @@
+{
+  "title": "멍냥 목욕탕 — 마당·택배",
+  "count": 16,
+  "assets": [
+    {
+      "file": "shop_front.glb",
+      "preview": "shop_front_preview.png",
+      "sha256": "e565331327506ca43314589a097c14da8abe2bbd3de2de39085847d39adc5ab4",
+      "triangles": 4838,
+      "budget": 7000,
+      "dimensions_m": [
+        7.0,
+        3.0,
+        0.92378
+      ],
+      "bounds_min": [
+        -3.5,
+        0.0,
+        -0.8237764239311218
+      ],
+      "bounds_max": [
+        3.5,
+        3.0,
+        0.10000000149011612
+      ],
+      "origin": "wall bottom centre",
+      "joints": {
+        "Door": {
+          "pivot": [
+            2.02,
+            0.02,
+            -0.035
+          ],
+          "axis": "Y",
+          "test_angle_radians": -1.5
+        },
+        "Bell": {
+          "pivot": [
+            2.6,
+            2.36,
+            -0.36
+          ],
+          "axis": "Z",
+          "test_angle_radians": 0.4
+        }
+      },
+      "empty_nodes": {},
+      "notes": "Wall itself 7 x 3 x .2 m. True opening X=2.0..3.2, Y=0..2.1; door centre +2.6m. Overall depth includes the awning. Two actual circular wall openings with alpha glass."
+    },
+    {
+      "file": "sign_outside.glb",
+      "preview": "sign_outside_preview.png",
+      "sha256": "d5b5902b7e9bc9c285a1bcdffe4ea010fa61c191e1f477ca4566d6950cc44bee",
+      "triangles": 1212,
+      "budget": 2000,
+      "dimensions_m": [
+        2.0,
+        0.6,
+        0.1
+      ],
+      "bounds_min": [
+        -1.0,
+        -0.30000001192092896,
+        -0.10000000149011612
+      ],
+      "bounds_max": [
+        1.0,
+        0.30000001192092896,
+        -0.0
+      ],
+      "origin": "back centre",
+      "joints": {},
+      "empty_nodes": {},
+      "notes": "Blank centre approx 1.25 x .36 m; no lettering."
+    },
+    {
+      "file": "open_sign.glb",
+      "preview": "open_sign_preview.png",
+      "sha256": "6554b8a526a02b5cc87043d86d78a2632cd71a1f26e955a80b68ad593f476345",
+      "triangles": 260,
+      "budget": 1500,
+      "dimensions_m": [
+        0.35,
+        0.25,
+        0.0248
+      ],
+      "bounds_min": [
+        -0.17499999701976776,
+        -0.25,
+        -0.012400000356137753
+      ],
+      "bounds_max": [
+        0.17499999701976776,
+        0.0,
+        0.012400000356137753
+      ],
+      "origin": "top hanger",
+      "joints": {
+        "Plate": {
+          "pivot": [
+            0,
+            -0.07,
+            0
+          ],
+          "axis": "Y",
+          "test_angle_radians": 3.141592653589793
+        }
+      },
+      "empty_nodes": {},
+      "notes": "Sun front -Z, sleeping moon back +Z. Plate includes lower strings and flips around its upper central Y pivot."
+    },
+    {
+      "file": "paving.png",
+      "preview": "paving_preview.png",
+      "sha256": "ad54b6618667ca0296f691b8d2f54d69640e5d14f34d9c9f27b36751f1bca764",
+      "pixels": [
+        1024,
+        1024
+      ],
+      "metres_per_tile": 1,
+      "repeat": true
+    },
+    {
+      "file": "road.png",
+      "preview": "road_preview.png",
+      "sha256": "b80e0536b35d5b272ef7fd4df4cf344f3d27ebdd26dfa063d009411432fbd85f",
+      "pixels": [
+        1024,
+        1024
+      ],
+      "metres_per_tile": 1,
+      "repeat": true
+    },
+    {
+      "file": "road_line.png",
+      "preview": "road_line_preview.png",
+      "sha256": "643bbd085b51b5dcfff244b1efb6c600f54e9e86b7f49b42153ddd141b991945",
+      "pixels": [
+        1024,
+        1024
+      ],
+      "metres_per_tile": 1,
+      "repeat": true
+    },
+    {
+      "file": "box_small.glb",
+      "preview": "box_small_preview.png",
+      "sha256": "5d48703ee939fb3cfbad9dc573a3cfa95a9b34fb769739e61110799a5bff4186",
+      "triangles": 338,
+      "budget": 500,
+      "dimensions_m": [
+        0.3003,
+        0.25001,
+        0.25
+      ],
+      "bounds_min": [
+        -0.15000000596046448,
+        0.0,
+        -0.125
+      ],
+      "bounds_max": [
+        0.15029999613761902,
+        0.25001001358032227,
+        0.125
+      ],
+      "origin": "floor",
+      "joints": {
+        "Lid_L": {
+          "pivot": [
+            -0.149,
+            0.2445,
+            0
+          ],
+          "axis": "Z",
+          "test_angle_radians": 1.9
+        },
+        "Lid_R": {
+          "pivot": [
+            0.149,
+            0.2445,
+            0
+          ],
+          "axis": "Z",
+          "test_angle_radians": -1.9
+        }
+      },
+      "empty_nodes": {},
+      "notes": "Hollow carton, two independent flaps. Lid_L local Z +1.9, Lid_R local Z -1.9 opens outward. Tape is part of each lid."
+    },
+    {
+      "file": "box_medium.glb",
+      "preview": "box_medium_preview.png",
+      "sha256": "39e97a09ed566f7d569dd4e760a899b79dc1ae2c12bc4374f2a51c96aac2858b",
+      "triangles": 338,
+      "budget": 500,
+      "dimensions_m": [
+        0.5003,
+        0.40001,
+        0.4
+      ],
+      "bounds_min": [
+        -0.25,
+        0.0,
+        -0.20000000298023224
+      ],
+      "bounds_max": [
+        0.25029999017715454,
+        0.40000998973846436,
+        0.20000000298023224
+      ],
+      "origin": "floor",
+      "joints": {
+        "Lid_L": {
+          "pivot": [
+            -0.249,
+            0.3945,
+            0
+          ],
+          "axis": "Z",
+          "test_angle_radians": 1.9
+        },
+        "Lid_R": {
+          "pivot": [
+            0.249,
+            0.3945,
+            0
+          ],
+          "axis": "Z",
+          "test_angle_radians": -1.9
+        }
+      },
+      "empty_nodes": {},
+      "notes": "Hollow carton, two independent flaps. Lid_L local Z +1.9, Lid_R local Z -1.9 opens outward. Tape is part of each lid."
+    },
+    {
+      "file": "box_large.glb",
+      "preview": "box_large_preview.png",
+      "sha256": "8d356c3b93072f3f475fbdd5062d0fa3fdcd910f5f08f67e3db1b70dc2595a43",
+      "triangles": 338,
+      "budget": 500,
+      "dimensions_m": [
+        0.9003,
+        0.60001,
+        0.6
+      ],
+      "bounds_min": [
+        -0.44999998807907104,
+        0.0,
+        -0.30000001192092896
+      ],
+      "bounds_max": [
+        0.450300008058548,
+        0.6000099778175354,
+        0.30000001192092896
+      ],
+      "origin": "floor",
+      "joints": {
+        "Lid_L": {
+          "pivot": [
+            -0.449,
+            0.5945,
+            0
+          ],
+          "axis": "Z",
+          "test_angle_radians": 1.9
+        },
+        "Lid_R": {
+          "pivot": [
+            0.449,
+            0.5945,
+            0
+          ],
+          "axis": "Z",
+          "test_angle_radians": -1.9
+        }
+      },
+      "empty_nodes": {},
+      "notes": "Hollow carton, two independent flaps. Lid_L local Z +1.9, Lid_R local Z -1.9 opens outward. Tape is part of each lid."
+    },
+    {
+      "file": "truck.glb",
+      "preview": "truck_preview.png",
+      "sha256": "f4e7a8e72aa2556c623a653d1a1b033158aa2a96a5ea7ab297260821061fdbce",
+      "triangles": 3728,
+      "budget": 6000,
+      "dimensions_m": [
+        1.8,
+        2.0,
+        3.5
+      ],
+      "bounds_min": [
+        -0.8999999761581421,
+        0.0,
+        -1.75
+      ],
+      "bounds_max": [
+        0.8999999761581421,
+        2.0,
+        1.75
+      ],
+      "origin": "floor",
+      "joints": {
+        "Door_Back": {
+          "pivot": [
+            0.0,
+            1.92,
+            1.7024708613853798
+          ],
+          "axis": "X",
+          "test_angle_radians": -1.8
+        },
+        "Wheel_FL": {
+          "pivot": [
+            -0.7722772451427624,
+            0.3,
+            -1.0297144467566932
+          ],
+          "axis": "X",
+          "test_angle_radians": 1.2
+        },
+        "Wheel_BL": {
+          "pivot": [
+            -0.7722772451427624,
+            0.3,
+            1.0968429846164411
+          ],
+          "axis": "X",
+          "test_angle_radians": 1.2
+        },
+        "Wheel_FR": {
+          "pivot": [
+            0.7722772451427624,
+            0.3,
+            -1.0297144467566932
+          ],
+          "axis": "X",
+          "test_angle_radians": 1.2
+        },
+        "Wheel_BR": {
+          "pivot": [
+            0.7722772451427624,
+            0.3,
+            1.0968429846164411
+          ],
+          "axis": "X",
+          "test_angle_radians": 1.2
+        }
+      },
+      "empty_nodes": {},
+      "notes": "1.8m overall width, 3.5m overall length, 2m high. Left=-X. Four X-axis wheels, upper X-hinged rear cargo door. Frosted opaque cab windows; no people."
+    },
+    {
+      "file": "cart.glb",
+      "preview": "cart_preview.png",
+      "sha256": "4a84893c33ba11cd627e63b1d11f3f184b9d00917f422175392f60c44486c59d",
+      "triangles": 1584,
+      "budget": 2000,
+      "dimensions_m": [
+        1.058,
+        1.0,
+        0.775
+      ],
+      "bounds_min": [
+        -0.5289999842643738,
+        0.0,
+        -0.30000001192092896
+      ],
+      "bounds_max": [
+        0.5289999842643738,
+        1.0,
+        0.4749999940395355
+      ],
+      "origin": "floor",
+      "joints": {
+        "Wheel_L": {
+          "pivot": [
+            -0.46,
+            0.16,
+            0.16
+          ],
+          "axis": "X",
+          "test_angle_radians": 1.2
+        },
+        "Wheel_R": {
+          "pivot": [
+            0.46,
+            0.16,
+            0.16
+          ],
+          "axis": "X",
+          "test_angle_radians": 1.2
+        }
+      },
+      "empty_nodes": {},
+      "notes": "Tray footprint .9 x .6m, tray rim top .3m, inner deck .24m; handle +Z, overall handle height 1m. Wheels rotate local X."
+    },
+    {
+      "file": "mailbox.glb",
+      "preview": "mailbox_preview.png",
+      "sha256": "fd5d9bbd600591fcdec3be016cfb765e074adc6ca5be5e3b14f339c0ab605f51",
+      "triangles": 700,
+      "budget": 1000,
+      "dimensions_m": [
+        0.403,
+        1.2,
+        0.51131
+      ],
+      "bounds_min": [
+        -0.18000000715255737,
+        0.0,
+        -0.271314799785614
+      ],
+      "bounds_max": [
+        0.22300000488758087,
+        1.2000000476837158,
+        0.23999999463558197
+      ],
+      "origin": "floor",
+      "joints": {
+        "Flag": {
+          "pivot": [
+            0.215,
+            0.99,
+            0.02
+          ],
+          "axis": "X",
+          "test_angle_radians": -1.5707963267948966
+        }
+      },
+      "empty_nodes": {},
+      "notes": "1.2m high arched red mailbox. Flag raises with negative local X rotation."
+    },
+    {
+      "file": "street_lamp.glb",
+      "preview": "street_lamp_preview.png",
+      "sha256": "34556095067139f43b5b4d8d360893a7552842b7bbcc3922ce973f13fd6ce1db",
+      "triangles": 1028,
+      "budget": 1500,
+      "dimensions_m": [
+        0.4,
+        3.0,
+        0.4
+      ],
+      "bounds_min": [
+        -0.20000000298023224,
+        0.0,
+        -0.20000000298023224
+      ],
+      "bounds_max": [
+        0.20000000298023224,
+        3.0,
+        0.20000000298023224
+      ],
+      "origin": "floor",
+      "joints": {},
+      "empty_nodes": {
+        "Bulb": [
+          0,
+          2.6844742261147565,
+          0
+        ]
+      },
+      "notes": "Exactly 3m high. Bulb is an EMPTY node at the round lamp centre, ready for a game light."
+    },
+    {
+      "file": "fence.glb",
+      "preview": "fence_preview.png",
+      "sha256": "adeee5fc14e4b1f31b2832c04c13da6bc15ce0b79cf61294ed70311ac86aa14a",
+      "triangles": 488,
+      "budget": 800,
+      "dimensions_m": [
+        2.0,
+        0.8,
+        0.07
+      ],
+      "bounds_min": [
+        -1.0,
+        0.0,
+        -0.03500000014901161
+      ],
+      "bounds_max": [
+        1.0,
+        0.800000011920929,
+        0.03500000014901161
+      ],
+      "origin": "floor",
+      "joints": {},
+      "empty_nodes": {},
+      "notes": "Repeat pitch X=2m. Rail endpoint cross-sections match at X=-1,+1; picket pitch .2m. Height .8m."
+    },
+    {
+      "file": "flower_bed.glb",
+      "preview": "flower_bed_preview.png",
+      "sha256": "0e497bc51ccd897a54a395555dbdc5140d982dad7aa2d9d6daa29366eb34e54f",
+      "triangles": 1928,
+      "budget": 2000,
+      "dimensions_m": [
+        2.0,
+        0.4,
+        0.6
+      ],
+      "bounds_min": [
+        -1.0,
+        0.0,
+        -0.30000001192092896
+      ],
+      "bounds_max": [
+        1.0,
+        0.4000000059604645,
+        0.30000004172325134
+      ],
+      "origin": "floor",
+      "joints": {},
+      "empty_nodes": {},
+      "notes": "2 x .6m repeat footprint; wood border .2m high, flowers reach about .4m; repeat along X every 2m."
+    },
+    {
+      "file": "delivery_mat.glb",
+      "preview": "delivery_mat_preview.png",
+      "sha256": "f83ac367dcf15b757d5125f5c69da88d7f4e220f6df31ae4420f93e017720972",
+      "triangles": 122,
+      "budget": 300,
+      "dimensions_m": [
+        1.6,
+        0.02,
+        1.0
+      ],
+      "bounds_min": [
+        -0.800000011920929,
+        0.0,
+        -0.5
+      ],
+      "bounds_max": [
+        0.800000011920929,
+        0.019999999552965164,
+        0.5
+      ],
+      "origin": "floor",
+      "joints": {},
+      "empty_nodes": {},
+      "notes": "1.6 x 1m, .02m thick, original box picture and paw border in colour-only PNG; no text."
+    }
+  ]
+}
