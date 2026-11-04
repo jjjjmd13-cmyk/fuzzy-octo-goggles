@@ -38,6 +38,16 @@ func run_test() -> void:
 	check(cat_model.find_child("Head", true, false) != null and cat_model.find_child("FaceCenter", true, false) != null, "고양이 모형 (Head·FaceCenter 노드)")
 	if ResourceLoader.exists(FpAnimals.CAT_GLB):
 		check(cat_model.get_node_or_null("Art") != null, "cat.glb 를 씀")
+		# 혀: 입 안에 숨어 있다가 기분 좋으면 내밂 (CAT_DELIVERY.md, visible 만으로는 안 보임)
+		add_child(cat_model)
+		var tongue := cat_model.find_child("Tongue", true, false) as Node3D
+		var rest := tongue.position
+		cat_model.set_mood(2)
+		await get_tree().create_timer(0.6).timeout
+		check(tongue.visible and tongue.position.distance_to(rest) > 0.04, "기분 좋은 고양이는 혀를 내밂 (%.3f m)" % tongue.position.distance_to(rest))
+		cat_model.set_mood(0)
+		await get_tree().create_timer(0.6).timeout
+		check(tongue.position.distance_to(rest) < 0.005, "기분이 나쁘면 혀를 넣음")
 	cat_model.free()
 
 	shop = SCENE.instantiate()

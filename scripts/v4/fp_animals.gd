@@ -58,6 +58,8 @@ static func scene_of(animal: String) -> PackedScene:
 		var root := Node3D.new()
 		root.name = "CatModel"
 		root.set_script(load(MODEL_SCRIPT))
+		# 고양이 GLB 혀는 입 안에 있음 → 기분 좋을 때 이만큼 내밂 (CAT_DELIVERY.md)
+		root.set("tongue_out_offset", Vector3(0, -0.027, -0.050))
 		var art := (load(CAT_GLB) as PackedScene).instantiate() as Node3D
 		art.name = "Art"
 		art.rotation.y = PI

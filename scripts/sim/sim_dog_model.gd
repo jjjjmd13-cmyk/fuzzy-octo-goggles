@@ -58,6 +58,10 @@ var _front_legs: Array[Node3D] = []
 var _cheeks: Array[Node3D] = []
 var _mouth: Node3D
 var _tongue: Node3D
+## 기분 좋을 때 혀를 이만큼 내밂 (머리 기준 로컬, GLB 좌표). 혀가 입 안에 숨어 있는 모형(고양이 GLB)만 씀 — 0 이면 보이기만
+@export var tongue_out_offset := Vector3.ZERO
+var _tongue_rest := Vector3.ZERO
+var _tongue_out := 0.0
 var _face_marker: Node3D
 ## 움직이는 부위의 처음 자세 (움직임은 여기에 더함)
 var _rest := {}
@@ -187,7 +191,13 @@ func _process(delta: float) -> void:
 
 	# 입·혀: 기분 좋으면 혀를 내밈
 	if _tongue != null:
-		_tongue.visible = _mood == 2 and _squeeze < 0.5
+		var happy := _mood == 2 and _squeeze < 0.5
+		if tongue_out_offset == Vector3.ZERO:
+			_tongue.visible = happy
+		else:
+			# 혀는 늘 보이고 (입 안), 기분 좋으면 내밀었다가 아니면 다시 넣음 (docs/art/CAT_DELIVERY.md)
+			_tongue_out = move_toward(_tongue_out, 1.0 if happy else 0.0, delta * 4.0)
+			_tongue.position = _tongue_rest + tongue_out_offset * _tongue_out
 	if _mouth != null:
 		_pose(_mouth, Vector3.ZERO, 1.0, Vector3(1.0 if _mood > 0 else 0.6, 1, 1))
 
@@ -233,6 +243,8 @@ func _find_parts() -> void:
 	_chest = _part("Chest")
 	_mouth = _part("Mouth")
 	_tongue = _part("Tongue")
+	if _tongue != null:
+		_tongue_rest = _tongue.position
 	_face_marker = _part("FaceCenter")
 	var body_marker := _part("BodyCenter")
 	if body_marker != null:
