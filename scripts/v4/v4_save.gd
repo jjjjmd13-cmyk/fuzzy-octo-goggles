@@ -30,7 +30,8 @@ static func fresh() -> Dictionary:
 		"brush_used": 0,
 		# 꾸미기: 산 물건 id 목록, 범주별로 놓인 물건 id (없으면 처음 것)
 		"decor": {"owned": [], "placed": {}},
-		# 가게 앞 매트에 도착했지만 아직 안 들인 상자. 하나 = {"item": 물건 id, "kind": tool|decor|shampoo|brush_refill, "size": small|medium|large}
+		# 안 연 택배 상자. 하나 = {"item": 물건 id, "kind": tool|decor|shampoo|brush_refill, "size": small|medium|large,
+		# "arrived": 매트에 도착했나 (false = 어제 주문, 다음 아침 트럭으로 옴)}
 		"parcels": [],
 	}
 
@@ -79,7 +80,7 @@ static func normalize(raw: Dictionary) -> Dictionary:
 	if parcels is Array:
 		for box in parcels:
 			if box is Dictionary and box.has("item"):
-				data.parcels.append({"item": str(box.item), "kind": str(box.get("kind", "tool")), "size": str(box.get("size", "small"))})
+				data.parcels.append({"item": str(box.item), "kind": str(box.get("kind", "tool")), "size": str(box.get("size", "small")), "arrived": bool(box.get("arrived", true))})
 	return data
 
 
