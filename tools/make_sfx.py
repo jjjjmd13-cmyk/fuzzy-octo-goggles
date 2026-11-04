@@ -129,3 +129,15 @@ save("bark", tone(0.16, 520, 380, vol=0.55, wave_fn=square, noise=0.3, attack=0.
 ring = mix(tone(0.35, 2093, vol=0.3, release=0.3), tone(0.35, 3136, vol=0.15, release=0.25))
 save("bell", ring + mix(tone(0.45, 2349, vol=0.28, release=0.4), tone(0.45, 3520, vol=0.12, release=0.35)))
 print("만듦:", sorted(os.listdir(OUT)))
+
+
+# 달그락: 택배 상자를 흔들 때 (나무·플라스틱이 부딪는 짧은 딸깍 몇 번)
+clicks = []
+for k in range(5):
+    clicks += tone(0.025, 1400 + random.uniform(-300, 300), vol=0.35, noise=0.6, attack=0.001, release=0.02)
+    clicks += silence(random.uniform(0.03, 0.07))
+save("rattle", clicks)
+
+# 짜잔: 상자를 열 때 (올라가는 세 음 + 반짝)
+tada = tone(0.09, 784, vol=0.3, release=0.05) + tone(0.09, 988, vol=0.3, release=0.05) + mix(tone(0.45, 1319, vol=0.32, release=0.35), tone(0.45, 2637, vol=0.1, release=0.3))
+save("tada", tada)

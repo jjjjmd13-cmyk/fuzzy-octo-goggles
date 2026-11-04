@@ -268,6 +268,11 @@ extends Resource
 ## 가게 밖·택배 (TUNING_V4 3-4): 아침 시작 뒤 트럭이 와서 떠나기까지 (s), 상자를 들고 걷는 속도 [작은, 중간, 큰]
 @export var v4_truck_seconds := 4.0
 @export var v4_box_carry_speed := PackedFloat32Array([1.0, 0.9, 0.75])
+## 택배 수레 (시험용): 값, 칸 수 (큰 상자 = 2칸), 밀 때 걷는 속도. 안 연 상자를 대기 강아지가 냄새 맡으러 갈 비율
+@export var v4_cart_price := 150
+@export var v4_cart_slots := 3
+@export var v4_cart_speed := 0.85
+@export var v4_box_sniff_chance := 0.3
 
 ## 기분 0~1 → 얼굴 단계 0(😣) / 1(😐) / 2(😊)
 func mood_face(mood: float) -> int:

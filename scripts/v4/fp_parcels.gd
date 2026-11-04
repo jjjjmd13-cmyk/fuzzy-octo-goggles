@@ -110,6 +110,38 @@ func take(node: StaticBody3D) -> void:
 	remove_child(node)
 
 
+## 택배 수레 (시험용): cart.glb (손잡이 +Z, 미는 쪽 −Z) 또는 임시 짐칸. 메타 "cart", 클릭하면 밀기
+func make_cart() -> StaticBody3D:
+	var body := StaticBody3D.new()
+	body.name = "Cart"
+	body.collision_layer = 1 << (PICK_LAYER - 1)
+	body.collision_mask = 0
+	body.set_meta("cart", true)
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(0.9, 1.0, 0.75)
+	shape.shape = box
+	shape.position.y = 0.5
+	body.add_child(shape)
+	var view := _model("cart")
+	if view == null:
+		view = Node3D.new()
+		var bed := _mesh_box(Vector3(0.9, 0.06, 0.6), Color(0.55, 0.78, 0.95))
+		bed.position.y = 0.27
+		view.add_child(bed)
+		var handle := _mesh_box(Vector3(0.6, 0.05, 0.05), Color(1.0, 0.7, 0.8))
+		handle.position = Vector3(0, 1.0, 0.35)
+		view.add_child(handle)
+	view.name = "View"
+	body.add_child(view)
+	# 짐을 싣는 자리 (짐칸 바닥)
+	var load_point := Node3D.new()
+	load_point.name = "Load"
+	load_point.position.y = 0.3
+	body.add_child(load_point)
+	return body
+
+
 ## 상자 모형 (들고 다닐 때도 씀)
 func make_box_view(size: String) -> Node3D:
 	var view := _model("box_" + size)

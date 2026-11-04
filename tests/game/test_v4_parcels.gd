@@ -133,7 +133,7 @@ func run_test() -> void:
 	add_child(shop)
 	await get_tree().physics_frame
 	check(shop.morning and shop.parcels_view.delivering, "빠른 확인 [택배·샴푸]: 아침에 트럭")
-	check_eq(shop.parcels.size(), 3, "상자 3개")
+	check_eq(shop.parcels.size(), 4, "상자 4개 (수레·샤워기·샴푸·가위)")
 	check_eq(shop.shampoo_left, 2.0, "샴푸 2마리분")
 	shop.free()
 

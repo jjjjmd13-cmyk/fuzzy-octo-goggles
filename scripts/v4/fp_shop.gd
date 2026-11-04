@@ -134,6 +134,18 @@ var carried := {}
 var _carried_view: Node3D
 ## 가운데 점이 가리키는 매트 위 상자
 var hovered_box := {}
+## 택배 수레 (시험용): 가졌나, 노드, 미는 중인가, 실린 상자들
+var owns_cart := false
+var cart: StaticBody3D
+var pushing_cart := false
+var cart_load: Array = []
+var hovered_cart := false
+## 상자 흔들기 (달그락): 좌우로 방향을 바꾼 횟수, 남은 시간
+var _shake_flips := 0
+var _shake_dir := 0.0
+var _shake_left := 0.0
+## 대기 강아지 킁킁 다음 검사까지 (s)
+var _sniff_left := 3.0
 ## 지금 강아지는 샴푸 없이 씻음 (요금 v4_no_shampoo_price, 팁 0)
 var no_shampoo := false
 ## 오늘 번 돈 = 요금 + 팁
@@ -334,21 +346,182 @@ func open_box() -> bool:
 		return false
 	var box := carried
 	carried = {}
-	var name := item_name(box.item)
-	apply_item(box.item)
-	parcels.erase(box)
-	_sparkle.global_position = _carried_view.global_position
-	_sparkle.restart()
-	_sparkle.emitting = true
+	var at := _carried_view.global_position
 	_carried_view.queue_free()
 	_carried_view = null
 	player.speed_mult = 1.0
-	sfx.play("clap")
+	_open_parcel(box, at)
+	return true
+
+
+## 상자 하나 열기: 물건이 제자리로 + 꽃가루 (★3 꾸미기·5단계 도구는 무지개) + 짜잔
+func _open_parcel(box: Dictionary, at: Vector3) -> void:
+	var name := item_name(box.item)
+	apply_item(box.item)
+	parcels.erase(box)
+	var rainbow := false
+	if box.item.begins_with("decor:"):
+		rainbow = FpDecor.stars_of(box.item.trim_prefix("decor:")) == 3
+	elif box.item.begins_with("tool:"):
+		rainbow = is_final(box.item.trim_prefix("tool:"))
+	_confetti(at, rainbow)
+	sfx.play("tada")
 	_banner = "짜잔! %s" % name
 	_banner_left = 2.0
 	if morning:
 		save_game(day)
+
+
+## 종이 꽃가루 한 번 (rainbow = 무지개색)
+func _confetti(at: Vector3, rainbow: bool) -> CPUParticles3D:
+	var particles := CPUParticles3D.new()
+	particles.name = "Confetti"
+	particles.set_meta("confetti", "rainbow" if rainbow else "plain")
+	particles.one_shot = true
+	particles.explosiveness = 0.95
+	particles.amount = 60 if rainbow else 36
+	particles.lifetime = 1.4
+	particles.direction = Vector3.UP
+	particles.spread = 55.0
+	particles.initial_velocity_min = 1.2
+	particles.initial_velocity_max = 2.2
+	particles.gravity = Vector3(0, -2.5, 0)
+	particles.scale_amount_min = 0.6
+	particles.scale_amount_max = 1.0
+	var mesh := QuadMesh.new()
+	mesh.size = Vector2(0.06, 0.04)
+	var material := StandardMaterial3D.new()
+	material.vertex_color_use_as_albedo = true
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	# 종이 조각이 늘 카메라를 보게 (위에서 내려다봐도 보임)
+	material.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	mesh.material = material
+	particles.mesh = mesh
+	var ramp := Gradient.new()
+	if rainbow:
+		ramp.offsets = PackedFloat32Array([0.0, 0.2, 0.4, 0.6, 0.8, 1.0])
+		ramp.colors = PackedColorArray([Color(1, 0.35, 0.4), Color(1, 0.65, 0.3), Color(1, 0.95, 0.4), Color(0.45, 0.9, 0.5), Color(0.4, 0.7, 1.0), Color(0.75, 0.5, 1.0)])
+	else:
+		ramp.offsets = PackedFloat32Array([0.0, 0.5, 1.0])
+		ramp.colors = PackedColorArray([Color(1, 0.7, 0.8), Color(1, 0.95, 0.6), Color(0.7, 0.9, 1.0)])
+	particles.color_initial_ramp = ramp
+	add_child(particles)
+	particles.global_position = at
+	particles.emitting = true
+	particles.finished.connect(particles.queue_free)
+	return particles
+
+
+## 수레를 그 자리에 놓음 (처음 열었을 때·이어하기)
+func _place_cart(at: Vector3) -> void:
+	if cart == null:
+		cart = parcels_view.make_cart()
+		add_child(cart)
+	cart.global_position = at
+	cart.rotation.y = PI / 2.0
+
+
+## 수레 밀기 시작 / 놓기 (Q)
+func push_cart(on: bool) -> void:
+	if cart == null or pushing_cart == on:
+		return
+	if on and not carried.is_empty():
+		_show_hint("상자를 들고 있으면 수레를 못 밀어요", 1.5)
+		return
+	if on:
+		drop()
+	pushing_cart = on
+	cart.collision_layer = 0 if on else 1 << (PICK_LAYER - 1)
+	player.speed_mult = Tuning.data.v4_cart_speed if on else 1.0
+	if on:
+		_show_hint("수레: 매트 위 상자를 클릭해 싣기 · 가게 안에서 클릭 = 맨 위 상자 열기 · Q 놓기", 4.0)
+
+
+## 수레에 실린 칸 (큰 상자 = 2칸)
+func cart_used() -> int:
+	var used := 0
+	for box in cart_load:
+		used += 2 if box.size == "large" else 1
+	return used
+
+
+## 매트 위 상자를 수레에 싣기 (칸이 모자라면 false)
+func load_cart(box: Dictionary) -> bool:
+	if not pushing_cart:
+		return false
+	var need := 2 if box.size == "large" else 1
+	if cart_used() + need > Tuning.data.v4_cart_slots:
+		_show_hint("수레가 꽉 찼어요 (%d칸)" % Tuning.data.v4_cart_slots, 1.5)
+		return false
+	var node := parcels_view.node_of(box)
+	if node == null:
+		return false
+	parcels_view.take(node)
+	node.queue_free()
+	var view := parcels_view.make_box_view(box.size)
+	view.name = "Loaded_%d" % cart_load.size()
+	cart.get_node("Load").add_child(view)
+	# 칸 순서대로 짐칸 앞에서 뒤로, 넘치면 위에 쌓음
+	var slot := cart_used()
+	view.position = Vector3(0, 0.3 * (slot / 3), -0.2 + 0.2 * (slot % 3))
+	cart_load.append(box)
+	sfx.play("press")
+	if parcels_view.box_nodes().is_empty():
+		outside.set_mailbox_flag(false)
 	return true
+
+
+## 수레 맨 위 상자 열기 (가게 안에서만)
+func open_cart_box() -> bool:
+	if not pushing_cart or cart_load.is_empty():
+		return false
+	if FpOutside.is_outside(player.global_position):
+		_show_hint("가게 안에서 열어요", 1.5)
+		return false
+	var box: Dictionary = cart_load.pop_back()
+	var load_node := cart.get_node("Load")
+	var view := load_node.get_child(load_node.get_child_count() - 1) as Node3D
+	var at := view.global_position
+	load_node.remove_child(view)
+	view.queue_free()
+	_open_parcel(box, at)
+	return true
+
+
+## 상자를 들고 마우스를 좌우로 흔듦: 방향이 3번 바뀌면 달그락 + 무엇이 들었는지 안내
+func shake_box(dx: float) -> void:
+	if carried.is_empty() or absf(dx) < 3.0:
+		return
+	var dir := signf(dx)
+	if dir != _shake_dir:
+		_shake_dir = dir
+		_shake_flips += 1
+		_shake_left = 0.5
+		if _carried_view != null:
+			_carried_view.rotation.z = 0.12 * dir
+	if _shake_flips >= 3:
+		_shake_flips = 0
+		sfx.play("rattle")
+		_show_hint("달그락… %s 같아요" % item_name(carried.item), 2.0)
+
+
+## 가게 안에 안 연 상자가 있으면 (들고 들어왔거나 수레에) 대기 강아지가 가끔 냄새를 맡음
+func _update_sniff(delta: float) -> void:
+	_sniff_left -= delta
+	if _sniff_left > 0.0:
+		return
+	_sniff_left = 6.0
+	var target: Variant = null
+	if not carried.is_empty() and not FpOutside.is_outside(player.global_position):
+		target = _carried_view.global_position
+	elif cart != null and not cart_load.is_empty() and not FpOutside.is_outside(cart.global_position):
+		target = cart.global_position
+	if target == null:
+		return
+	for i in guests.guests.size():
+		if _rng.randf() < Tuning.data.v4_box_sniff_chance:
+			guests.sniff(i, target)
 
 
 ## 팻말을 해 쪽으로 뒤집음 → 영업 시작 (8분 시계가 감, 첫 손님이 곧 옴)
@@ -374,6 +547,7 @@ func save_state(next_day: int) -> Dictionary:
 		"money": money,
 		"tool_level": tool_level.duplicate(),
 		"owns_scissors": owns_scissors,
+		"owns_cart": owns_cart,
 		"shampoo_left": shampoo_left,
 		"brush_used": brush_used,
 		"decor": decor.duplicate(true),
@@ -389,6 +563,9 @@ func apply_state(data: Dictionary) -> void:
 		if tool_level.has(tool_id) and tool_level[tool_id] != data.tool_level[tool_id]:
 			set_tier(tool_id, data.tool_level[tool_id])
 	owns_scissors = data.owns_scissors
+	owns_cart = data.get("owns_cart", false)
+	if owns_cart:
+		_place_cart(Vector3(2.7, 0, 1.4))
 	_set_pickup_available("scissors", owns_scissors)
 	guests.trim_chance = Tuning.data.v4_trim_request_ratio if owns_scissors else 0.0
 	shampoo_left = data.shampoo_left
@@ -434,7 +611,7 @@ func _quick_decor(level: int) -> void:
 func _quick_parcels() -> void:
 	money = 500
 	shampoo_left = 2.0
-	for id in ["shower", "shampoo_bottle", "scissors"]:
+	for id in ["cart", "shower", "shampoo_bottle", "scissors"]:
 		money += next_price(id)
 		order(id)
 
@@ -678,6 +855,8 @@ func next_price(tool_id: String) -> int:
 	if not FpDecor.category_of(tool_id).is_empty():
 		return -1 if decor.owned.has(tool_id) or _ordered("decor:" + tool_id) > 0 else FpDecor.price_of(tool_id)
 	match tool_id:
+		"cart":
+			return -1 if owns_cart or _ordered("cart") > 0 else Tuning.data.v4_cart_price
 		"scissors":
 			return -1 if owns_scissors or _ordered("scissors") > 0 else Tuning.data.v4_price_scissors
 		"shampoo_bottle":
@@ -705,7 +884,7 @@ func _ordered(item: String) -> int:
 static func item_of(store_id: String) -> String:
 	if not FpDecor.category_of(store_id).is_empty():
 		return "decor:" + store_id
-	return store_id if store_id == "scissors" or SUPPLIES.has(store_id) else "tool:" + store_id
+	return store_id if store_id in ["scissors", "cart"] or SUPPLIES.has(store_id) else "tool:" + store_id
 
 
 func item_name(item: String) -> String:
@@ -716,6 +895,8 @@ func item_name(item: String) -> String:
 		return TOOL_LEVEL_NAMES[tool_id][mini(tool_level[tool_id] + 1, Tuning.data.v4_tool_tiers - 1)]
 	if item == "scissors":
 		return "가위"
+	if item == "cart":
+		return "택배 수레"
 	return SUPPLIES[item].name if SUPPLIES.has(item) else item
 
 
@@ -739,7 +920,9 @@ func order(store_id: String) -> bool:
 	var item := item_of(store_id)
 	var kind := "tool"
 	var size := "small"
-	if item.begins_with("decor:"):
+	if item == "cart":
+		size = "large"
+	elif item.begins_with("decor:"):
 		kind = "decor"
 		size = FpDecor.box_size_of(store_id)
 	elif SUPPLIES.has(item):
@@ -765,6 +948,9 @@ func apply_item(item: String) -> void:
 			brush_used = 0
 		return
 	match item:
+		"cart":
+			owns_cart = true
+			_place_cart(Vector3(2.7, 0, 1.4))
 		"scissors":
 			owns_scissors = true
 			guests.trim_chance = Tuning.data.v4_trim_request_ratio
@@ -866,6 +1052,8 @@ func store_rows() -> Array:
 		var price := next_price(tool_id)
 		var level := ordered_level(tool_id)
 		rows.append({"id": tool_id, "name": TOOL_LEVEL_NAMES[tool_id][level], "next": TOOL_LEVEL_NAMES[tool_id][level + 1] if price >= 0 else "", "price": price, "can_buy": price >= 0 and money >= price})
+	if next_price("cart") >= 0:
+		rows.append({"id": "cart", "name": "수레 없음", "next": "택배 수레 (상자 3칸, 시험용)", "price": next_price("cart"), "can_buy": money >= next_price("cart")})
 	if next_price("scissors") >= 0:
 		var scissors := next_price("scissors")
 		rows.append({"id": "scissors", "name": "가위 없음", "next": "가위 (미용 요청 손님)", "price": scissors, "can_buy": money >= scissors})
@@ -936,6 +1124,8 @@ func pick(tool_id: String) -> void:
 	if not carried.is_empty():
 		_show_hint("상자를 먼저 열어요 (가게 안에서 클릭)", 1.5)
 		return
+	if pushing_cart:
+		push_cart(false)
 	drop()
 	# 빠르게 Q→같은 도구를 집어도 이전 반납 콜백이 선반을 다시 보이지 않게 한다.
 	for view in _returning_views.duplicate():
@@ -1259,6 +1449,19 @@ func _process(delta: float) -> void:
 	_banner_left = maxf(_banner_left - delta, 0.0)
 	_t += delta
 	_update_day(delta)
+	_update_sniff(delta)
+	_shake_left = maxf(_shake_left - delta, 0.0)
+	if _shake_left <= 0.0:
+		_shake_flips = 0
+		if _carried_view != null:
+			_carried_view.rotation.z = move_toward(_carried_view.rotation.z, 0.0, delta)
+	if pushing_cart and cart != null:
+		# 수레는 플레이어 앞 0.9 m, 손잡이(+Z)가 플레이어 쪽
+		var forward := -player.global_basis.z
+		forward.y = 0.0
+		cart.global_position = player.global_position + forward.normalized() * 0.9
+		cart.global_position.y = 0.0
+		cart.rotation.y = player.rotation.y
 	if input_enabled and not day_over:
 		using = Input.is_mouse_button_pressed(MOUSE_BUTTON_LEFT) and Input.mouse_mode == Input.MOUSE_MODE_CAPTURED
 	_update_aim()
@@ -1295,6 +1498,13 @@ func _unhandled_input(event: InputEvent) -> void:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		elif not carried.is_empty():
 			open_box()
+		elif pushing_cart:
+			if not hovered_box.is_empty():
+				load_cart(hovered_box)
+			else:
+				open_cart_box()
+		elif hovered_cart:
+			push_cart(true)
 		elif not hovered_box.is_empty():
 			carry_box(hovered_box)
 		elif not hovered.is_empty():
@@ -1305,10 +1515,15 @@ func _unhandled_input(event: InputEvent) -> void:
 			open_shop()
 		elif held == "towel" and aim_point != null:
 			tap_at(aim_point)
+	elif event is InputEventMouseMotion and not carried.is_empty():
+		shake_box((event as InputEventMouseMotion).relative.x)
 	elif event is InputEventKey and event.pressed and not event.echo:
 		match event.physical_keycode:
 			KEY_Q:
-				drop()
+				if pushing_cart:
+					push_cart(false)
+				else:
+					drop()
 			KEY_1, KEY_2, KEY_3, KEY_4, KEY_5:
 				# 빠른 확인 [도구 업그레이드]: 모든 도구를 그 단계로 (5단계를 다 보기)
 				if quick_feature == "upgrade":
@@ -1326,6 +1541,7 @@ func _update_aim() -> void:
 	hovered_guest = null
 	hovered_sign = false
 	hovered_box = {}
+	hovered_cart = false
 	aim_point = null
 	var ray: Array[Vector3] = player.aim_ray(REACH)
 	var query := PhysicsRayQueryParameters3D.create(ray[0], ray[1], (1 << (PICK_LAYER - 1)) | DOG_LAYER)
@@ -1347,6 +1563,9 @@ func _update_aim() -> void:
 		return
 	if collider != null and collider.has_meta("box"):
 		hovered_box = collider.get_meta("box")
+		return
+	if collider != null and collider.has_meta("cart"):
+		hovered_cart = true
 		return
 	# 가위·빗: 가운데 점 둘레의 다발·뭉치를 바로 겨눔 (몸 겉면 판정이 다른 부위에 먼저 닿거나
 	# 강아지가 고개를 돌려도 바라보는 다발이 잘리게, 사람 대표 플레이 버그)
@@ -1603,8 +1822,17 @@ func _draw_hud() -> void:
 	var under := ""
 	if not carried.is_empty():
 		under = "가게 밖에서는 못 열어요 · 안으로 들고 가요" if FpOutside.is_outside(player.global_position) else "클릭: 상자 열기"
+	elif pushing_cart:
+		if not hovered_box.is_empty():
+			under = "클릭: 수레에 싣기 (%d/%d칸)" % [cart_used(), Tuning.data.v4_cart_slots]
+		elif not cart_load.is_empty():
+			under = "가게 밖에서는 못 열어요" if FpOutside.is_outside(player.global_position) else "클릭: 맨 위 상자 열기 · Q 수레 놓기"
+		else:
+			under = "수레 (Q 놓기)"
+	elif hovered_cart:
+		under = "클릭: 수레 밀기"
 	elif not hovered_box.is_empty():
-		under = "클릭: 택배 상자 들기"
+		under = "클릭: 택배 상자 들기 (들고 좌우로 흔들면 달그락)"
 	elif not hovered.is_empty():
 		under = "클릭: %s 집기" % TOOLS[hovered].name
 	elif hovered_sign:
