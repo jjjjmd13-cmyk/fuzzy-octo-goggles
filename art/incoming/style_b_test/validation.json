@@ -1,0 +1,86 @@
+[
+  {
+    "name": "shower",
+    "result": "PASS",
+    "triangles": 2556,
+    "dimensions_m": [
+      0.078571,
+      0.25,
+      0.040564
+    ],
+    "root_identity": true,
+    "png_count": 12,
+    "max_png": 256,
+    "fan_pivot_m": null,
+    "style_sha256": "e1268c1bd88ba1ba4da62d816c9cb6a136b48c5db802a12dba6037571622f650",
+    "sha256": "864c4cab951b4d5d23a31a9871f3abf965951f41950f4609f6375beceb71340d"
+  },
+  {
+    "name": "dryer",
+    "result": "PASS",
+    "triangles": 2836,
+    "dimensions_m": [
+      0.102564,
+      0.217436,
+      0.3
+    ],
+    "root_identity": true,
+    "png_count": 21,
+    "max_png": 256,
+    "fan_pivot_m": [
+      0.0,
+      0.06769230961799622,
+      -0.1425641030073166
+    ],
+    "style_sha256": "e1268c1bd88ba1ba4da62d816c9cb6a136b48c5db802a12dba6037571622f650",
+    "sha256": "69eccd2932f3df2f8ba5f5009404a279acdba8347fdd96276e519cf940454fd6"
+  },
+  {
+    "name": "brush",
+    "result": "PASS",
+    "triangles": 2236,
+    "dimensions_m": [
+      0.068,
+      0.2,
+      0.053
+    ],
+    "root_identity": true,
+    "png_count": 9,
+    "max_png": 512,
+    "fan_pivot_m": null,
+    "style_sha256": "e1268c1bd88ba1ba4da62d816c9cb6a136b48c5db802a12dba6037571622f650",
+    "sha256": "84d9999665a5e898de4ce953eb55f59021bd8f04f243e96645c3851653cac979"
+  },
+  {
+    "name": "towel",
+    "result": "PASS",
+    "triangles": 2272,
+    "dimensions_m": [
+      0.25,
+      0.149957,
+      0.07135
+    ],
+    "root_identity": true,
+    "png_count": 6,
+    "max_png": 512,
+    "fan_pivot_m": null,
+    "style_sha256": "e1268c1bd88ba1ba4da62d816c9cb6a136b48c5db802a12dba6037571622f650",
+    "sha256": "b5d811f08d7030648db8ace8b993c13f6faaee61189f8289280a1e130ca01d58"
+  },
+  {
+    "name": "dog",
+    "result": "PASS",
+    "triangles": 7634,
+    "dimensions_m": [
+      0.193542,
+      0.35,
+      0.246318
+    ],
+    "root_identity": true,
+    "png_count": 11,
+    "max_png": 512,
+    "fan_pivot_m": null,
+    "style_sha256": "e1268c1bd88ba1ba4da62d816c9cb6a136b48c5db802a12dba6037571622f650",
+    "sha256": "81b802568ab4796543e850143f7b29d28fcd1beef992513e3535ca24db2ba50d"
+  }
+]
