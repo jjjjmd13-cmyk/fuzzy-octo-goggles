@@ -69,10 +69,16 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
+	# 플레이어나 정문을 지나는 손님 (그룹 "door_users") 이 가까우면 열림
 	var want := 0.0
+	var users: Array = get_tree().get_nodes_in_group("door_users")
 	if watch != null and is_instance_valid(watch):
-		var flat := Vector2(watch.global_position.x - WALL_X, watch.global_position.z - DOOR_Z)
-		want = 1.0 if flat.length() < DOOR_OPEN_NEAR else 0.0
+		users.append(watch)
+	for user in users:
+		var flat := Vector2((user as Node3D).global_position.x - WALL_X, (user as Node3D).global_position.z - DOOR_Z)
+		if flat.length() < DOOR_OPEN_NEAR:
+			want = 1.0
+			break
 	door_open = move_toward(door_open, want, DOOR_SPEED * delta)
 	door_pivot.rotation.y = door_open * door_open_angle
 	if door_bell != null:
