@@ -155,8 +155,9 @@ var mood_score := 0
 ## 규칙마다 싫어함 수·마지막 시각 (같은 규칙 v4_dislike_cooldown 초에 한 번, 손님마다 최대)
 var _rule_count := {}
 var _rule_last := {}
-## 고양이: 처음 물이 닿은 시각 (_t, −1 = 아직), 젖은 시간 검사를 했나
-var _wet_since := -1.0
+## 고양이: 물이 닿기 시작했나·그 시각 (_t), 젖은 시간 검사를 했나
+var _wet_started := false
+var _wet_since := 0.0
 var _wet_checked := false
 ## 간지럼쟁이: 아래쪽 한 곳에 머문 곳·시간
 var _tickle_at: Variant = null
@@ -670,7 +671,8 @@ func _set_animal(kind: String, trait_id: String) -> void:
 	mood_score = 0
 	_rule_count.clear()
 	_rule_last.clear()
-	_wet_since = -1.0
+	_wet_started = false
+	_wet_since = 0.0
 	_wet_checked = false
 	_tickle_at = null
 	_tickle_time = 0.0
@@ -731,7 +733,8 @@ func _check_animal_rules(tool_id: String, point: Vector3, delta: float) -> void:
 	var local := dog.to_model(point)
 	var face: Vector3 = dog.model.get("face_center") if dog.model.get("face_center") != null else Vector3(0, 0.5, 0.25)
 	if animal == "cat" and tool_id == "shower":
-		if _wet_since < 0.0:
+		if not _wet_started:
+			_wet_started = true
 			_wet_since = _t
 		# 머리 (목 위) 에 물: 한 손님에 v4_cat_head_water_max 번, 그 뒤엔 "냥!" 만
 		if local.y >= face.y - 0.1:
@@ -783,7 +786,7 @@ func new_dog() -> void:
 	dog.model.add_child(trim)
 	trim.snipped.connect(_on_snipped)
 	trim_request = _taken.get("trim", "") if quick_feature != "trim" else "bear"
-	_show_hint("강아지를 씻겨 주세요: 샤워기 → 샴푸 → 샤워기로 헹구기 → 드라이기 → 빗", 4.0)
+	_show_hint("%s를 씻겨 주세요: 샤워기 → 샴푸 → 샤워기로 헹구기 → 수건 → 드라이기 → 빗" % ("고양이" if animal == "cat" else "강아지"), 4.0)
 	_start_quick_stage()
 
 
@@ -1517,7 +1520,7 @@ func _finish_stage(stage: Dictionary) -> void:
 		brush_used += 1
 	if stage.id == "towel" and animal == "cat" and not _wet_checked:
 		_wet_checked = true
-		if _wet_since >= 0.0 and _t - _wet_since > Tuning.data.v4_cat_wet_limit:
+		if _wet_started and _t - _wet_since > Tuning.data.v4_cat_wet_limit:
 			if dislike("cat_wet", 1, "shake"):
 				_show_hint("냥… 너무 오래 젖어 있었어요 (%d초 넘음)" % int(Tuning.data.v4_cat_wet_limit), 2.5)
 	if stage.id == "brush" and animal_trait == "dandy":
@@ -1992,7 +1995,7 @@ func _draw_hud() -> void:
 		under = "클릭: 팻말 뒤집기 (영업 시작)" if morning else ("영업 중" if guests.open else "오늘 영업 끝")
 	elif hovered_guest != null:
 		if hovered_guest == guests.current:
-			under = "클릭: 강아지 돌려주기" if done else "다 씻으면 돌려줘요"
+			under = ("클릭: %s 돌려주기" % ("고양이" if animal == "cat" else "강아지")) if done else "다 씻으면 돌려줘요"
 		else:
 			under = "목욕통이 비면 받아요" if has_dog else "클릭: 강아지 맡기"
 	elif aim_point != null and held.is_empty():
@@ -2034,6 +2037,11 @@ func _draw_hud() -> void:
 
 
 ## 미용 요청 카드: 모양 이름 + 한 줄 + 강아지 옆모습 (자를 곳은 분홍, 남길 곳은 털색). 임시 그림
+## 목욕대 위 고양이·성격 칸의 한 줄 (테스트도 읽음)
+func _draw_animal_line() -> String:
+	return FpAnimals.line_of(animal, animal_trait) if has_dog else ""
+
+
 ## 목욕대 위 고양이·성격 칸 (진행 막대 오른쪽): 색 점 + 한 줄 + 싫어한 횟수 점
 func _draw_animal_box(font: Font) -> void:
 	if not has_dog:

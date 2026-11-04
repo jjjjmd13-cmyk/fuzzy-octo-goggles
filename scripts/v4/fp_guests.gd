@@ -128,7 +128,7 @@ func spawn(kind := "", walk_in := false) -> void:
 	trait_icon.position = Vector3(0.2, 0.0, 0.0)
 	icon.add_child(trait_icon)
 	var trim := ""
-	var chance := trim_chance * (Tuning.data.v4_dandy_trim_mult if animal.trait == "dandy" else 1.0)
+	var chance: float = trim_chance * (Tuning.data.v4_dandy_trim_mult if animal.trait == "dandy" else 1.0)
 	if chance > 0.0 and _rng.randf() < chance:
 		trim = trim_shapes[_rng.randi() % trim_shapes.size()]
 		_add_trim_label(owner, trim)
