@@ -9,7 +9,7 @@ func run_test() -> void:
 	add_child(shop)
 	shop.player.set_physics_process(false)
 	await get_tree().physics_frame
-	check_eq(shop.TOOLS.keys(), ["shower", "shampoo", "dryer", "brush", "scissors"], "V4 도구: 샤워기·샴푸·드라이기·빗·가위 (수건은 기본 순서에서 빠짐)")
+	check_eq(shop.TOOLS.keys(), ["shower", "shampoo", "towel", "dryer", "brush", "scissors"], "V4 도구: 샤워기·샴푸·수건·드라이기·빗·가위")
 	check(ResourceLoader.exists("res://assets/models/tools/dryer.glb"), "드라이어 자산 보존")
 	for id in shop.TOOLS:
 		# 아직 그림이 없는 도구(빗)는 임시 모형이라 건너뜀. assets/models/tools/<id>.glb 가 오면 저절로 검사됨

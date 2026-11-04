@@ -1,6 +1,6 @@
 extends "res://tests/qa_test.gd"
 ## V4 1인칭 시제품 (scenes/v4/fp_shop.tscn): 도구를 바라보면 집을 수 있고, 강아지에 대고
-## 누르고 있으면 샤워기 → 샴푸 → 샤워기(헹굼) → 드라이기 → 빗 순서로 빨리 깨끗해지는지 본다.
+## 누르고 있으면 샤워기 → 샴푸 → 샤워기(헹굼) → 수건(톡톡) → 드라이기 → 빗 순서로 빨리 깨끗해지는지 본다.
 ## 입력은 끄고(input_enabled = false) 쓰는 함수를 직접 부른다. 1인용이라 동기화 검사는 없음.
 
 const SCENE := preload("res://scenes/v4/fp_shop.tscn")
@@ -60,11 +60,11 @@ func run_test() -> void:
 	shop.use_tool_at(points[0], 0.5)
 	check_eq(shop.dog.foam_count(), 0, "마른 털에는 거품이 안 생김")
 
-	# 수건은 기본 순서에서 빠짐: 단계 글자·도구 이름에 "수건" 이 남아 있으면 안 됨 (사람 대표 플레이 버그)
-	for stage in shop.STAGES:
-		check(not String(stage.text).contains("수건"), "단계 글자에 수건 없음 (%s)" % stage.text)
-	for tool_id in shop.TOOLS:
-		check(not String(shop.TOOLS[tool_id].name).contains("수건"), "도구 이름에 수건 없음")
+	# 단계 끝 글자는 다음 단계 도구를 말함 (드라이 단계에 "수건" 이 나오던 버그, 사람 대표 플레이)
+	for i in shop.STAGES.size() - 1:
+		var next_name: String = shop.TOOLS[shop.STAGES[i + 1].tool].name
+		if shop.STAGES[i + 1].id != "trim":
+			check(String(shop.STAGES[i].text).contains(next_name.substr(0, 2)), "%s 끝 글자가 다음 도구(%s)를 말함: %s" % [shop.STAGES[i].id, next_name, shop.STAGES[i].text])
 	check_eq(shop.stage_tool(), "shower", "처음 빛나는 도구는 샤워기")
 	var t_wet := _sweep("shower", "wet")
 	_check_stage(1, "적시기 끝", "shampoo")
@@ -83,14 +83,26 @@ func run_test() -> void:
 		return foam == 0)
 	check_eq(seen.wrong, 0, "남은 거품이 %d 개 이하일 때만 반짝" % shop.FOAM_SPARKLE_BELOW)
 	check(seen.sparkle > 0, "헹굼 막바지에 남은 거품이 반짝 (%d 번)" % seen.sparkle)
-	_check_stage(3, "헹굼 끝", "dryer")
+	_check_stage(3, "헹굼 끝", "towel")
 	shop._update_leftovers()
 	check(not shop.foam_sparkle, "다 헹구면 반짝임 끝")
 	check(shop.find_children("FoamMark*", "", true, false).is_empty(), "남은 거품 고리 표시는 없음")
+	# 수건: 누르고 있기로는 안 닦이고, 클릭(톡)마다 닦임
+	shop.pick("towel")
+	var before: float = shop.dog.mask.ratio("towel")
+	shop.use_tool_at(points[0], 1.0)
+	check_eq(shop.dog.mask.ratio("towel"), before, "수건은 누르고 있기로는 안 닦임")
+	var taps := 0
+	while shop.dog.mask.ratio("towel") < Tuning.data.v4_done_ratio and taps < 200:
+		shop.tap_at(points[taps % points.size()])
+		taps += 1
+	print("수건 톡 %d 번" % taps)
+	check(taps <= 60, "수건은 톡톡 몇십 번 안에 끝 (%d 번)" % taps)
+	_check_stage(4, "수건 끝", "dryer")
 	check_eq(shop.dog.fluff, 0.0, "말리기 전엔 털이 안 부풂")
 	var t_dry := _sweep("dryer", "dry")
 	check(shop.dog.fluff >= 0.99, "다 말리면 털이 뽕 (%.2f)" % shop.dog.fluff)
-	_check_stage(4, "드라이 끝", "brush")
+	_check_stage(5, "드라이 끝", "brush")
 	var lumps: int = shop.progress().tangles
 	check_eq(lumps, Tuning.data.v4_tangles, "드라이 뒤 엉킨 털 뭉치가 다 보임")
 	var t_brush := _sweep_until("brush", func() -> bool: return shop.progress().tangles == 0)

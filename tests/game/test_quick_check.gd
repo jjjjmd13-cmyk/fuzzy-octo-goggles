@@ -63,6 +63,23 @@ func run_test() -> void:
 	quick.queue_free()
 	await get_tree().process_frame
 
+	# 수건 빠른 확인: 헹굼까지 끝난 강아지, 톡톡
+	Engine.set_meta("quick_check_feature", "towel")
+	quick = load(QUICK_SCENE).instantiate()
+	add_child(quick)
+	shop = quick.shop
+	shop.input_enabled = false
+	shop.guests._process(1.5)
+	shop.next_guest()
+	await get_tree().physics_frame
+	check_eq(shop.stage_tool(), "towel", "수건: 바로 수건 단계")
+	shop.pick("towel")
+	for i in 80:
+		shop.tap_at(shop.dog.model.to_global(shop.dog._body_center() + Vector3(cos(i * 0.9), 0.3 * sin(i * 0.4), sin(i * 0.9)) * 0.3))
+	check_eq(shop.stage_tool(), "dryer", "톡톡 다 닦으면 드라이 단계 (%s)" % str(shop.progress()))
+	quick.queue_free()
+	await get_tree().process_frame
+
 	# 드라이기 빠른 확인: 헹굼까지 끝난 강아지, 드라이기만 하면 끝
 	Engine.set_meta("quick_check_feature", "dryer")
 	quick = load(QUICK_SCENE).instantiate()
