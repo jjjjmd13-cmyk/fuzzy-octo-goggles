@@ -1,0 +1,60 @@
+{
+  "date": "2026-11-04",
+  "blender": "4.2.0",
+  "godot": "4.4.1.stable.official.49a5bc7b6",
+  "gltf_validation": {
+    "assets": 14,
+    "errors": 0,
+    "warnings": 0
+  },
+  "artifact_validation": {
+    "assets": 14,
+    "passed": 14,
+    "triangle_min": 644,
+    "triangle_max": 2936,
+    "embedded_png": [
+      128,
+      128
+    ],
+    "exact_palette_and_uvs": "PASS"
+  },
+  "godot_asset_acceptance": {
+    "assets": 14,
+    "packed_scene_import": "PASS",
+    "embedded_albedo": "PASS",
+    "root_grip_transform": "PASS",
+    "named_moving_meshes": "PASS",
+    "independent_motion_without_body_motion": "PASS",
+    "existing_automatic_model_loader": "PASS"
+  },
+  "full_game_regression": {
+    "passed": 28,
+    "failed": 0,
+    "game_scripts_changed": false,
+    "test_suite_changed": false
+  },
+  "initial_import_diagnostics": {
+    "count": 34,
+    "scope": "existing and new GLB models",
+    "diagnostic": "Godot 4.4.1 headless dummy texture thumbnail: Parameter t is null",
+    "packed_scene_save_and_runtime": "PASS",
+    "remaining_errors_after_repository_version_guarded_filter": 0
+  },
+  "not_verified": [
+    "Windows hardware",
+    "Steam Deck hardware",
+    "GPU transparency sorting in game",
+    "play feel",
+    "five-tier gameplay selection and VFX integration"
+  ],
+  "previews": "Blender rendered from exported model scene; not in-game screenshots",
+  "raw_internal_logs": "Excluded from PR; verification summary only",
+  "default_import_acceptance": {
+    "assets": 14,
+    "provided_import_sidecars": false,
+    "fresh_project": "PASS",
+    "textures_and_named_moving_meshes": "PASS",
+    "independent_motion": "PASS"
+  },
+  "import_sidecars": "Excluded from PR; default Godot importer tested successfully"
+}
