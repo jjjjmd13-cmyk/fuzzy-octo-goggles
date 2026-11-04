@@ -62,23 +62,27 @@ const TOWEL_DRY_SHARE := 0.3
 const TARGET_PICK := 0.12
 ## 임시 털색 (엉킨 뭉치는 이보다 진하게)
 const FUR_COLOR := Color(0.96, 0.87, 0.7)
-## 도구 단계 이름 (TUNING_V4 3-1, GDD_V4 기본 순서와 도구 키우기). 단계마다 칠하는 속도 v4_tool_speed_mult
+## 도구 5단계 이름 (GDD_V4 업그레이드 — 도구마다 5단계, TUNING_V4 3-2). 단계마다 속도 v4_tool_speed_mult5, 값 v4_tool_price5
 const TOOL_LEVEL_NAMES := {
-	"shower": ["작은 샤워기", "넓은 샤워기", "레인 샤워기"],
-	"shampoo": ["샴푸병", "거품 펌프", "거품 대포"],
-	"dryer": ["작은 드라이기", "큰 송풍 드라이기"],
-	"brush": ["일반 빗", "슬리커 브러시", "전동 브러시"],
+	"shower": ["작은 샤워기", "넓은 샤워기", "레인 샤워기", "마사지 샤워기", "무지개 샤워기"],
+	"shampoo": ["샴푸병", "거품 펌프", "거품 스펀지", "거품 대포", "구름 대포"],
+	"towel": ["수건", "두꺼운 수건", "극세사 수건", "흡수 장갑", "구름 타월"],
+	"dryer": ["작은 드라이기", "큰 송풍 드라이기", "이중 날개 드라이기", "터보 드라이기", "회오리 드라이기"],
+	"brush": ["일반 빗", "슬리커 브러시", "쌍빗", "전동 브러시", "반짝 전동 브러시"],
 }
-## 단계별 모형 파일 (docs/art/ART_SLOTS.md V4 손 도구, assets/models/tools/<이름>.glb). 없으면 기본 모형을 조금 키워 씀
+## 단계별 모형 파일 (docs/art/ART_SLOTS.md V4 손 도구 5단계, assets/models/tools/<이름>.glb).
+## 없으면 그 아래 단계 중 있는 모형을 단계만큼 조금 키워 씀
 const LEVEL_MODELS := {
-	"shower": ["shower", "shower_wide", "shower_rain"],
-	"shampoo": ["shampoo", "foam_pump", "foam_cannon"],
-	"dryer": ["dryer", "dryer_big"],
-	"brush": ["brush", "brush_slicker", "brush_electric"],
+	"shower": ["shower", "shower_wide", "shower_rain", "shower_massage", "shower_rainbow"],
+	"shampoo": ["shampoo", "foam_pump", "foam_sponge", "foam_cannon", "foam_cloud"],
+	"towel": ["towel", "towel_thick", "towel_microfiber", "towel_mitt", "towel_cloud"],
+	"dryer": ["dryer", "dryer_big", "dryer_twin", "dryer_turbo", "dryer_tornado"],
+	"brush": ["brush", "brush_slicker", "brush_twin", "brush_electric", "brush_sparkle"],
 }
-const PRICE_KEY := {"shower": "v4_price_shower", "shampoo": "v4_price_foam", "dryer": "v4_price_dryer", "brush": "v4_price_brush"}
 ## 속도 배수 중 붓 크기로 가는 몫 (1.6배 빠른 도구 = 붓 1.15배)
 const SIZE_SHARE := 0.25
+## 최종 단계 도구는 붓이 이만큼 더 넓음 ("와" 단계)
+const FINAL_RADIUS := 1.25
 const TOOLS := {
 	"shower": {"name": "샤워기", "channel": "wet", "color": Color(0.7, 0.8, 0.9)},
 	"shampoo": {"name": "샴푸", "channel": "scrub", "color": Color(1.0, 0.6, 0.75)},
@@ -123,10 +127,11 @@ var _last_hand: Variant = null
 ## _process 가 광선으로 손 자리를 잰 프레임 (아니면 use_tool_at 에 온 점으로 잼: 테스트)
 var _hand_tracked := false
 var _huff_left := 0.0
+var _final_left := 0.0
 ## 엉킨 털 뭉치 (강아지 모형의 자식, 새 강아지마다 새로)
 var tangles: FpTangles
 ## 도구 단계 (0 = 기본). 정산 뒤 가게에서 사면 오름
-var tool_level := {"shower": 0, "shampoo": 0, "dryer": 0, "brush": 0}
+var tool_level := {"shower": 0, "shampoo": 0, "towel": 0, "dryer": 0, "brush": 0}
 ## 며칠째 (가진 돈·도구는 다음 날로 이어짐, 저장은 아직 없음)
 var day := 1
 ## 가위를 샀음 (다음 손님부터 미용 요청이 옴)
@@ -194,11 +199,9 @@ func _ready() -> void:
 		owns_scissors = true
 	_set_pickup_available("scissors", owns_scissors)
 	if quick_feature == "upgrade":
-		# 빠른 확인 [도구 업그레이드]: 모든 도구를 가장 좋은 것으로 산 상태
-		for tool_id in tool_level:
-			while next_price(tool_id) >= 0:
-				money += next_price(tool_id)
-				buy(tool_id)
+		# 빠른 확인 [도구 업그레이드]: 모든 도구를 가장 좋은 것으로 산 상태, 숫자 1~5 로 단계를 바꿔 봄
+		set_all_tiers(Tuning.data.v4_tool_tiers - 1)
+		_show_hint("최종 단계 도구예요. 숫자 1~5: 모든 도구 단계 바꾸기", 5.0)
 	new_dog()
 	_clear_tub()
 	_show_hint("손님이 오면 다가가서 클릭: 강아지 맡기", 4.0)
@@ -362,8 +365,13 @@ func end_day() -> void:
 
 ## 도구 단계별 칠하는 속도 배수
 func speed_mult(tool_id: String) -> float:
-	var mults: PackedFloat32Array = Tuning.data.v4_tool_speed_mult
+	var mults: PackedFloat32Array = Tuning.data.v4_tool_speed_mult5
 	return mults[mini(tool_level.get(tool_id, 0), mults.size() - 1)]
+
+
+## 최종 단계 ("와" 단계): 효과를 크게
+func is_final(tool_id: String) -> bool:
+	return TOOL_LEVEL_NAMES.has(tool_id) and tool_level[tool_id] >= Tuning.data.v4_tool_tiers - 1
 
 
 ## 도구 단계별 붓·모형 크기 배수
@@ -375,15 +383,19 @@ func size_mult(tool_id: String) -> float:
 func model_id(tool_id: String) -> String:
 	if not LEVEL_MODELS.has(tool_id):
 		return tool_id
-	var id: String = LEVEL_MODELS[tool_id][tool_level[tool_id]]
-	if id != tool_id and not ResourceLoader.exists("res://assets/models/tools/%s.glb" % id):
-		return tool_id
-	return id
+	for level in range(tool_level[tool_id], 0, -1):
+		var id: String = LEVEL_MODELS[tool_id][level]
+		if ResourceLoader.exists("res://assets/models/tools/%s.glb" % id):
+			return id
+	return tool_id
 
 
-## 단계 그림이 없어 기본 모형을 쓸 때만 크기로 단계를 보여 줌
+## 그 단계 그림이 없어 아래 단계 모형을 쓸 때만, 모자란 단계만큼 크기로 보여 줌
 func model_scale(tool_id: String) -> float:
-	return size_mult(tool_id) if model_id(tool_id) == tool_id else 1.0
+	if not LEVEL_MODELS.has(tool_id):
+		return 1.0
+	var shown: int = LEVEL_MODELS[tool_id].find(model_id(tool_id))
+	return 1.0 + 0.08 * (tool_level[tool_id] - shown)
 
 
 func tool_name(tool_id: String) -> String:
@@ -396,9 +408,9 @@ func tool_name(tool_id: String) -> String:
 func next_price(tool_id: String) -> int:
 	if tool_id == "scissors":
 		return -1 if owns_scissors else Tuning.data.v4_price_scissors
-	var prices: PackedInt32Array = Tuning.data.get(PRICE_KEY[tool_id])
+	var prices: PackedInt32Array = Tuning.data.v4_tool_price5
 	var next: int = tool_level[tool_id] + 1
-	return prices[next] if next < prices.size() and next < TOOL_LEVEL_NAMES[tool_id].size() else -1
+	return prices[next] if next < prices.size() and next < Tuning.data.v4_tool_tiers else -1
 
 
 ## 가게에서 사기: 돈이 모자라거나 더 없으면 false
@@ -413,8 +425,16 @@ func buy(tool_id: String) -> bool:
 		_set_pickup_available("scissors", true)
 		sfx.play("coin")
 		return true
-	tool_level[tool_id] += 1
-	# 선반 모형을 새 단계 모형으로 (그림이 없으면 기본 모형을 키움)
+	set_tier(tool_id, tool_level[tool_id] + 1)
+	sfx.play("coin")
+	return true
+
+
+## 도구 단계를 바로 정함 (가게·빠른 확인): 선반 모형을 그 단계 모형으로, 손에 들고 있으면 다시 집음
+func set_tier(tool_id: String, level: int) -> void:
+	tool_level[tool_id] = clampi(level, 0, Tuning.data.v4_tool_tiers - 1)
+	if held == tool_id:
+		drop()
 	var pickup: Node3D = _pickups[tool_id]
 	var old := pickup.get_node_or_null("View") as Node3D
 	var view := _make_tool_mesh(model_id(tool_id))
@@ -426,8 +446,14 @@ func buy(tool_id: String) -> bool:
 	view.scale = Vector3.ONE * model_scale(tool_id)
 	pickup.add_child(view)
 	_cache_glow_materials(tool_id, view)
-	sfx.play("coin")
-	return true
+
+
+## 모든 도구를 같은 단계로 (빠른 확인)
+func set_all_tiers(level: int) -> void:
+	for tool_id in TOOL_LEVEL_NAMES:
+		set_tier(tool_id, level)
+	if level < Tuning.data.v4_tool_tiers:
+		_show_hint("모든 도구 %d단계" % (level + 1), 2.0)
 
 
 ## 정산 판 아래 가게 줄: 도구마다 다음 단계 이름·값
@@ -538,7 +564,7 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 	var wet_here := dog.mask.value_at("wet", dir)
 	if not _hand_tracked:
 		_track_hand(point)
-	var radius := brush_radius(point) * size_mult(held)
+	var radius := brush_radius(point) * size_mult(held) * (FINAL_RADIUS if is_final(held) else 1.0)
 	var speed := speed_mult(held)
 	var stage := ""
 	var mood := 2
@@ -554,7 +580,7 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 				dog.rinse_foam(point, radius * RINSE_REACH * (1.0 + 0.3 * down), delta * RINSE_SPEED * speed * rinse_mult)
 				dog.paint("rinse", point, radius, Tuning.data.v4_rate_shower * speed * delta)
 			dog.spray(point)
-			dog.show_stream(_tool_tip(), point, Color(0.55, 0.85, 1.0))
+			dog.show_stream(_tool_tip(), point, Color.from_hsv(fmod(_t * 0.6, 1.0), 0.45, 1.0) if is_final("shower") else Color(0.55, 0.85, 1.0))
 			sfx.set_loop("shower", 0.8)
 		"shampoo":
 			if wet_here < 0.3:
@@ -568,7 +594,7 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 			_foam_carry += delta * 10.0 * speed * rub_mult
 			while _foam_carry >= 1.0:
 				_foam_carry -= 1.0
-				dog.add_foam(point, 1, _rng, FOAM_SIZE * size_mult("shampoo") * (1.0 + 0.4 * rub))
+				dog.add_foam(point, 1, _rng, FOAM_SIZE * size_mult("shampoo") * (1.0 + 0.4 * rub) * (1.4 if is_final("shampoo") else 1.0))
 			sfx.set_loop("scrub", 0.8)
 		"brush":
 			if stage_index < STAGES.size() and STAGES[stage_index].id != "brush":
@@ -582,6 +608,8 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 			var needed: int = strokes[1] if hand_move.y < -moved * 0.5 else strokes[0]
 			var amount: float = maxf(Tuning.data.v4_brush_hold_rate * delta, moved / (Tuning.data.v4_brush_stroke_len * needed))
 			tangles.brush(point, radius * BRUSH_REACH, amount * speed)
+			if is_final("brush"):
+				_final_sparkle(point)
 			sfx.set_loop("scrub", 0.4)
 		"scissors":
 			if trim_request.is_empty():
@@ -605,7 +633,9 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 			dog.paint("dry", point, radius, Tuning.data.v4_rate_dryer * speed * dry_mult * delta * clampf(wet_here + 0.2, 0.0, 1.0))
 			dog.fluff = clampf(dog.mask.ratio("dry") / Tuning.data.v4_done_ratio, 0.0, 1.0)
 			if dog.model.has_method("blow"):
-				dog.model.blow(closeness)
+				dog.model.blow(1.0 if is_final("dryer") else closeness)
+			if is_final("dryer"):
+				_final_sparkle(point)
 			if distance < near[0]:
 				mood = 0
 				if _huff_left <= 0.0:
@@ -624,6 +654,16 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 			dog.splash()
 			sfx.play("shake")
 	_check_done()
+
+
+## 최종 단계 반짝이 (자주 터지지 않게 0.15초에 한 번, now 면 바로)
+func _final_sparkle(point: Vector3, now := false) -> void:
+	if _final_left > 0.0 and not now:
+		return
+	_final_left = 0.15
+	_sparkle.global_position = point
+	_sparkle.restart()
+	_sparkle.emitting = true
 
 
 ## 손 자리를 받아 이번 프레임 움직임(hand_move)을 잼. null 이면 손을 뗀 것
@@ -645,6 +685,8 @@ func tap_at(point: Vector3) -> void:
 	dog.paint("towel", point, radius, amount)
 	dog.paint("dry", point, radius, amount * TOWEL_DRY_SHARE)
 	dog.press_effect(point)
+	if is_final("towel"):
+		_final_sparkle(point, true)
 	sfx.play("towel")
 	if _held_view != null:
 		_held_view.tap()
@@ -780,6 +822,7 @@ func _process(delta: float) -> void:
 	var active := has_dog and using and aim_point != null and not held.is_empty() and not done
 	_update_tool_views(delta, active)
 	_huff_left = maxf(_huff_left - delta, 0.0)
+	_final_left = maxf(_final_left - delta, 0.0)
 	if active:
 		# 손 자리 = 가운데 점 광선 위, 겨눈 점까지의 거리 (다발에 겨눔이 붙어도 손을 흔든 만큼 움직임)
 		var ray: Array[Vector3] = player.aim_ray(1.0)
@@ -812,6 +855,10 @@ func _unhandled_input(event: InputEvent) -> void:
 		match event.physical_keycode:
 			KEY_Q:
 				drop()
+			KEY_1, KEY_2, KEY_3, KEY_4, KEY_5:
+				# 빠른 확인 [도구 업그레이드]: 모든 도구를 그 단계로 (5단계를 다 보기)
+				if quick_feature == "upgrade":
+					set_all_tiers(event.physical_keycode - KEY_1)
 			KEY_ESCAPE:
 				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 				get_tree().change_scene_to_file(MENU_SCENE)

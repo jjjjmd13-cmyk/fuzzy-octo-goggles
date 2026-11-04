@@ -237,12 +237,10 @@ extends Resource
 @export var v4_tip_fast_hurry_mult := 2.0
 ## 하루 영업 (분, 9시~6시)
 @export var v4_day_minutes := 8.0
-## 도구 키우기 (TUNING_V4 3-1): 단계 1·2·3 칠하는 속도 배수 (붓 크기도 조금 커짐), 단계마다 값 (0 = 처음부터 있음)
-@export var v4_tool_speed_mult := PackedFloat32Array([1.0, 1.6, 2.5])
-@export var v4_price_shower := PackedInt32Array([0, 120, 350])
-@export var v4_price_foam := PackedInt32Array([0, 120, 350])
-@export var v4_price_dryer := PackedInt32Array([0, 150])
-@export var v4_price_brush := PackedInt32Array([0, 100, 300])
+## 도구 키우기 (TUNING_V4 3-2): 샤워기·거품·수건·드라이·빗 모두 5단계, 단계별 칠하는 속도 배수 (붓도 조금 커짐), 값 (0 = 처음부터 있음)
+@export var v4_tool_tiers := 5
+@export var v4_tool_speed_mult5 := PackedFloat32Array([1.0, 1.3, 1.6, 2.0, 2.6])
+@export var v4_tool_price5 := PackedInt32Array([0, 120, 250, 450, 800])
 
 ## 기분 0~1 → 얼굴 단계 0(😣) / 1(😐) / 2(😊)
 func mood_face(mood: float) -> int:

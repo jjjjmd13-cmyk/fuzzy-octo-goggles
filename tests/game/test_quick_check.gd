@@ -131,6 +131,9 @@ func run_test() -> void:
 	for tool_id in shop.tool_level:
 		check_eq(shop.next_price(tool_id), -1, "업그레이드 확인: %s 가 최고 단계 (%s)" % [tool_id, shop.tool_name(tool_id)])
 	check_eq(shop.money, 0, "산 값은 미리 채워서 돈은 0")
+	check_eq(shop.tool_name("towel"), "구름 타월", "업그레이드 확인: 최종 단계 (구름 타월)")
+	shop.set_all_tiers(2)
+	check_eq(shop.tool_name("shower"), "레인 샤워기", "숫자 3: 모든 도구 3단계")
 	quick.queue_free()
 	await get_tree().process_frame
 
