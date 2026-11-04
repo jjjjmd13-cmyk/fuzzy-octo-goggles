@@ -89,7 +89,7 @@ func _take_with_trim(shape: String) -> void:
 
 ## 적시기~빗질까지 채워서 미용 단계 앞으로 (빠른 확인과 같은 방식)
 func _wash_to_trim() -> void:
-	for channel in ["wet", "scrub", "rinse", "dry"]:
+	for channel in ["wet", "scrub", "rinse", "towel", "dry"]:
 		shop.dog.mask.fill(channel, 1.0)
 	shop.dog.clear_foam()
 	shop._check_done()

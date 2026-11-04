@@ -35,7 +35,8 @@ const DOG_SPOT := Vector3(0, 0.92, -1.6)
 const STAGES: Array[Dictionary] = [
 	{"id": "wet", "tool": "shower", "sound": "ding", "text": "적시기 끝! 샴푸로 거품 내요"},
 	{"id": "scrub", "tool": "shampoo", "sound": "bubble_pop", "text": "거품 끝! 샤워기로 헹궈요"},
-	{"id": "rinse", "tool": "shower", "sound": "squeak", "text": "뽀득! 헹굼 끝! 드라이기로 말려요"},
+	{"id": "rinse", "tool": "shower", "sound": "squeak", "text": "뽀득! 헹굼 끝! 수건으로 톡톡 닦아요"},
+	{"id": "towel", "tool": "towel", "sound": "press", "text": "수건 끝! 드라이기로 말려요"},
 	{"id": "dry", "tool": "dryer", "sound": "poof", "text": "뽕! 드라이 끝! 빗으로 엉킨 털을 풀어요"},
 	{"id": "brush", "tool": "brush", "sound": "squeak", "text": "빗질 끝! 반짝반짝 깨끗해졌어요"},
 	# 미용은 요청 손님만 (요청이 없으면 이 단계를 건너뜀)
@@ -52,9 +53,11 @@ const RINSE_SPEED := 14.0
 const FOAM_SPARKLE_BELOW := 3
 ## 단계 진행이 이만큼 넘으면 아직 안 된 곳을 털 위에서 반짝임
 const BLINK_FROM := 0.5
-const STAGE_REACTION := {"wet": "wiggle_legs", "scrub": "jump", "rinse": "shake", "dry": "wiggle_legs", "brush": "jump", "trim": "wiggle_legs"}
+const STAGE_REACTION := {"wet": "wiggle_legs", "scrub": "jump", "rinse": "shake", "towel": "wiggle_legs", "dry": "wiggle_legs", "brush": "jump", "trim": "wiggle_legs"}
 ## 빗이 닿는 거리 = 붓 반경 × 이 값 (뭉치 하나씩 겨냥하게 붓보다 좁게)
 const BRUSH_REACH := 0.8
+## 수건 톡 한 번에 마른 쪽으로도 칠하는 몫 (털이 덜 젖어 보임, 드라이가 조금 쉬워짐)
+const TOWEL_DRY_SHARE := 0.3
 ## 가위·빗을 들면 가운데 점에서 이 거리(m) 안의 다발·뭉치를 겨눔
 const TARGET_PICK := 0.12
 ## 임시 털색 (엉킨 뭉치는 이보다 진하게)
@@ -79,6 +82,7 @@ const SIZE_SHARE := 0.25
 const TOOLS := {
 	"shower": {"name": "샤워기", "channel": "wet", "color": Color(0.7, 0.8, 0.9)},
 	"shampoo": {"name": "샴푸", "channel": "scrub", "color": Color(1.0, 0.6, 0.75)},
+	"towel": {"name": "수건", "channel": "towel", "color": Color(1.0, 0.75, 0.8)},
 	"dryer": {"name": "드라이기", "channel": "dry", "color": Color(0.95, 0.85, 0.9)},
 	"brush": {"name": "빗", "channel": "brush", "color": Color(0.75, 0.55, 0.4)},
 	"scissors": {"name": "가위", "channel": "trim", "color": Color(0.85, 0.85, 0.9)},
@@ -221,7 +225,7 @@ func new_dog() -> void:
 
 ## 빠른 확인: 그 기능의 단계부터 바로 시작 (앞 단계는 이미 끝난 강아지)
 func _start_quick_stage() -> void:
-	var start: String = {"dryer": "dry", "brush": "brush", "trim": "trim"}.get(quick_feature, "")
+	var start: String = {"towel": "towel", "dryer": "dry", "brush": "brush", "trim": "trim"}.get(quick_feature, "")
 	if start.is_empty():
 		return
 	for i in STAGES.size():
@@ -464,7 +468,7 @@ func _on_guest_left(_kind: String) -> void:
 
 ## 진행 (0~1): 물·거품(진흙)·말리기, 남은 거품 수
 func progress() -> Dictionary:
-	return {"wet": dog.mask.ratio("wet"), "scrub": dog.mask.ratio("scrub"), "dry": dog.mask.ratio("dry"), "foam": dog.foam_count(), "brush": tangles.ratio() if is_instance_valid(tangles) else 0.0, "tangles": tangles.count() if is_instance_valid(tangles) else 0, "trim_left": trim.wanted_left() if is_instance_valid(trim) else 0}
+	return {"wet": dog.mask.ratio("wet"), "scrub": dog.mask.ratio("scrub"), "towel": dog.mask.ratio("towel"), "dry": dog.mask.ratio("dry"), "foam": dog.foam_count(), "brush": tangles.ratio() if is_instance_valid(tangles) else 0.0, "tangles": tangles.count() if is_instance_valid(tangles) else 0, "trim_left": trim.wanted_left() if is_instance_valid(trim) else 0}
 
 
 func pick(tool_id: String) -> void:
@@ -519,6 +523,9 @@ func _update_tool_views(delta: float, active: bool) -> void:
 
 ## 든 도구를 강아지 위 point(월드)에 delta 초 동안 쓴다 (마우스를 누르고 있는 동안 매 프레임)
 func use_tool_at(point: Vector3, delta: float) -> void:
+	# 수건은 누르고 있기가 아니라 클릭마다 톡 (tap_at)
+	if held == "towel":
+		return
 	if held.is_empty() or done:
 		return
 	var dir := dog.dir_of(point)
@@ -587,6 +594,29 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 	_check_done()
 
 
+## 수건 톡: 클릭 한 번마다 그 자리를 꾹 눌러 닦음 (누르고만 있으면 안 닦임, GDD_V4 손동작 다시 정리).
+## 한 번에 v4_rate_towel_tap 만큼, 물방울이 뚝뚝 + 털이 덜 젖어 보이게 마른 쪽으로도 조금
+func tap_at(point: Vector3) -> void:
+	if not has_dog or done or held != "towel":
+		return
+	if stage_index < STAGES.size() and STAGES[stage_index].id != "towel":
+		_show_hint("헹굼까지 끝난 뒤에 수건으로 톡톡 닦아요", 1.5)
+		return
+	var radius := brush_radius(point) * size_mult("towel")
+	var amount: float = Tuning.data.v4_rate_towel_tap * speed_mult("towel")
+	dog.paint("towel", point, radius, amount)
+	dog.paint("dry", point, radius, amount * TOWEL_DRY_SHARE)
+	dog.press_effect(point)
+	sfx.play("towel")
+	if _held_view != null:
+		_held_view.tap()
+	dog.react("set_mood", 2)
+	if not _reacted.has("towel"):
+		_reacted["towel"] = true
+		dog.react(STAGE_REACTION["towel"])
+	_check_done()
+
+
 ## 붓 반경(m): 몸 겉면의 v4_brush_share 만큼 덮는 원 (구 위 원뿔 각 → 몸 중심에서의 거리)
 func brush_radius(point: Vector3) -> float:
 	var angle := acos(1.0 - 2.0 * Tuning.data.v4_brush_share)
@@ -625,6 +655,8 @@ func _stage_met(id: String, p: Dictionary) -> bool:
 			return p.scrub >= done_at
 		"rinse":
 			return p.foam == 0
+		"towel":
+			return p.towel >= done_at
 		"dry":
 			return p.dry >= done_at
 		"trim":
@@ -729,6 +761,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			pick(hovered)
 		elif hovered_guest != null:
 			interact_guest(hovered_guest)
+		elif held == "towel" and aim_point != null:
+			tap_at(aim_point)
 	elif event is InputEventKey and event.pressed and not event.echo:
 		match event.physical_keycode:
 			KEY_Q:
@@ -904,14 +938,14 @@ func _build_shelf() -> void:
 		pickup.add_child(shape)
 		var view := _make_tool_mesh(tool_id)
 		# GLB 는 쥐는 곳이 원점: 각 메시 최저점을 선반 위에 맞춘다.
-		view.position.y = {"shower": 0.130, "shampoo": 0.074, "dryer": 0.056, "brush": 0.02, "scissors": 0.01}[tool_id]
+		view.position.y = {"shower": 0.130, "shampoo": 0.074, "towel": 0.002, "dryer": 0.056, "brush": 0.02, "scissors": 0.01}[tool_id]
 		view.rotation.y = PI / 2.0 # -Z 앞면을 선반 바깥(+X)으로
 		view.name = "View"
 		pickup.add_child(view)
 		_cache_glow_materials(tool_id, view)
 		add_child(pickup)
 		_pickups[tool_id] = pickup
-		z += 0.42
+		z += 0.33
 
 
 func _build_player() -> void:
@@ -1019,23 +1053,25 @@ func _draw_hud() -> void:
 			under = "목욕통이 비면 받아요" if has_dog else "클릭: 강아지 맡기"
 	elif aim_point != null and held.is_empty():
 		under = "선반에서 도구를 집어요"
+	elif ready_to_use and held == "towel":
+		under = "클릭할 때마다 톡톡 닦아요"
 	elif ready_to_use and not using:
-		under = "누르고 있으면 %s" % {"shower": "물이 나와요", "shampoo": "거품이 나요", "dryer": "바람이 나와요", "brush": "빗어요", "scissors": "사각사각 잘라요"}[held]
+		under = "누르고 있으면 %s" % {"shower": "물이 나와요", "shampoo": "거품이 나요", "towel": "", "dryer": "바람이 나와요", "brush": "빗어요", "scissors": "사각사각 잘라요"}[held]
 	_text(font, center + Vector2(0, 40), under, 22, true)
 	# 진행 (목욕통에 강아지가 있을 때만)
 	var p := progress()
-	var rows := [["물", p.wet], ["거품 (진흙)", p.scrub], ["말리기", p.dry], ["빗질 (엉킨 털 %d)" % p.tangles, p.brush * Tuning.data.v4_done_ratio]] if has_dog else []
+	var rows := [["물", p.wet], ["거품 (진흙)", p.scrub], ["수건 (톡톡)", p.towel], ["말리기", p.dry], ["빗질 (엉킨 털 %d)" % p.tangles, p.brush * Tuning.data.v4_done_ratio]] if has_dog else []
 	if has_dog and not trim_request.is_empty():
 		var total: int = maxi(trim.wanted_total(), 1)
 		rows.append(["미용 (자를 곳 %d)" % p.trim_left, (1.0 - float(p.trim_left) / total) * Tuning.data.v4_done_ratio if trim.wanted_total() > 0 else 0.0])
-		_draw_trim_card(font, Vector2(20, 30 + 6 * 34))
+		_draw_trim_card(font, Vector2(20, 30 + 7 * 34))
 	for i in rows.size():
 		var y := 30.0 + i * 34.0
 		_hud.draw_rect(Rect2(20, y, 220, 22), Color(0, 0, 0, 0.5))
 		_hud.draw_rect(Rect2(20, y, 220 * clampf(rows[i][1] / Tuning.data.v4_done_ratio, 0.0, 1.0), 22), Color(0.5, 0.85, 0.55) if rows[i][1] >= Tuning.data.v4_done_ratio else Color(0.45, 0.7, 1.0))
 		_text(font, Vector2(250, y + 18), rows[i][0], 18, false)
 	if has_dog and p.foam > 0:
-		_text(font, Vector2(20, 30 + 4 * 34 + 18), "남은 거품 %d (샤워기로 헹구기)" % p.foam, 18, false)
+		_text(font, Vector2(20, 30 + 5 * 34 + 18), "남은 거품 %d (샤워기로 헹구기)" % p.foam, 18, false)
 	if quick_dogs > 0:
 		_text(font, Vector2(size.x - 20, 40), "빠른 확인 · 강아지 %d / %d" % [guests.served, quick_dogs], 26, false, true)
 	else:

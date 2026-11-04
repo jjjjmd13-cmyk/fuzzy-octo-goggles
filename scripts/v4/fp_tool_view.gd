@@ -23,6 +23,8 @@ var _pick_delay := 0.0
 var _phase := 0.0
 var _use_blend := 0.0
 var _returning := false
+## 수건 톡: 누를 때 1 → 0 으로 줄며 손이 앞으로 꾹
+var _tap := 0.0
 var _return_from := Transform3D.IDENTITY
 var _return_elapsed := 0.0
 var _right_rest := Transform3D.IDENTITY
@@ -122,6 +124,10 @@ func setup(id: String, pick_delay := 0.0, model_id := "") -> void:
 	update_motion(0.0, false)
 
 
+func tap() -> void:
+	_tap = 1.0
+
+
 func is_returning() -> bool:
 	return _returning
 
@@ -147,6 +153,7 @@ func update_motion(delta: float, active: bool) -> bool:
 		quaternion = _return_from.basis.get_rotation_quaternion().slerp(Quaternion.from_euler(Vector3(0.55, -0.15, 0.22)), t)
 		return _return_elapsed >= RETURN_SECONDS
 	_use_blend = move_toward(_use_blend, 1.0 if active else 0.0, delta * 7.0)
+	_tap = move_toward(_tap, 0.0, delta * 6.0)
 	_phase += delta * (10.0 if tool_id == "towel" else 6.0)
 	var lift := smoothstep(0.0, 1.0, _age / PICK_SECONDS)
 	var offset := Vector3.ZERO
@@ -171,8 +178,9 @@ func update_motion(delta: float, active: bool) -> bool:
 			offset = Vector3(sin(_phase * 0.6) * 0.03, 0.02, -0.04) * _use_blend
 			angles = Vector3(-0.1, sin(_phase * 0.6) * 0.12, 0.0) * _use_blend
 		"towel":
-			offset = Vector3(sin(_phase) * 0.07, 0.035, -0.07) * _use_blend
-			angles = Vector3(-0.12, 0.0, sin(_phase) * 0.08) * _use_blend
+			# 톡톡: 누를 때마다 앞으로 꾹 눌렀다 돌아옴
+			offset = Vector3(0.0, 0.01, -0.03) * _use_blend + Vector3(0.0, -0.03, -0.09) * _tap
+			angles = Vector3(-0.08, 0.0, 0.0) * _use_blend + Vector3(-0.25, 0.0, 0.0) * _tap
 	# 집기: 화면 아래에서 손목을 돌리며 올리고 부드럽게 멈춘다.
 	position = _rest + Vector3(0.06, -0.40, 0.10) * (1.0 - lift) + offset
 	rotation = Vector3(0.45, -0.2, 0.18) * (1.0 - lift)
