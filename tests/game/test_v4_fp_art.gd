@@ -18,6 +18,14 @@ func run_test() -> void:
 		var pickup: StaticBody3D = shop._pickups[id]
 		var mats: Array = shop._glow_materials[id]
 		check(mats.size() >= 2, "%s 다중 surface 재질 유지" % id)
+		if id == "scissors":
+			# 실제 가위 GLB 납품 뒤 이 경로가 처음 실행된다. 미구매 도구는 숨겨져 강조되지 않는다.
+			check(not pickup.visible, "미구매 가위는 선반에서 숨김")
+			shop._set_glow(pickup, true)
+			for mat in mats:
+				check(not mat.emission_enabled, "잠긴 가위는 강조하지 않음")
+			shop.owns_scissors = true
+			shop._set_pickup_available(id, true)
 		var color: Color = mats[0].albedo_color
 		shop._set_glow(pickup, true)
 		for mat in mats:
