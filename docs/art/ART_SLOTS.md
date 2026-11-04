@@ -68,7 +68,9 @@ L/R(왼쪽·오른쪽)은 **캐릭터 자신의** 왼쪽·오른쪽입니다. / 
 - 털 UV 는 겹치지 않게. 눈·코·혀는 각자 재질 (털 아님). Fur UVs must not overlap; eyes/nose/tongue keep their own materials.
 - 마우스 판정은 털 오브젝트마다 볼록 껍질로 자동 생성 → 몸통이 크게 오목하면 2~3 조각으로 나눠 주세요. Hit shapes are convex hulls per fur object; split strongly concave parts into 2–3 pieces.
 
-### 2-1. `cat` 고양이 (2일차부터 / from day 2)
+### 2-1. `cat` 고양이 (V4: 3일차부터 / from day 3)
+
+- **V4 요청문 (A 파스텔, 2026-11-04)**: [ORDER_V4_CAT.md](ORDER_V4_CAT.md) — 지금 `dog.glb` 의 실제 노드 이름·계층(`Torso`, `Head` 자식 `Eye_L`→`Pupil_L`·`Glint_L`, `Leg_FL`→`Paw_FL`, `Haunch_L`, `Paw_BL`, `Tail_1→2→3`, `FaceCenter`, `BodyCenter`)과 털 재질 이름 `FurCleanAlbedo` 를 그대로 옮김. 귀 안쪽 분홍 = `NoFurEar_L/R`.
 
 - **강아지와 같은 약속** — 노드 이름·원점·털/비털 메시·깨끗한 털 색 규칙이 모두 2장과 같습니다. Same contract as the dog (section 2).
 - **크기 Size**: 앉은 키 약 0.5 m, 강아지보다 조금 작고 날씬하게. 귀는 **위로 선 삼각형** (안쪽 분홍은 `NoFur…` 이름의 따로 된 메시), 꼬리는 길고 가늘게 (`Tail_1→2→3`, 위로 감아 올림). ~0.5 m sitting; upright pointed ears; long thin tail.
