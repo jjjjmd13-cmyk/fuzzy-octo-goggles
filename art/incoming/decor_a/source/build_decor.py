@@ -157,43 +157,9 @@ def finish(name,limit,origin='floor',notes=None):
  bpy.ops.export_scene.gltf(filepath=str(OUT/(name+'.glb')),export_format='GLB',export_yup=True,export_texcoords=True,export_normals=True,export_materials='EXPORT',export_animations=False,export_cameras=False,export_lights=False,export_extras=True)
  print('DECOR',name,tris,REPORT[name]['dimensions_m'],flush=True)
 
-def stand(col='wood',wave=False):
- box((0,.43,0),(1.48,.86,.98),col,'Stand',.09)
- box((0,.875,0),(1.6,.05,1.1),'sky' if wave else col,'Stand',.022)
- if wave:
-  for x in [-.56,-.28,0,.28,.56]:ball((x,.37,-.493),(.20,.12,.018),'ice','Stand',10,4)
- else:
-  for x in [-.48,-.16,.16,.48]:box((x,.43,-.494),(.012,.68,.012),'grain','Stand',.003)
-def bowl(col='wood',rim='sky',claw=False,shell=False):
- n=40;vs=[];radii=[.42,.52,.59,.60,.54,.48,.38];ys=[.905,.92,.99,1.044,1.04,.955,.93]
- for j in range(len(radii)):
-  for k in range(n):
-   a=2*pi*k/n;front=max(0,sin(a));h=ys[j]-(.042*front**4 if j in [2,3,4] else 0)
-   rr=radii[j]*(1+.025*cos(10*a) if shell else 1);vs.append((rr*cos(a),h,-rr*sin(a)))
- fs=[]
- for j in range(len(radii)-1):
-  for k in range(n):a=j*n+k;b=j*n+(k+1)%n;fs.append((a,b,b+n,a+n))
- fs.extend([tuple(reversed(range(n))),tuple((len(radii)-1)*n+k for k in range(n))])
- mesh(vs,fs,col,'Tub');ring((0,1.044,0),.60,.016,rim,'Tub',n=40,m=8,height=lambda a:1.044-.042*max(0,sin(a))**4)
- if col=='wood':
-  for h,r in [(.94,.545),(1.005,.591)]:ring((0,h,0),r,.012,'sky','Tub',n=40,m=4)
-  for k in range(24):
-   a=k*2*pi/24;tube([(.526*cos(a),.93,-.526*sin(a)),(.591*cos(a),.995-.027*max(0,sin(a))**4,-.591*sin(a))],.004,'grain','Tub',n=4)
- if claw:
-  for x in [-.40,.40]:
-   for z in [-.34,.34]:
-    ball((x,.92,z),(.085,.05,.085),'pink','Tub',10,5)
-    for dx in [-.035,0,.035]:ball((x+dx,.908,z-.060),(.022,.025,.024),'blush','Tub',8,4)
- if shell:
-  # Shallow scallop flutes on the back, leaving the player's front edge lowered.
-  for k in range(11):
-   a=pi+k*pi/10;r=.57
-   tube([(r*.73*cos(a),.935,-r*.73*sin(a)),(r*cos(a),1.035,-r*sin(a))],[.018,.024],'blush' if k%2 else 'ice','Tub',n=6)
- PIVOTS['Plug']=(0,.935,-.23);lathe((0,.935,-.23),[(0,.035),(.008,.035)],'gold' if shell else 'sky','Plug',n=16)
- ring((0,.947,-.23),.012,.003,'white','Plug',n=12,m=4)
 def tubs():
- for name,col,rim in [('tub_wood','wood','sky'),('tub_claw','white','pink'),('tub_shell','pearl','gold')]:
-  reset();stand('sky' if name=='tub_shell' else 'wood',name=='tub_shell');bowl(col,rim,name=='tub_claw',name=='tub_shell');finish(name,4000,notes='Stand 1.6 x 1.1 m, top Y=.9; round Tub radius .6; rear rim Y=1.06, front rim Y=1.018. Plug separate.')
+ from build_tubs import make_tubs
+ make_tubs(sys.modules[__name__])
 def shelves():
  for name in ['shelf_wood','shelf_basket','shelf_cloud']:
   reset();fancy=name=='shelf_cloud';col='white' if fancy else 'wood'

@@ -1,0 +1,101 @@
+{
+  "tub_wood.glb": {
+    "status": "PASS",
+    "triangles": 2748,
+    "footprint_xz_m": [
+      1.44,
+      1.09395
+    ],
+    "floor_y": 0.92,
+    "floor_clear_xz_m": [
+      1.07,
+      0.96
+    ],
+    "floor_samples_checked": 9,
+    "front_rim_y": 1.1,
+    "rear_rim_y": 1.27,
+    "parts": [
+      "Plug",
+      "Stand",
+      "Tub"
+    ],
+    "plug_origin": [
+      0.18,
+      0.932,
+      -0.17
+    ],
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "sha256": "5a7745710bdd5d81f63b5c78954e83b5b8763f2c36216aea1ce97e381d227a08"
+  },
+  "tub_claw.glb": {
+    "status": "PASS",
+    "triangles": 3816,
+    "footprint_xz_m": [
+      1.56,
+      1.09
+    ],
+    "floor_y": 0.92,
+    "floor_clear_xz_m": [
+      1.1,
+      0.96
+    ],
+    "floor_samples_checked": 9,
+    "front_rim_y": 1.1,
+    "rear_rim_y": 1.27,
+    "parts": [
+      "Plug",
+      "Stand",
+      "Tub"
+    ],
+    "plug_origin": [
+      0.18,
+      0.932,
+      -0.17
+    ],
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "sha256": "420b3ad35cc287f68502e886f0826e81f4726cb1af79036b25b08ab448ea79cd"
+  },
+  "tub_shell.glb": {
+    "status": "PASS",
+    "triangles": 3362,
+    "footprint_xz_m": [
+      1.46942,
+      1.09296
+    ],
+    "floor_y": 0.92,
+    "floor_clear_xz_m": [
+      1.08,
+      0.95
+    ],
+    "floor_samples_checked": 9,
+    "front_rim_y": 1.10073,
+    "rear_rim_y": 1.5,
+    "parts": [
+      "Plug",
+      "Stand",
+      "Tub"
+    ],
+    "plug_origin": [
+      0.18,
+      0.932,
+      -0.17
+    ],
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "sha256": "5bdbb8b486b57e5b983fe7133aab98684d66502ca57835ca59d61ed79292bbac"
+  }
+}

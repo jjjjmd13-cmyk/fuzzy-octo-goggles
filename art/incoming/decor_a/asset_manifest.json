@@ -85,23 +85,23 @@
       "stars": 1,
       "file": "tub_wood.glb",
       "preview": "tub_wood_preview.png",
-      "sha256": "104884e39236730610672f2593d4723c6079abb8762db60cba960705ac2db2af",
-      "triangles": 2928,
+      "sha256": "5a7745710bdd5d81f63b5c78954e83b5b8763f2c36216aea1ce97e381d227a08",
+      "triangles": 2748,
       "budget": 4000,
       "dimensions_m": [
-        1.6,
-        1.06,
-        1.232
+        1.44,
+        1.27,
+        1.09395
       ],
       "bounds_min_y_up": [
-        -0.800000011920929,
+        -0.7200000286102295,
         0.0,
-        -0.6159999966621399
+        -0.5469613075256348
       ],
       "bounds_max_y_up": [
-        0.800000011920929,
-        1.059999942779541,
-        0.6159999966621399
+        0.7200000286102295,
+        1.2699999809265137,
+        0.5469855070114136
       ],
       "origin": "floor",
       "parts": {
@@ -116,35 +116,44 @@
           -0.0
         ],
         "Plug": [
-          0.0,
-          0.935,
-          -0.23
+          0.18,
+          0.932,
+          -0.17
         ]
       },
-      "notes": "Stand 1.6 x 1.1 m, top Y=.9; round Tub radius .6; rear rim Y=1.06, front rim Y=1.018. Plug separate."
+      "notes": "Deep bath revision: flat interior floor Y=.92; front lip Y=1.10; side/rear Y=1.27; footprint <=1.6 x1.1m; rolled 4-6cm rim; separate Stand/Tub/red Plug.",
+      "interior_floor_y": 0.92,
+      "front_rim_y": 1.1,
+      "side_rim_y": 1.27,
+      "rear_rim_y": 1.27,
+      "interior_floor_xz_m": [
+        1.07,
+        0.96
+      ],
+      "rim_thickness_m": 0.05
     },
     {
       "category": "tub",
       "stars": 2,
       "file": "tub_claw.glb",
       "preview": "tub_claw_preview.png",
-      "sha256": "c27aac523839f196df60184b8a3cc0fed27bb573c8188d3d619954759413f29f",
-      "triangles": 2896,
+      "sha256": "420b3ad35cc287f68502e886f0826e81f4726cb1af79036b25b08ab448ea79cd",
+      "triangles": 3816,
       "budget": 4000,
       "dimensions_m": [
-        1.6,
-        1.06,
-        1.232
+        1.56,
+        1.292,
+        1.09
       ],
       "bounds_min_y_up": [
-        -0.800000011920929,
+        -0.7799999713897705,
         0.0,
-        -0.6159999966621399
+        -0.5450000166893005
       ],
       "bounds_max_y_up": [
-        0.800000011920929,
-        1.059999942779541,
-        0.6159999966621399
+        0.7799999713897705,
+        1.2920000553131104,
+        0.5450000166893005
       ],
       "origin": "floor",
       "parts": {
@@ -159,35 +168,44 @@
           -0.0
         ],
         "Plug": [
-          0.0,
-          0.935,
-          -0.23
+          0.18,
+          0.932,
+          -0.17
         ]
       },
-      "notes": "Stand 1.6 x 1.1 m, top Y=.9; round Tub radius .6; rear rim Y=1.06, front rim Y=1.018. Plug separate."
+      "notes": "Deep bath revision: flat interior floor Y=.92; front lip Y=1.10; side/rear Y=1.27; footprint <=1.6 x1.1m; rolled 4-6cm rim; separate Stand/Tub/red Plug. Four pink cat-paw legs Y=0..0.40, open space between legs; no pedestal box.",
+      "interior_floor_y": 0.92,
+      "front_rim_y": 1.1,
+      "side_rim_y": 1.27,
+      "rear_rim_y": 1.27,
+      "interior_floor_xz_m": [
+        1.1,
+        0.96
+      ],
+      "rim_thickness_m": 0.05
     },
     {
       "category": "tub",
       "stars": 3,
       "file": "tub_shell.glb",
       "preview": "tub_shell_preview.png",
-      "sha256": "532d40b4f109fe6d8f5ddc2cc0b88793f7d8a994a62cfd5ca4da1c7b9925f30d",
-      "triangles": 2088,
+      "sha256": "5bdbb8b486b57e5b983fe7133aab98684d66502ca57835ca59d61ed79292bbac",
+      "triangles": 3362,
       "budget": 4000,
       "dimensions_m": [
-        1.6,
-        1.06,
-        1.232
+        1.46942,
+        1.5,
+        1.09296
       ],
       "bounds_min_y_up": [
-        -0.800000011920929,
+        -0.7347120046615601,
         0.0,
-        -0.6159999966621399
+        -0.5464800000190735
       ],
       "bounds_max_y_up": [
-        0.800000011920929,
-        1.059999942779541,
-        0.6159999966621399
+        0.7347120046615601,
+        1.5,
+        0.5464800000190735
       ],
       "origin": "floor",
       "parts": {
@@ -202,12 +220,21 @@
           -0.0
         ],
         "Plug": [
-          0.0,
-          0.935,
-          -0.23
+          0.18,
+          0.932,
+          -0.17
         ]
       },
-      "notes": "Stand 1.6 x 1.1 m, top Y=.9; round Tub radius .6; rear rim Y=1.06, front rim Y=1.018. Plug separate."
+      "notes": "Deep bath revision: flat interior floor Y=.92; front lip Y=1.10; side/rear Y=1.27 (rear shell fan peaks at Y=1.50); footprint <=1.6 x1.1m; rolled 4-6cm rim; separate Stand/Tub/red Plug.",
+      "interior_floor_y": 0.92,
+      "front_rim_y": 1.1,
+      "side_rim_y": 1.27,
+      "rear_rim_y": 1.5,
+      "interior_floor_xz_m": [
+        1.08,
+        0.95
+      ],
+      "rim_thickness_m": 0.05
     },
     {
       "category": "shelf",
@@ -927,5 +954,16 @@
       },
       "notes": "Rainbow bubble cloud, original small rubber duck, gold sparkles; back Z=0."
     }
-  ]
+  ],
+  "tubs_revision": {
+    "date": "2026-11-04",
+    "standing_floor_y_m": 0.92,
+    "comparison": "tubs_comparison.png",
+    "reference_box_dimensions_xyz_m": [
+      0.6,
+      0.35,
+      0.28
+    ],
+    "validation": "validation_tubs.json"
+  }
 }

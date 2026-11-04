@@ -130,19 +130,19 @@
       "file": "tub_claw.glb",
       "meshes": 3,
       "status": "PASS",
-      "surfaces": 7
+      "surfaces": 6
     },
     {
       "file": "tub_shell.glb",
       "meshes": 3,
       "status": "PASS",
-      "surfaces": 8
+      "surfaces": 7
     },
     {
       "file": "tub_wood.glb",
       "meshes": 3,
       "status": "PASS",
-      "surfaces": 7
+      "surfaces": 8
     }
   ],
   "godot": "4.4.1-stable (official)",
