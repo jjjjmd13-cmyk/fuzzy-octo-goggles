@@ -1,0 +1,321 @@
+[
+  {
+    "file": "assets/models/tools/brush.glb",
+    "result": "PASS",
+    "triangles": 1100,
+    "materials": 3,
+    "dimensions_m": [
+      0.081319,
+      0.2,
+      0.061538
+    ],
+    "bounds_m": [
+      [
+        -0.040659,
+        -0.081319,
+        -0.041758
+      ],
+      [
+        0.040659,
+        0.118681,
+        0.01978
+      ]
+    ],
+    "embedded_pngs": [
+      [
+        64,
+        64
+      ]
+    ],
+    "joints": {}
+  },
+  {
+    "file": "assets/models/tools/brush_slicker.glb",
+    "result": "PASS",
+    "triangles": 1824,
+    "materials": 4,
+    "dimensions_m": [
+      0.116056,
+      0.2,
+      0.059718
+    ],
+    "bounds_m": [
+      [
+        -0.058028,
+        -0.080563,
+        -0.039437
+      ],
+      [
+        0.058028,
+        0.119437,
+        0.020282
+      ]
+    ],
+    "embedded_pngs": [
+      [
+        64,
+        64
+      ]
+    ],
+    "joints": {}
+  },
+  {
+    "file": "assets/models/tools/brush_electric.glb",
+    "result": "PASS",
+    "triangles": 1684,
+    "materials": 6,
+    "dimensions_m": [
+      0.10392,
+      0.22,
+      0.071859
+    ],
+    "bounds_m": [
+      [
+        -0.05196,
+        -0.088442,
+        -0.05196
+      ],
+      [
+        0.05196,
+        0.131558,
+        0.019899
+      ]
+    ],
+    "embedded_pngs": [
+      [
+        64,
+        64
+      ]
+    ],
+    "joints": {
+      "Head": {
+        "pivot_m": [
+          0.0,
+          0.079598,
+          -0.011055
+        ],
+        "axis": "Z",
+        "motion": "rotate"
+      }
+    }
+  },
+  {
+    "file": "assets/models/tools/shower_wide.glb",
+    "result": "PASS",
+    "triangles": 744,
+    "materials": 3,
+    "dimensions_m": [
+      0.119433,
+      0.28,
+      0.0471
+    ],
+    "bounds_m": [
+      [
+        -0.059717,
+        -0.133598,
+        -0.027932
+      ],
+      [
+        0.059717,
+        0.146402,
+        0.019168
+      ]
+    ],
+    "embedded_pngs": [
+      [
+        64,
+        64
+      ]
+    ],
+    "joints": {}
+  },
+  {
+    "file": "assets/models/tools/shower_rain.glb",
+    "result": "PASS",
+    "triangles": 1164,
+    "materials": 4,
+    "dimensions_m": [
+      0.174652,
+      0.32,
+      0.049321
+    ],
+    "bounds_m": [
+      [
+        -0.087326,
+        -0.161843,
+        -0.029501
+      ],
+      [
+        0.087326,
+        0.158157,
+        0.019819
+      ]
+    ],
+    "embedded_pngs": [
+      [
+        64,
+        64
+      ]
+    ],
+    "joints": {}
+  },
+  {
+    "file": "assets/models/tools/foam_pump.glb",
+    "result": "PASS",
+    "triangles": 828,
+    "materials": 5,
+    "dimensions_m": [
+      0.084771,
+      0.22,
+      0.115046
+    ],
+    "bounds_m": [
+      [
+        -0.042385,
+        -0.095872,
+        -0.072661
+      ],
+      [
+        0.042385,
+        0.124128,
+        0.042385
+      ]
+    ],
+    "embedded_pngs": [
+      [
+        64,
+        64
+      ]
+    ],
+    "joints": {
+      "Pump": {
+        "pivot_m": [
+          0.0,
+          0.080734,
+          -0.0
+        ],
+        "axis": "Y",
+        "motion": "translate"
+      }
+    }
+  },
+  {
+    "file": "assets/models/tools/foam_cannon.glb",
+    "result": "PASS",
+    "triangles": 1536,
+    "materials": 6,
+    "dimensions_m": [
+      0.111315,
+      0.347859,
+      0.35
+    ],
+    "bounds_m": [
+      [
+        -0.055657,
+        -0.074924,
+        -0.25581
+      ],
+      [
+        0.055657,
+        0.272936,
+        0.09419
+      ]
+    ],
+    "embedded_pngs": [
+      [
+        64,
+        64
+      ]
+    ],
+    "joints": {}
+  },
+  {
+    "file": "assets/models/tools/dryer_big.glb",
+    "result": "PASS",
+    "triangles": 2646,
+    "materials": 7,
+    "dimensions_m": [
+      0.169576,
+      0.281297,
+      0.4
+    ],
+    "bounds_m": [
+      [
+        -0.084788,
+        -0.084788,
+        -0.286284
+      ],
+      [
+        0.084788,
+        0.196509,
+        0.113716
+      ]
+    ],
+    "embedded_pngs": [
+      [
+        64,
+        64
+      ]
+    ],
+    "joints": {
+      "Fan": {
+        "pivot_m": [
+          0.0,
+          0.111721,
+          -0.247382
+        ],
+        "axis": "Z",
+        "motion": "rotate"
+      }
+    }
+  },
+  {
+    "file": "assets/models/tools/scissors.glb",
+    "result": "PASS",
+    "triangles": 1120,
+    "materials": 3,
+    "dimensions_m": [
+      0.095923,
+      0.022594,
+      0.18
+    ],
+    "bounds_m": [
+      [
+        -0.047961,
+        -0.011297,
+        -0.152142
+      ],
+      [
+        0.047961,
+        0.011297,
+        0.027858
+      ]
+    ],
+    "embedded_pngs": [
+      [
+        64,
+        64
+      ]
+    ],
+    "joints": {
+      "Blade_L": {
+        "pivot_m": [
+          0.0,
+          0.0,
+          -0.054432
+        ],
+        "axis": "Y",
+        "motion": "rotate"
+      },
+      "Blade_R": {
+        "pivot_m": [
+          0.0,
+          0.0,
+          -0.054432
+        ],
+        "axis": "Y",
+        "motion": "rotate"
+      }
+    }
+  }
+]
