@@ -178,7 +178,7 @@ V3 `proto_cat_*`·`proto_trait_*`·`proto_ticklish_*` 를 출발점으로, V4 �
 | `v4_free_play_guest_every` | 36 | s | | 엔딩 뒤 자유 영업 손님 간격 |
 | `v4_hurry_from_day` | 2 | 일 | | 급한 손님이 나오기 시작하는 날 (1일차는 보통·느긋만, GDD_V4 '압박' 절) |
 | `v4_scissors_from_day` | 4 | 일 | | 가게에 가위가 보이기 시작하는 날 |
-| `v4_seats_by_day` | [3, 9, 4] | [개, 일, 개] | | 대기 의자 3개 → 9일차부터 4개 |
+| `v4_extra_seat_day` | 9 | 일 | | 대기 의자 4번째가 놓이는 날 (그 전 3개) |
 | `v4_festival_tip_mult` | 1.5 | 배 | | 축제 날 팁 배수 |
 | `v4_festival_invite_day` | 12 | 일 | | 우편함에 축제 초대장이 오는 날 |
 | `v4_ending_stars` | [12, 3, 20] | [장, 개, ★] | | 엔딩 별 기준: 금색 사진 수 · 5단계 도구 수 · 아늑함 ★ |
