@@ -31,14 +31,38 @@ var _right_rest := Transform3D.IDENTITY
 var _left_rest := Transform3D.IDENTITY
 
 
+## 도구 모형 보정 표 (한 곳): 받은 GLB 가 손에 들었을 때 너무 크거나 방향이 다르면 여기서만 맞춤.
+## scale = 크기 배수, turn = Y 축 회전(도). 모형 루트에 넣으므로 손·선반 모두 같이 바뀜.
+## (2026-11-04 대표 결정: ChatGPT 재납품 없이 개발팀 보정값으로. 사진 docs/dev/screenshots/v4_tools_held.jpg)
+const MODEL_FIX := {
+	# 펌프·스펀지: 라벨이 사용자 쪽으로 (예전엔 샴푸병 규칙으로 모든 거품 도구를 180° 돌렸음)
+	"foam_pump": {"scale": 1.0, "turn": 180.0},
+	"foam_sponge": {"scale": 1.0, "turn": 180.0},
+	# 대포: 출구가 명세대로 -Z 라 그대로 두면 앞을 봄 (샴푸병 규칙의 180° 가 대포를 뒤집고 있었음), 크기만 줄임
+	"foam_cannon": {"scale": 0.7, "turn": 0.0},
+	"foam_cloud": {"scale": 0.7, "turn": 0.0},
+	"dryer_big": {"scale": 0.65, "turn": 0.0},
+	"dryer_twin": {"scale": 0.65, "turn": 0.0},
+	"dryer_turbo": {"scale": 0.65, "turn": 0.0},
+	"dryer_tornado": {"scale": 0.65, "turn": 0.0},
+}
+
+
 static func make_model(id: String) -> Node3D:
+	var model: Node3D
 	if MODELS.has(id):
-		return (MODELS[id] as PackedScene).instantiate() as Node3D
-	# 그래픽 교체 지점: assets/models/tools/<id>.glb 가 오면 그걸 쓰고, 없으면 임시 상자 모형
-	var path := "res://assets/models/tools/%s.glb" % id
-	if ResourceLoader.exists(path):
-		return (load(path) as PackedScene).instantiate() as Node3D
-	return _placeholder(id)
+		model = (MODELS[id] as PackedScene).instantiate() as Node3D
+	else:
+		# 그래픽 교체 지점: assets/models/tools/<id>.glb 가 오면 그걸 쓰고, 없으면 임시 상자 모형
+		var path := "res://assets/models/tools/%s.glb" % id
+		if ResourceLoader.exists(path):
+			model = (load(path) as PackedScene).instantiate() as Node3D
+		else:
+			model = _placeholder(id)
+	if MODEL_FIX.has(id):
+		model.scale *= MODEL_FIX[id].scale
+		model.rotate_y(deg_to_rad(MODEL_FIX[id].turn))
+	return model
 
 
 ## 임시 모형 (빗: 나무 손잡이 + 흰 빗살 머리 / 가위: 분홍 손잡이 + 은색 날 둘). 쥐는 곳이 원점, 앞이 -Z
@@ -100,7 +124,8 @@ func setup(id: String, pick_delay := 0.0, model_id := "") -> void:
 	left_wrist.position = Vector3(-0.47, -0.07, 0.03)
 	left_wrist.rotation = Vector3(0.15, -0.25, 0.12)
 	if id == "shampoo":
-		model.rotation.y = PI # 발바닥 라벨이 사용자에게 보이게
+		if model_id.is_empty() or model_id == "shampoo":
+			model.rotate_y(PI) # 기본 샴푸병: 발바닥 라벨이 사용자에게 보이게 (다른 단계 모형은 MODEL_FIX 표로)
 		right_wrist.position.y = -0.095
 	elif id == "towel":
 		_rest = Vector3(0.10, -0.30, -0.57)
