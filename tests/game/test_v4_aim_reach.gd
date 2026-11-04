@@ -52,7 +52,7 @@ func run_test() -> void:
 		var lumps: int = shop.tangles.count()
 		var tries := 0
 		while shop.tangles.count() > 0 and tries < lumps + 3:
-			await _aim_and_hold(func() -> PackedVector3Array: return shop.tangles.world_positions())
+			await _aim_and_hold(func() -> PackedVector3Array: return shop.tangles.world_positions(), true)
 			tries += 1
 		check_eq(shop.tangles.count(), 0, "빗질 %d번째: 뭉치 %d 개가 모두 풀림" % [round + 1, lumps])
 		shop.done = true
@@ -60,8 +60,8 @@ func run_test() -> void:
 
 
 ## targets() 의 첫 목표 쪽에서 강아지를 보는 자리(몸 중심에서 1.2 m, 눈높이)에 서서, 그 목표의 지금 자리를
-## 가운데 점으로 계속 따라가며 1초 누름 (목표가 잘려 없어지면 멈춤). 겨눈 상황 글을 돌려줌
-func _aim_and_hold(targets: Callable) -> String:
+## 가운데 점으로 계속 따라가며 1초 누름 (stroke 면 위 → 아래로 쓸기) (목표가 잘려 없어지면 멈춤). 겨눈 상황 글을 돌려줌
+func _aim_and_hold(targets: Callable, stroke := false) -> String:
 	var points: PackedVector3Array = targets.call()
 	if points.is_empty():
 		return ""
@@ -91,7 +91,8 @@ func _aim_and_hold(targets: Callable) -> String:
 		if nearest.distance_to(target) > 0.2:
 			break
 		target = nearest
-		shop.player.camera.look_at(target)
+		# 빗질은 뭉치에 대고 위 → 아래로 쓸기 (가운데 점을 10 cm 씩 내림)
+		shop.player.camera.look_at(target + (Vector3(0, 0.05 - (i % 10) * 0.01, 0) if stroke else Vector3.ZERO))
 		shop._process(STEP)
 		await get_tree().physics_frame
 	shop.using = false

@@ -115,9 +115,10 @@ func run_test() -> void:
 	check_eq(shop.stage_tool(), "brush", "빗질: 바로 빗질 단계")
 	check(shop.progress().tangles > 0, "엉킨 뭉치가 보임 (%d)" % shop.progress().tangles)
 	shop.pick("brush")
+	# 빗질은 뭉치에 대고 위 → 아래로 쓸기 (대고만 있으면 아주 느림)
 	for pos in shop.tangles.world_positions():
 		for k in 30:
-			shop.use_tool_at(pos, 1.0 / 30.0)
+			shop.use_tool_at(pos + Vector3(0, 0.05 - (k % 10) * 0.01, 0), 1.0 / 30.0)
 	check(shop.done, "뭉치를 다 풀면 끝 (%s)" % str(shop.progress()))
 	quick.queue_free()
 	await get_tree().process_frame
