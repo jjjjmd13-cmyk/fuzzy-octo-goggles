@@ -22,6 +22,7 @@ const V4Save := preload("res://scripts/v4/v4_save.gd")
 const FpOutside := preload("res://scripts/v4/fp_outside.gd")
 const FpParcels := preload("res://scripts/v4/fp_parcels.gd")
 const FpDecor := preload("res://scripts/v4/fp_decor.gd")
+const FpAnimals := preload("res://scripts/v4/fp_animals.gd")
 ## 가게 물건: 이름, 상자 크기 (도구 단계 올리기는 "tool:<도구>")
 const SUPPLIES := {
 	"shampoo_bottle": {"name": "샴푸 1병", "size": "small"},
@@ -146,6 +147,26 @@ var _shake_dir := 0.0
 var _shake_left := 0.0
 ## 대기 강아지 킁킁 다음 검사까지 (s)
 var _sniff_left := 3.0
+## 목욕통의 동물 ("dog" / "cat") 과 동물 성격 ("" / ticklish / timid / dandy, GDD_V4 '고양이·동물 성격')
+var animal := "dog"
+var animal_trait := ""
+## 기분 점수: 싫어함 −1 (바닥 v4_mood_floor 쪽으로, '기분·반응' 에서 좋아함 +1 이 더해짐). 얼굴은 싫어함 수로
+var mood_score := 0
+## 규칙마다 싫어함 수·마지막 시각 (같은 규칙 v4_dislike_cooldown 초에 한 번, 손님마다 최대)
+var _rule_count := {}
+var _rule_last := {}
+## 고양이: 처음 물이 닿은 시각 (_t, −1 = 아직), 젖은 시간 검사를 했나
+var _wet_since := -1.0
+var _wet_checked := false
+## 간지럼쟁이: 아래쪽 한 곳에 머문 곳·시간
+var _tickle_at: Variant = null
+var _tickle_time := 0.0
+## 한 번이라도 나온 고양이·성격 (처음이면 가운데 안내 카드, 저장됨)
+var seen_animals: Array = []
+var _card := ""
+var _card_left := 0.0
+## 머리 위 💢 (싫어함 표시)
+var _anger: Label3D
 ## 지금 강아지는 샴푸 없이 씻음 (요금 v4_no_shampoo_price, 팁 0)
 var no_shampoo := false
 ## 오늘 번 돈 = 요금 + 팁
@@ -275,6 +296,9 @@ func _ready() -> void:
 	# 이미 매트에 도착한 상자 (이어하기)
 	parcels_view.place(parcels.filter(func(box: Dictionary) -> bool: return box.get("arrived", true)))
 	# 빠른 확인은 바로 영업 (단, [아침·가게 밖]·[택배] 는 아침부터)
+	if quick_feature == "animals":
+		# 빠른 확인 [고양이·성격]: 고양이 → 간지럼쟁이 → 겁쟁이 → 멋쟁이 고양이
+		guests.quick_animals = [{"animal": "cat", "trait": ""}, {"animal": "dog", "trait": "ticklish"}, {"animal": "dog", "trait": "timid"}, {"animal": "cat", "trait": "dandy"}]
 	if quick_feature == "parcels":
 		_quick_parcels()
 	elif quick_feature == "decor":
@@ -548,6 +572,7 @@ func save_state(next_day: int) -> Dictionary:
 		"tool_level": tool_level.duplicate(),
 		"owns_scissors": owns_scissors,
 		"owns_cart": owns_cart,
+		"seen_animals": seen_animals.duplicate(),
 		"shampoo_left": shampoo_left,
 		"brush_used": brush_used,
 		"decor": decor.duplicate(true),
@@ -558,6 +583,8 @@ func save_state(next_day: int) -> Dictionary:
 ## 저장 Dictionary (V4Save.read / normalize 모양) → 가게에 적용: 그날 처음부터
 func apply_state(data: Dictionary) -> void:
 	day = data.next_day
+	guests.day = day
+	seen_animals = data.get("seen_animals", []).duplicate()
 	money = data.money
 	for tool_id in data.tool_level:
 		if tool_level.has(tool_id) and tool_level[tool_id] != data.tool_level[tool_id]:
@@ -635,6 +662,106 @@ func _quick_save_round_trip() -> void:
 	apply_state(loaded)
 
 
+## 목욕통에 올 동물·성격을 정함 (모형은 다음 new_dog 에서). 기분·규칙 셈을 새로, 처음 나온 것이면 안내 카드
+func _set_animal(kind: String, trait_id: String) -> void:
+	animal = kind
+	animal_trait = trait_id
+	dog.model_scene = FpAnimals.scene_of(animal)
+	mood_score = 0
+	_rule_count.clear()
+	_rule_last.clear()
+	_wet_since = -1.0
+	_wet_checked = false
+	_tickle_at = null
+	_tickle_time = 0.0
+	var news: Array = []
+	if animal == "cat" and not seen_animals.has("cat"):
+		news.append(FpAnimals.CAT_INTRO % int(Tuning.data.v4_cat_price))
+		seen_animals.append("cat")
+	if FpAnimals.TRAITS.has(trait_id) and not seen_animals.has(trait_id):
+		news.append(FpAnimals.TRAITS[trait_id].intro)
+		seen_animals.append(trait_id)
+	if not news.is_empty():
+		_card = "\n".join(news)
+		_card_left = 8.0
+
+
+## 지금 싫어함 수 (기분 점수의 음수 쪽)
+func dislikes() -> int:
+	return maxi(-mood_score, 0)
+
+
+## 싫어함 1: 짧은 반응 + 머리 위 💢. 같은 규칙은 쉬는 시간·최대가 있음 (넘으면 반응만). 씻기는 안 멈춤
+func dislike(rule: String, max_count: int = -1, reaction := "") -> bool:
+	if max_count < 0:
+		max_count = Tuning.data.v4_dislike_max_per_rule
+	if not reaction.is_empty():
+		dog.react(reaction)
+	if _t - _rule_last.get(rule, -999.0) < Tuning.data.v4_dislike_cooldown:
+		return false
+	_rule_last[rule] = _t
+	if _rule_count.get(rule, 0) >= max_count:
+		return false
+	_rule_count[rule] = _rule_count.get(rule, 0) + 1
+	mood_score = maxi(mood_score - 1, -4)
+	dog.react("set_mood", 0)
+	sfx.play("huff")
+	_show_anger()
+	return true
+
+
+func _show_anger() -> void:
+	if _anger == null:
+		_anger = Label3D.new()
+		_anger.name = "Anger"
+		_anger.text = "💢"
+		_anger.font_size = 64
+		_anger.outline_size = 12
+		_anger.modulate = Color(1.0, 0.3, 0.3)
+		_anger.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		_anger.no_depth_test = true
+		add_child(_anger)
+	_anger.global_position = dog.model.to_global(dog._body_center()) + Vector3(0, 0.55, 0)
+	_anger.visible = true
+	_anger.set_meta("left", 0.5)
+
+
+## 고양이·성격 규칙 (도구를 대는 동안). point = 겨눈 곳
+func _check_animal_rules(tool_id: String, point: Vector3, delta: float) -> void:
+	var local := dog.to_model(point)
+	var face: Vector3 = dog.model.get("face_center") if dog.model.get("face_center") != null else Vector3(0, 0.5, 0.25)
+	if animal == "cat" and tool_id == "shower":
+		if _wet_since < 0.0:
+			_wet_since = _t
+		# 머리 (목 위) 에 물: 한 손님에 v4_cat_head_water_max 번, 그 뒤엔 "냥!" 만
+		if local.y >= face.y - 0.1:
+			if dislike("cat_head", Tuning.data.v4_cat_head_water_max, "shake"):
+				_show_hint("냥! (머리에 물은 싫어요)", 1.5)
+	if animal_trait == "timid" and (tool_id == "shower" or tool_id == "dryer"):
+		if local.distance_to(face) <= Tuning.data.v4_timid_face_radius:
+			if dislike("timid_face", -1, "flap_cheeks"):
+				_show_hint("부르르… (얼굴은 무서워요)", 1.5)
+	if animal_trait == "ticklish" and (tool_id == "shampoo" or tool_id == "towel"):
+		_tickle(point, local, delta)
+
+
+## 간지럼쟁이: 몸 아래쪽 (배·발) 한 곳에 v4_ticklish_time 초 넘게 머물면 싫어함
+func _tickle(point: Vector3, local: Vector3, delta: float) -> void:
+	var center := dog._body_center()
+	if local.y > center.y - 0.04:
+		_tickle_at = null
+		_tickle_time = 0.0
+		return
+	if _tickle_at == null or (_tickle_at as Vector3).distance_to(point) > Tuning.data.v4_ticklish_radius:
+		_tickle_at = point
+		_tickle_time = 0.0
+	_tickle_time += delta
+	if _tickle_time > Tuning.data.v4_ticklish_time:
+		_tickle_time = 0.0
+		if dislike("tickle", -1, "wiggle_legs"):
+			_show_hint("킥킥! (배·발은 짧게)", 1.5)
+
+
 ## 새 강아지 (진흙 무늬 무작위)
 func new_dog() -> void:
 	_dogs += 1
@@ -707,6 +834,7 @@ func interact_guest(owner: Node3D) -> void:
 		return
 	_taken = guests.take(owner)
 	if not _taken.is_empty():
+		_set_animal(_taken.get("animal", "dog"), _taken.get("trait", ""))
 		new_dog()
 		# 샴푸가 없으면 거품 단계를 건너뛰고 씻김 (막지 않음, 요금이 거의 없음 — 사람 대표 결정)
 		no_shampoo = shampoo_left < 0.01
@@ -717,22 +845,24 @@ func interact_guest(owner: Node3D) -> void:
 
 ## 다 씻은 강아지를 주인에게: 요금 + 기분 팁 + 빠른 팁 (TUNING_V4 3장), 주인은 기뻐하며 떠남
 func give_back() -> void:
-	var fee: int = Tuning.data.v4_price_wash
-	# 기분: V4 에는 아직 벌점이 없어서 다 씻으면 😊
-	var tip: int = Tuning.data.v4_tip_mood[2] + fast_tip(_taken.get("kind", "normal"), guests.elapsed - _taken.get("arrived", guests.elapsed))
+	var base: int = Tuning.data.v4_cat_price if animal == "cat" else Tuning.data.v4_price_wash
+	var fee: int = base
+	# 기분: 싫어함 수 → 얼굴 (0 😊 · 1~2 😐 · 3+ 😣), 성격 없는 강아지는 늘 😊
+	var face := FpAnimals.face_of(dislikes())
+	var tip: int = Tuning.data.v4_tip_mood[face] + fast_tip(_taken.get("kind", "normal"), guests.elapsed - _taken.get("arrived", guests.elapsed))
 	if not trim_request.is_empty():
 		fee += Tuning.data.v4_price_trim
 		tip += trim_tip(trim.match_score())
 	var say := "+%d"
 	if no_shampoo:
-		fee += Tuning.data.v4_no_shampoo_price - Tuning.data.v4_price_wash
+		fee += Tuning.data.v4_no_shampoo_price - base
 		tip = 0
 		say = "+%d · 샴푸 냄새가 안 나요…"
 		no_shampoo = false
 	fees += fee
 	tips += tip
 	money += fee + tip
-	guests.return_current(say % (fee + tip))
+	guests.return_current(say % (fee + tip), face)
 	sfx.play("coin")
 	_clear_tub()
 	_taken = {}
@@ -1075,6 +1205,7 @@ func start_next_day() -> void:
 	day_over = false
 	fees = 0
 	tips = 0
+	guests.day = day
 	guests.start_day()
 	_clear_tub()
 	_start_morning()
@@ -1184,6 +1315,8 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 	var wet_here := dog.mask.value_at("wet", dir)
 	if not _hand_tracked:
 		_track_hand(point)
+	if has_dog:
+		_check_animal_rules(held, point, delta)
 	var radius := brush_radius(point) * size_mult(held) * (FINAL_RADIUS if is_final(held) else 1.0)
 	var speed := speed_mult(held)
 	var stage := ""
@@ -1300,6 +1433,9 @@ func tap_at(point: Vector3) -> void:
 	if stage_index < STAGES.size() and STAGES[stage_index].id != "towel":
 		_show_hint("헹굼까지 끝난 뒤에 수건으로 톡톡 닦아요", 1.5)
 		return
+	if animal_trait == "ticklish":
+		# 톡 한 번 = 한 곳에 0.3초 머문 셈
+		_tickle(point, dog.to_model(point), 0.3)
 	var radius := brush_radius(point) * size_mult("towel")
 	var amount: float = Tuning.data.v4_rate_towel_tap * speed_mult("towel")
 	dog.paint("towel", point, radius, amount)
@@ -1379,6 +1515,16 @@ func _finish_stage(stage: Dictionary) -> void:
 		_use_shampoo()
 	elif stage.id == "brush" and brush_life() > 0:
 		brush_used += 1
+	if stage.id == "towel" and animal == "cat" and not _wet_checked:
+		_wet_checked = true
+		if _wet_since >= 0.0 and _t - _wet_since > Tuning.data.v4_cat_wet_limit:
+			if dislike("cat_wet", 1, "shake"):
+				_show_hint("냥… 너무 오래 젖어 있었어요 (%d초 넘음)" % int(Tuning.data.v4_cat_wet_limit), 2.5)
+	if stage.id == "brush" and animal_trait == "dandy":
+		# 멋쟁이: 빗질을 끝까지 → 싫어함 하나 지움 + 뽐내기
+		mood_score = mini(mood_score + Tuning.data.v4_dandy_forgive, 0) if mood_score < 0 else mood_score
+		dog.react("jump")
+		_banner = "반짝! 멋쟁이가 뽐내요"
 	if stage.id == "dry":
 		_spawn_tangles()
 	elif stage.id == "brush" and not trim_request.is_empty():
@@ -1402,7 +1548,7 @@ static func _amount(value: float) -> String:
 
 ## 드라이가 끝나면 엉킨 털 뭉치가 보임
 func _spawn_tangles() -> void:
-	tangles.spawn(dog.model, dog._body_center(), Tuning.data.v4_tangles, _rng, FUR_COLOR)
+	tangles.spawn(dog.model, dog._body_center(), Tuning.data.v4_cat_tangles if animal == "cat" else Tuning.data.v4_tangles, _rng, FUR_COLOR)
 
 
 ## 미용 다발을 만듦 (빗질이 끝나면, 요청 손님만)
@@ -1450,6 +1596,11 @@ func _process(delta: float) -> void:
 	_t += delta
 	_update_day(delta)
 	_update_sniff(delta)
+	_card_left = maxf(_card_left - delta, 0.0)
+	if _anger != null and _anger.visible:
+		var left: float = _anger.get_meta("left", 0.0) - delta
+		_anger.set_meta("left", left)
+		_anger.visible = left > 0.0
 	_shake_left = maxf(_shake_left - delta, 0.0)
 	if _shake_left <= 0.0:
 		_shake_flips = 0
@@ -1494,7 +1645,9 @@ func _unhandled_input(event: InputEvent) -> void:
 	if not input_enabled:
 		return
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
+		if _card_left > 0.0:
+			_card_left = 0.0
+		elif Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 		elif not carried.is_empty():
 			open_box()
@@ -1863,6 +2016,9 @@ func _draw_hud() -> void:
 		_text(font, Vector2(250, y + 18), rows[i][0], 18, false)
 	if has_dog and p.foam > 0:
 		_text(font, Vector2(20, 30 + 5 * 34 + 18), "남은 거품 %d (샤워기로 헹구기)" % p.foam, 18, false)
+	_draw_animal_box(font)
+	if _card_left > 0.0 and not _card.is_empty():
+		_draw_card(font, size)
 	if quick_dogs > 0:
 		_text(font, Vector2(size.x - 20, 40), "빠른 확인 · 강아지 %d / %d" % [guests.served, quick_dogs], 26, false, true)
 	else:
@@ -1878,6 +2034,35 @@ func _draw_hud() -> void:
 
 
 ## 미용 요청 카드: 모양 이름 + 한 줄 + 강아지 옆모습 (자를 곳은 분홍, 남길 곳은 털색). 임시 그림
+## 목욕대 위 고양이·성격 칸 (진행 막대 오른쪽): 색 점 + 한 줄 + 싫어한 횟수 점
+func _draw_animal_box(font: Font) -> void:
+	if not has_dog:
+		return
+	var line := FpAnimals.line_of(animal, animal_trait)
+	if line.is_empty():
+		return
+	var at := Vector2(420, 26)
+	var width := font.get_string_size(line, HORIZONTAL_ALIGNMENT_LEFT, -1, 18).x + 56 + 18 * dislikes()
+	_hud.draw_rect(Rect2(at, Vector2(width, 32)), Color(0, 0, 0, 0.5))
+	var color: Color = FpAnimals.TRAITS[animal_trait].color if FpAnimals.TRAITS.has(animal_trait) else Color(0.75, 0.75, 0.8)
+	_hud.draw_circle(at + Vector2(16, 16), 8.0, color)
+	_text(font, at + Vector2(32, 22), line, 18, false)
+	# 싫어한 횟수 (빨간 점)
+	for i in dislikes():
+		_hud.draw_circle(at + Vector2(width - 14 - 18 * i, 16), 6.0, Color(1.0, 0.35, 0.35))
+
+
+## 처음 나온 고양이·성격 안내 카드 (가운데, 몇 초 뒤 닫힘)
+func _draw_card(font: Font, size: Vector2) -> void:
+	var lines: PackedStringArray = _card.split("\n")
+	var height := 40.0 + 34.0 * lines.size()
+	var rect := Rect2(Vector2(size.x / 2.0 - 380, size.y * 0.28), Vector2(760, height))
+	_hud.draw_rect(rect, Color(1.0, 0.97, 0.9, 0.95))
+	_text(font, Vector2(size.x / 2.0, rect.position.y + 26), "새 손님!", 22, true)
+	for i in lines.size():
+		_hud.draw_string(font, Vector2(rect.position.x + 24, rect.position.y + 58 + 34 * i), lines[i], HORIZONTAL_ALIGNMENT_LEFT, 712, 18, Color(0.3, 0.22, 0.15))
+
+
 func _draw_trim_card(font: Font, at: Vector2) -> void:
 	var shape: Dictionary = FpTrim.SHAPES[trim_request]
 	_hud.draw_rect(Rect2(at, Vector2(250, 150)), Color(0, 0, 0, 0.5))

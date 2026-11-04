@@ -15,6 +15,7 @@ signal sniffed(owner: Node3D)
 const OWNER_SCENE := preload("res://scenes/art/sim/owner_model.tscn")
 const CHAIR_SCENE := preload("res://scenes/art/sim/chair_model.tscn")
 const DOG_SCENE := preload("res://scenes/art/sim/dog_model.tscn")
+const FpAnimals := preload("res://scripts/v4/fp_animals.gd")
 const FONT := preload("res://assets/fonts/pretendard/Pretendard-Bold.otf")
 const KINDS: Array[String] = ["hurry", "normal", "relaxed", "forever"]
 const TRIM_NAMES := {"bear": "곰돌이컷", "lion": "사자컷", "summer": "여름컷"}
@@ -50,6 +51,11 @@ var open := true
 var quick := false
 ## 미용을 요청하는 손님 비율 (가위를 사면 가게가 v4_trim_request_ratio 로 올림, 0 = 요청 없음)
 var trim_chance := 0.0
+## 오늘이 며칠째인가 (고양이·동물 성격이 열리는 날), 오늘 들어온 손님 수
+var day := 1
+var spawned_today := 0
+## 빠른 확인: 손님마다 동물·성격을 정해 둠 ([{animal, trait}], 앞에서부터)
+var quick_animals: Array = []
 ## 꾸미기 아늑함으로 늘어난 참을성 배수 (1 = 그대로)
 var patience_mult := 1.0
 ## 요청 모양 목록 (fp_trim.gd SHAPES 의 id)
@@ -84,6 +90,7 @@ func _ready() -> void:
 func start_day() -> void:
 	served = 0
 	left_count = 0
+	spawned_today = 0
 	elapsed = 0.0
 	open = true
 	_opening = Tuning.data.v4_first_guests.duplicate()
@@ -107,18 +114,26 @@ func spawn(kind := "", walk_in := false) -> void:
 	holder.name = "HeldDog"
 	holder.scale = Vector3.ONE * HELD_DOG_SCALE
 	owner.add_child(holder)
-	var held := DOG_SCENE.instantiate() as Node3D
+	# 동물·동물 성격 (고양이는 3일차부터, 성격은 2·5·7일차부터)
+	spawned_today += 1
+	var animal: Dictionary = quick_animals.pop_front() if not quick_animals.is_empty() else FpAnimals.roll(day, spawned_today, _rng)
+	var held := FpAnimals.scene_of(animal.animal).instantiate() as Node3D
 	held.set("auto_hit_shapes", false)
 	holder.add_child(held)
 	owner.holding = true
 	var icon := _make_icon(kind)
 	owner.add_child(icon)
+	# 참을성 표시 옆에 작은 성격 표시
+	var trait_icon := FpAnimals.make_icon(animal.trait)
+	trait_icon.position = Vector3(0.2, 0.0, 0.0)
+	icon.add_child(trait_icon)
 	var trim := ""
-	if trim_chance > 0.0 and _rng.randf() < trim_chance:
+	var chance := trim_chance * (Tuning.data.v4_dandy_trim_mult if animal.trait == "dandy" else 1.0)
+	if chance > 0.0 and _rng.randf() < chance:
 		trim = trim_shapes[_rng.randi() % trim_shapes.size()]
 		_add_trim_label(owner, trim)
 	_add_hit(owner)
-	guests.append({"kind": kind, "patience": patience_of(kind), "waited": 0.0, "owner": owner, "icon": icon, "arrived": elapsed, "trim": trim})
+	guests.append({"kind": kind, "patience": patience_of(kind), "waited": 0.0, "owner": owner, "icon": icon, "arrived": elapsed, "trim": trim, "animal": animal.animal, "trait": animal.trait})
 	guest_arrived.emit()
 	_seat_all()
 
@@ -153,10 +168,11 @@ func remaining(index: int) -> float:
 
 
 ## 다 씻은 강아지를 주인에게 돌려줌: 주인은 박수치며 (say: "+45" 같은 글자) 나감
-func return_current(say := "") -> void:
+## mood_level: 0 한숨 / 1 끄덕 / 2 박수 (돌려줄 때 얼굴)
+func return_current(say := "", mood_level := 2) -> void:
 	served += 1
 	if current != null:
-		_send_home(current, 2, say)
+		_send_home(current, mood_level, say)
 		current = null
 
 
@@ -186,7 +202,7 @@ func take(owner: Node3D) -> Dictionary:
 	var label := owner.get_node_or_null("TrimLabel")
 	if label != null:
 		label.queue_free()
-	return {"kind": guest.kind, "remaining": left, "arrived": guest.arrived, "trim": guest.trim}
+	return {"kind": guest.kind, "remaining": left, "arrived": guest.arrived, "trim": guest.trim, "animal": guest.animal, "trait": guest.trait}
 
 
 ## 대기열에서 몇 번째인지 (없으면 -1)
