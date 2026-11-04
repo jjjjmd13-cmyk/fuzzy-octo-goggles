@@ -1,0 +1,417 @@
+{
+  "shower_massage": {
+    "triangles": 1240,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        128,
+        128
+      ]
+    },
+    "dimensions_m": [
+      0.146939,
+      0.3,
+      0.062245
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "y",
+    "target_size_m": 0.3,
+    "joints": {
+      "Dial": {
+        "pivot_m": [
+          0.0,
+          -0.005102,
+          -0.02449
+        ],
+        "axis": "Z",
+        "motion": "rotate"
+      }
+    }
+  },
+  "shower_rainbow": {
+    "triangles": 2856,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        128,
+        128
+      ]
+    },
+    "dimensions_m": [
+      0.178996,
+      0.35,
+      0.059367
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "y",
+    "target_size_m": 0.35,
+    "joints": {
+      "Ring": {
+        "pivot_m": [
+          0.0,
+          0.103072,
+          -0.010105
+        ],
+        "axis": "Z",
+        "motion": "rotate"
+      }
+    }
+  },
+  "foam_sponge": {
+    "triangles": 644,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        128,
+        128
+      ]
+    },
+    "dimensions_m": [
+      0.15,
+      0.1,
+      0.058883
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "x",
+    "target_size_m": 0.15,
+    "joints": {}
+  },
+  "foam_cloud": {
+    "triangles": 2936,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        128,
+        128
+      ]
+    },
+    "dimensions_m": [
+      0.246518,
+      0.403591,
+      0.4
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "z",
+    "target_size_m": 0.4,
+    "joints": {
+      "Bubbles": {
+        "pivot_m": [
+          0.0,
+          0.242154,
+          -0.02727
+        ],
+        "axis": "XYZ",
+        "motion": "float"
+      }
+    }
+  },
+  "towel": {
+    "triangles": 1112,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        128,
+        128
+      ]
+    },
+    "dimensions_m": [
+      0.25,
+      0.15,
+      0.041315
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "x",
+    "target_size_m": 0.25,
+    "joints": {}
+  },
+  "towel_thick": {
+    "triangles": 1400,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        128,
+        128
+      ]
+    },
+    "dimensions_m": [
+      0.28,
+      0.18,
+      0.061015
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "x",
+    "target_size_m": 0.28,
+    "joints": {}
+  },
+  "towel_microfiber": {
+    "triangles": 1790,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        128,
+        128
+      ]
+    },
+    "dimensions_m": [
+      0.28,
+      0.18,
+      0.057445
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "x",
+    "target_size_m": 0.28,
+    "joints": {}
+  },
+  "towel_mitt": {
+    "triangles": 940,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        128,
+        128
+      ]
+    },
+    "dimensions_m": [
+      0.152343,
+      0.2,
+      0.071098
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "y",
+    "target_size_m": 0.2,
+    "joints": {}
+  },
+  "towel_cloud": {
+    "triangles": 932,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        128,
+        128
+      ]
+    },
+    "dimensions_m": [
+      0.3,
+      0.189,
+      0.0645
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "x",
+    "target_size_m": 0.3,
+    "joints": {}
+  },
+  "dryer_twin": {
+    "triangles": 1820,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        128,
+        128
+      ]
+    },
+    "dimensions_m": [
+      0.209174,
+      0.253422,
+      0.4
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "z",
+    "target_size_m": 0.4,
+    "joints": {
+      "Fan_L": {
+        "pivot_m": [
+          -0.052293,
+          0.115649,
+          -0.247388
+        ],
+        "axis": "Z",
+        "motion": "rotate"
+      },
+      "Fan_R": {
+        "pivot_m": [
+          0.052293,
+          0.115649,
+          -0.247388
+        ],
+        "axis": "Z",
+        "motion": "rotate"
+      }
+    }
+  },
+  "dryer_turbo": {
+    "triangles": 2054,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        128,
+        128
+      ]
+    },
+    "dimensions_m": [
+      0.181694,
+      0.30349,
+      0.42
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "z",
+    "target_size_m": 0.42,
+    "joints": {
+      "Fan": {
+        "pivot_m": [
+          0.0,
+          0.122793,
+          -0.262558
+        ],
+        "axis": "Z",
+        "motion": "rotate"
+      }
+    }
+  },
+  "dryer_tornado": {
+    "triangles": 2596,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        128,
+        128
+      ]
+    },
+    "dimensions_m": [
+      0.196968,
+      0.327407,
+      0.45
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "z",
+    "target_size_m": 0.45,
+    "joints": {
+      "Spiral": {
+        "pivot_m": [
+          0.0,
+          0.130263,
+          -0.277303
+        ],
+        "axis": "Z",
+        "motion": "rotate"
+      }
+    }
+  },
+  "brush_twin": {
+    "triangles": 2252,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        128,
+        128
+      ]
+    },
+    "dimensions_m": [
+      0.091461,
+      0.22,
+      0.091461
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "y",
+    "target_size_m": 0.22,
+    "joints": {}
+  },
+  "brush_sparkle": {
+    "triangles": 2464,
+    "texture": {
+      "embedded": true,
+      "mimeType": "image/png",
+      "size": [
+        128,
+        128
+      ]
+    },
+    "dimensions_m": [
+      0.104328,
+      0.25,
+      0.066208
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "size_axis": "y",
+    "target_size_m": 0.25,
+    "joints": {
+      "Head": {
+        "pivot_m": [
+          0.0,
+          0.090284,
+          -0.008025
+        ],
+        "axis": "Z",
+        "motion": "rotate"
+      }
+    }
+  }
+}
