@@ -83,14 +83,40 @@ static func line_of(animal: String, trait_id: String) -> String:
 	return " · ".join(parts)
 
 
-## 싫어함 수 → 얼굴 (2 😊 / 1 😐 / 0 😣, v4_tip_mood 순서)
-static func face_of(dislikes: int) -> int:
-	var at: PackedInt32Array = Tuning.data.v4_dislike_mood_at
-	if dislikes >= at[1]:
-		return 0
-	if dislikes >= at[0]:
-		return 1
-	return 2
+## 기분 점수 → 얼굴 (0 😣 · 1 😐 · 2 😊 · 3 🤩, v4_tip_mood4 순서)
+static func face_of(score: int) -> int:
+	var at: PackedInt32Array = Tuning.data.v4_mood_at
+	var face := 0
+	for i in at.size():
+		if score >= at[i]:
+			face = i + 1
+	return face
+
+
+## 얼굴 → 모형 표정 (모형은 0·1·2 세 단계, 🤩 은 😊 와 같은 표정)
+static func model_mood(face: int) -> int:
+	return mini(face, 2)
+
+
+## 돌려줄 때 주인 한마디 (GDD_V4 '반응')
+const FACE_SAY := ["다음엔 더 잘 부탁해요", "음, 괜찮네요", "고마워요!", "와, 반짝반짝해!"]
+const FACE_ICON := ["😣", "😐", "😊", "🤩"]
+
+
+## 좋아하는 곳 (모형 기준): 몸·얼굴 가운데에서 떨어진 자리. 턱 밑 · 귀 뒤 · 등 · 엉덩이
+static func fav_point(spot: String, body: Vector3, face: Vector3) -> Vector3:
+	match spot:
+		"chin":
+			return face + Vector3(0, -0.09, -0.03)
+		"ear_back":
+			return face + Vector3(0, 0.08, -0.12)
+		"back":
+			return body + Vector3(0, 0.13, -0.02)
+		_:
+			return body + Vector3(0, 0.06, -0.2)
+
+
+const FAV_NAMES := {"chin": "턱 밑", "ear_back": "귀 뒤", "back": "등", "rump": "엉덩이"}
 
 
 ## 머리 위 성격 표시 (임시 도형: 깃털 = 길쭉한 흰 잎, 물방울 = 파란 방울, 반짝 = 노란 별)
