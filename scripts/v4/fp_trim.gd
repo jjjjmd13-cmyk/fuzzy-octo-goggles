@@ -49,21 +49,25 @@ func spawn(shape_id: String, dog_model: Node3D, center: Vector3, rng: RandomNumb
 			var hit := space.intersect_ray(query)
 			if hit.is_empty():
 				continue
-			var local := to_local(hit.position)
-			if _too_close(local):
-				continue
-			# 자를 곳은 요청 카드처럼 분홍빛, 남길 곳은 털색보다 조금 진하게 (흰 털 위에서도 보이게)
-			var wanted: bool = zone in cut
-			var tuft := make_tuft(color.lerp(Color(1.0, 0.55, 0.7), 0.5) if wanted else color.darkened(0.2), rng)
-			add_child(tuft)
-			tuft.position = local
-			# 다발이 몸 바깥으로 뻗게 (+Y 를 몸 중심에서 나가는 쪽으로)
-			tuft.quaternion = Quaternion(Vector3.UP, (local - center).normalized())
-			tuft.set_meta("zone", zone)
-			tuft.set_meta("wanted", wanted)
-			_tufts.append(tuft)
-			_left.append(1.0)
-			placed += 1
+			if _place(zone, to_local(hit.position), center, cut, color, rng):
+				placed += 1
+	# 강아지가 몸짓하는 중이면 어떤 부위는 광선이 빗나가 모자랄 수 있음 → 몸 전체에서 채우고 부위는 가까운 쪽으로
+	var want := 0
+	for zone in ZONES:
+		want += ZONES[zone].count
+	for attempt in want * 20:
+		if _tufts.size() >= want:
+			break
+		var dir := Vector3(rng.randf_range(-1, 1), rng.randf_range(-0.4, 1), rng.randf_range(-1, 1)).normalized()
+		var query := PhysicsRayQueryParameters3D.create(dog_model.to_global(center + dir * 1.5), dog_model.to_global(center), DOG_LAYER)
+		var hit := space.intersect_ray(query)
+		if hit.is_empty():
+			continue
+		var nearest := ""
+		for zone in ZONES:
+			if nearest.is_empty() or dir.dot(ZONES[zone].dir.normalized()) > dir.dot(ZONES[nearest].dir.normalized()):
+				nearest = zone
+		_place(nearest, to_local(hit.position), center, cut, color, rng)
 	_wanted_total = 0
 	for tuft in _tufts:
 		if tuft.get_meta("wanted"):
@@ -149,6 +153,24 @@ static func make_tuft(color: Color, rng: RandomNumberGenerator) -> MeshInstance3
 		piece.rotation = Vector3(rng.randf_range(-0.5, 0.5), 0, rng.randf_range(-0.5, 0.5))
 		root.add_child(piece)
 	return root
+
+
+## 다발 하나 놓기 (다른 다발과 너무 가까우면 안 놓고 false)
+func _place(zone: String, local: Vector3, center: Vector3, cut: Array, color: Color, rng: RandomNumberGenerator) -> bool:
+	if _too_close(local):
+		return false
+	# 자를 곳은 요청 카드처럼 분홍빛, 남길 곳은 털색보다 조금 진하게 (흰 털 위에서도 보이게)
+	var wanted: bool = zone in cut
+	var tuft := make_tuft(color.lerp(Color(1.0, 0.55, 0.7), 0.5) if wanted else color.darkened(0.2), rng)
+	add_child(tuft)
+	tuft.position = local
+	# 다발이 몸 바깥으로 뻗게 (+Y 를 몸 중심에서 나가는 쪽으로)
+	tuft.quaternion = Quaternion(Vector3.UP, (local - center).normalized())
+	tuft.set_meta("zone", zone)
+	tuft.set_meta("wanted", wanted)
+	_tufts.append(tuft)
+	_left.append(1.0)
+	return true
 
 
 func _too_close(local: Vector3) -> bool:
