@@ -52,17 +52,20 @@ func run_test() -> void:
 	# 빗질: 대고만 1초 → 안 풀림 / 털 방향 2번 → 풀림 / 옆으로 2번 → 아직 / 옆으로 3번 → 풀림
 	_new_dog(["wet", "scrub", "rinse", "towel", "dry"])
 	shop.pick("brush")
-	var clump: Vector3 = shop.tangles.world_positions()[0]
-	var count: int = shop.tangles.count()
+	# 빗이 닿는 거리(약 0.3 m)가 뭉치 사이(약 0.2 m)보다 넓어서, 뭉치가 여럿이면 옆 뭉치도 같이 풀려 개수가 흔들림 → 하나씩만 둠
+	var clump := _one_clump()
 	_hold(clump, 30)
-	check_eq(shop.tangles.count(), count, "대고만 1초로는 안 풀림 (천천히 진행)")
+	check_eq(shop.tangles.count(), 1, "대고만 1초로는 안 풀림 (천천히 진행)")
 	_strokes(clump, Vector3(0, -0.01, 0), 2)
-	check_eq(shop.tangles.count(), count - 1, "털 방향(위 → 아래) 2번 쓸면 풀림")
-	clump = shop.tangles.world_positions()[0]
+	check_eq(shop.tangles.count(), 0, "털 방향(위 → 아래) 2번 쓸면 풀림")
+	# 뭉치가 다 풀리면 빗질이 끝나므로 새 강아지로
+	_new_dog(["wet", "scrub", "rinse", "towel", "dry"])
+	shop.pick("brush")
+	clump = _one_clump()
 	_strokes(clump, Vector3(0.01, 0, 0), 2)
-	check_eq(shop.tangles.count(), count - 1, "옆으로 2번은 아직")
+	check_eq(shop.tangles.count(), 1, "옆으로 2번은 아직")
 	_strokes(clump, Vector3(0.01, 0, 0), 1)
-	check_eq(shop.tangles.count(), count - 2, "옆으로 3번이면 풀림")
+	check_eq(shop.tangles.count(), 0, "옆으로 3번이면 풀림")
 
 	# 드라이: 같은 0.5초, 멀리 vs 가까이 / 너무 붙으면 찡그림
 	var dried := []
@@ -110,6 +113,12 @@ func _hold(point: Vector3, frames: int) -> void:
 
 
 ## point 에서 step 방향으로 9 프레임 쓸고 손을 뗌, times 번
+## 뭉치를 하나만 다시 놓고 그 위치 (몸 앞·위쪽, 손이 닿는 곳)
+func _one_clump() -> Vector3:
+	shop.tangles.spawn(shop.dog.model, shop.dog._body_center(), 1, shop._rng, Color.WHITE)
+	return shop.tangles.world_positions()[0]
+
+
 func _strokes(point: Vector3, step: Vector3, times: int) -> void:
 	for t in times:
 		shop._track_hand(null)
