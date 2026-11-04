@@ -426,13 +426,13 @@
   },
   "tub_claw.glb": {
     "status": "PASS",
-    "triangles": 2896,
+    "triangles": 3816,
     "dimensions_m": [
-      1.6,
-      1.06,
-      1.232
+      1.56,
+      1.292,
+      1.09
     ],
-    "checked_uv_vertices": 5312,
+    "checked_uv_vertices": 7600,
     "embedded_png_sizes": [
       [
         128,
@@ -448,13 +448,13 @@
   },
   "tub_shell.glb": {
     "status": "PASS",
-    "triangles": 2088,
+    "triangles": 3362,
     "dimensions_m": [
-      1.6,
-      1.06,
-      1.232
+      1.46942,
+      1.5,
+      1.09296
     ],
-    "checked_uv_vertices": 3880,
+    "checked_uv_vertices": 6377,
     "embedded_png_sizes": [
       [
         128,
@@ -470,13 +470,13 @@
   },
   "tub_wood.glb": {
     "status": "PASS",
-    "triangles": 2928,
+    "triangles": 2748,
     "dimensions_m": [
-      1.6,
-      1.06,
-      1.232
+      1.44,
+      1.27,
+      1.09395
     ],
-    "checked_uv_vertices": 5248,
+    "checked_uv_vertices": 5076,
     "embedded_png_sizes": [
       [
         128,
