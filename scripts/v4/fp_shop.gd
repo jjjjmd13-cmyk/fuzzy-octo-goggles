@@ -19,6 +19,7 @@ const FpSettle := preload("res://scripts/v4/fp_settle.gd")
 const FpTangles := preload("res://scripts/v4/fp_tangles.gd")
 const FpTrim := preload("res://scripts/v4/fp_trim.gd")
 const V4Save := preload("res://scripts/v4/v4_save.gd")
+const FpOutside := preload("res://scripts/v4/fp_outside.gd")
 
 ## 빠른 확인에서 강아지를 다 돌려줌 (개발용 scenes/dev/quick_check.tscn 이 끝 화면을 띄움)
 signal quick_finished
@@ -112,6 +113,11 @@ var quick_dogs := 0
 var quick_feature := ""
 ## 바라보는 손님 (주인 노드, 없으면 null)
 var hovered_guest: Node3D = null
+## 가운데 점이 영업 팻말을 가리킴
+var hovered_sign := false
+## 아침 준비 시간: 시계가 멈춰 있고 손님이 안 옴. 팻말을 뒤집으면 영업 시작 (GDD_V4 '아침 준비 시간')
+var morning := false
+var outside: FpOutside
 ## 오늘 번 돈 = 요금 + 팁
 var money := 0
 var fees := 0
@@ -199,6 +205,11 @@ func _ready() -> void:
 	guests.guest_left.connect(_on_guest_left)
 	guests.guest_arrived.connect(_on_guest_arrived)
 	_build_player()
+	outside = FpOutside.new()
+	outside.name = "Outside"
+	add_child(outside)
+	outside.watch = player
+	outside.door_opened.connect(func() -> void: sfx.play("bell"))
 	_build_hud()
 	day_seconds = Tuning.data.v4_day_minutes * 60.0
 	# 가위는 사기 전엔 선반에 없음
@@ -219,10 +230,37 @@ func _ready() -> void:
 		_show_hint("최종 단계 도구예요. 숫자 1~5: 모든 도구 단계 바꾸기", 5.0)
 	new_dog()
 	_clear_tub()
+	# 빠른 확인은 바로 영업 (단, [아침·가게 밖] 은 아침부터)
+	if quick_dogs == 0 or quick_feature == "morning":
+		_start_morning()
+	else:
+		outside.set_sign(true, true)
 	if quick_feature == "save" or day > 1:
 		_show_hint(_continue_hint(), 6.0)
-	else:
+	elif not morning:
 		_show_hint("손님이 오면 다가가서 클릭: 강아지 맡기", 4.0)
+
+
+## 아침: 시계 멈춤, 손님 안 옴 (팻말은 달). 택배를 들이고 꾸미는 시간
+func _start_morning() -> void:
+	morning = true
+	guests.open = false
+	guests.process_mode = Node.PROCESS_MODE_DISABLED
+	outside.set_sign(false, true)
+	_show_hint("%d일차 아침 · 문 옆 팻말을 뒤집으면 영업 시작 (정문으로 밖에 나가 볼 수 있어요)" % day, 6.0)
+
+
+## 팻말을 해 쪽으로 뒤집음 → 영업 시작 (8분 시계가 감, 첫 손님이 곧 옴)
+func open_shop() -> void:
+	if not morning:
+		return
+	morning = false
+	day_time = 0.0
+	guests.process_mode = Node.PROCESS_MODE_INHERIT
+	guests.open = true
+	outside.set_sign(true)
+	sfx.play("bell")
+	_show_hint("영업 시작! 손님이 와요", 3.0)
 
 
 ## 지금 상태 → 저장 Dictionary (next_day = 이어하면 시작할 날)
@@ -267,6 +305,8 @@ func _continue_hint() -> String:
 	var line := "%d일차 이어하기 · 돈 %d" % [day, money]
 	if not parcels.is_empty():
 		line += " · 밖에 택배 상자 %d개 (아직 안 들임)" % parcels.size()
+	if morning:
+		line += " · 문 옆 팻말을 뒤집으면 영업 시작"
 	return line
 
 
@@ -410,7 +450,7 @@ func clock_text() -> String:
 
 
 func _update_day(delta: float) -> void:
-	if day_over:
+	if day_over or morning:
 		return
 	if quick_dogs > 0:
 		if guests.served >= quick_dogs:
@@ -431,6 +471,7 @@ func _update_day(delta: float) -> void:
 ## 영업 끝 → 정산 (씻긴·떠난·번 돈)
 func end_day() -> void:
 	day_over = true
+	outside.set_sign(false)
 	_stop_effects()
 	using = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -565,10 +606,10 @@ func start_next_day() -> void:
 	tips = 0
 	guests.start_day()
 	_clear_tub()
+	_start_morning()
 	save_game(day)
 	if input_enabled:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
-	_show_hint("%d일차 영업 시작!" % day, 3.0)
 
 
 func _show_settle() -> void:
@@ -935,6 +976,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			pick(hovered)
 		elif hovered_guest != null:
 			interact_guest(hovered_guest)
+		elif hovered_sign:
+			open_shop()
 		elif held == "towel" and aim_point != null:
 			tap_at(aim_point)
 	elif event is InputEventKey and event.pressed and not event.echo:
@@ -954,6 +997,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _update_aim() -> void:
 	hovered = ""
 	hovered_guest = null
+	hovered_sign = false
 	aim_point = null
 	var ray: Array[Vector3] = player.aim_ray(REACH)
 	var query := PhysicsRayQueryParameters3D.create(ray[0], ray[1], (1 << (PICK_LAYER - 1)) | DOG_LAYER)
@@ -969,6 +1013,9 @@ func _update_aim() -> void:
 		return
 	if collider != null and collider.has_meta("guest"):
 		hovered_guest = collider.get_meta("guest")
+		return
+	if collider != null and collider.has_meta("sign"):
+		hovered_sign = true
 		return
 	# 가위·빗: 가운데 점 둘레의 다발·뭉치를 바로 겨눔 (몸 겉면 판정이 다른 부위에 먼저 닿거나
 	# 강아지가 고개를 돌려도 바라보는 다발이 잘리게, 사람 대표 플레이 버그)
@@ -1090,7 +1137,7 @@ func _build_room() -> void:
 	_box("WallBack", Vector3(0, 1.5, -3.5), Vector3(8, 3, 0.2), Color(0.85, 0.78, 0.66))
 	_box("WallFront", Vector3(0, 1.5, 3.5), Vector3(8, 3, 0.2), Color(0.85, 0.78, 0.66))
 	_box("WallLeft", Vector3(-4, 1.5, 0), Vector3(0.2, 3, 7), Color(0.8, 0.72, 0.6))
-	_box("WallRight", Vector3(4, 1.5, 0), Vector3(0.2, 3, 7), Color(0.8, 0.72, 0.6))
+	# 오른쪽 벽(정문)과 가게 앞 마당은 FpOutside
 	var tub := TUB_SCENE.instantiate() as Node3D
 	tub.position = Vector3(DOG_SPOT.x, 0, DOG_SPOT.z)
 	add_child(tub)
@@ -1220,10 +1267,12 @@ func _draw_hud() -> void:
 	# 가운데 점 (도구를 쓸 수 있는 곳이면 노랑)
 	var ready_to_use := aim_point != null and not held.is_empty()
 	_hud.draw_circle(center, 5.0, Color(0, 0, 0, 0.6))
-	_hud.draw_circle(center, 3.0, Color(1, 0.85, 0.3) if ready_to_use or not hovered.is_empty() or hovered_guest != null else Color(1, 1, 1))
+	_hud.draw_circle(center, 3.0, Color(1, 0.85, 0.3) if ready_to_use or not hovered.is_empty() or hovered_guest != null or hovered_sign else Color(1, 1, 1))
 	var under := ""
 	if not hovered.is_empty():
 		under = "클릭: %s 집기" % TOOLS[hovered].name
+	elif hovered_sign:
+		under = "클릭: 팻말 뒤집기 (영업 시작)" if morning else ("영업 중" if guests.open else "오늘 영업 끝")
 	elif hovered_guest != null:
 		if hovered_guest == guests.current:
 			under = "클릭: 강아지 돌려주기" if done else "다 씻으면 돌려줘요"
@@ -1253,7 +1302,7 @@ func _draw_hud() -> void:
 	if quick_dogs > 0:
 		_text(font, Vector2(size.x - 20, 40), "빠른 확인 · 강아지 %d / %d" % [guests.served, quick_dogs], 26, false, true)
 	else:
-		_text(font, Vector2(size.x - 20, 40), "%d일차 · %s%s" % [day, clock_text(), "" if guests.open else " · 영업 끝"], 26, false, true)
+		_text(font, Vector2(size.x - 20, 40), ("%d일차 · 아침 준비" % day) if morning else "%d일차 · %s%s" % [day, clock_text(), "" if guests.open else " · 영업 끝"], 26, false, true)
 	_text(font, Vector2(size.x - 20, 74), "돈 %d" % money, 26, false, true)
 	_text(font, Vector2(size.x - 20, 104), "기다리는 손님 %d · 씻긴 %d · 떠난 %d" % [guests.guests.size(), guests.served, guests.left_count], 18, false, true)
 	_text(font, Vector2(size.x - 20, size.y - 60), "손: %s" % (tool_name(held) if not held.is_empty() else "빈손"), 22, false, true)

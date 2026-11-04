@@ -81,6 +81,8 @@ func run_test() -> void:
 	(shop._settle.find_child("NextDay", true, false) as Button).pressed.emit()
 	await get_tree().process_frame
 	check_eq(shop.day, 2, "다음 날")
+	check(shop.morning and not shop.guests.open, "다음 날은 아침 준비부터")
+	shop.open_shop()
 	check(not shop.day_over and shop.guests.open, "다시 영업")
 	check(shop._settle == null, "정산 판 닫힘")
 	check_eq(shop.fees, 0, "오늘 번 돈은 새로")
