@@ -43,6 +43,8 @@ var open := true
 var quick := false
 ## 미용을 요청하는 손님 비율 (가위를 사면 가게가 v4_trim_request_ratio 로 올림, 0 = 요청 없음)
 var trim_chance := 0.0
+## 꾸미기 아늑함으로 늘어난 참을성 배수 (1 = 그대로)
+var patience_mult := 1.0
 ## 요청 모양 목록 (fp_trim.gd SHAPES 의 id)
 var trim_shapes: Array = ["bear", "lion", "summer"]
 
@@ -138,7 +140,7 @@ func remaining(index: int) -> float:
 	var guest: Dictionary = guests[index]
 	if guest.patience <= 0.0 or quick:
 		return 1.0
-	return clampf(1.0 - guest.waited / guest.patience, 0.0, 1.0)
+	return clampf(1.0 - guest.waited / (guest.patience * patience_mult), 0.0, 1.0)
 
 
 ## 다 씻은 강아지를 주인에게 돌려줌: 주인은 박수치며 (say: "+45" 같은 글자) 나감
