@@ -18,6 +18,7 @@ extends Control
 @onready var message_label: Label = %MessageLabel
 
 const SaveGame := preload("res://scripts/core/save_game.gd")
+const V4Save := preload("res://scripts/v4/v4_save.gd")
 const UiArt := preload("res://scripts/game/ui_art.gd")
 
 static var _autostart_done := false
@@ -51,7 +52,20 @@ func _ready() -> void:
 	v4_button.custom_minimum_size = Vector2(0, 52)
 	solo_button.get_parent().add_child(v4_button)
 	solo_button.get_parent().move_child(v4_button, solo_button.get_index() + 1)
-	v4_button.pressed.connect(func() -> void: get_tree().change_scene_to_file(V4_SCENE))
+	v4_button.pressed.connect(func() -> void:
+		V4Save.continue_requested = false
+		get_tree().change_scene_to_file(V4_SCENE))
+	# V4 이어하기: V4 저장(user://v4_save.json)이 있을 때만, V4 시제품 버튼 바로 위
+	var v4_continue := Button.new()
+	v4_continue.name = "V4ContinueButton"
+	v4_continue.custom_minimum_size = Vector2(0, 52)
+	v4_continue.visible = V4Save.can_continue()
+	v4_continue.text = "V4 이어하기 (%d일차부터)" % V4Save.continue_day() if v4_continue.visible else "V4 이어하기"
+	solo_button.get_parent().add_child(v4_continue)
+	solo_button.get_parent().move_child(v4_continue, v4_button.get_index())
+	v4_continue.pressed.connect(func() -> void:
+		V4Save.continue_requested = true
+		get_tree().change_scene_to_file(V4_SCENE))
 	_add_quick_check(v4_button)
 	continue_button.visible = SaveGame.can_continue()
 	if continue_button.visible:

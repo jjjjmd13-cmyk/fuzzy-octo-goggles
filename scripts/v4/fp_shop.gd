@@ -18,6 +18,7 @@ const MENU_SCENE := "res://scenes/menu/main_menu.tscn"
 const FpSettle := preload("res://scripts/v4/fp_settle.gd")
 const FpTangles := preload("res://scripts/v4/fp_tangles.gd")
 const FpTrim := preload("res://scripts/v4/fp_trim.gd")
+const V4Save := preload("res://scripts/v4/v4_save.gd")
 
 ## 빠른 확인에서 강아지를 다 돌려줌 (개발용 scenes/dev/quick_check.tscn 이 끝 화면을 띄움)
 signal quick_finished
@@ -136,6 +137,12 @@ var tool_level := {"shower": 0, "shampoo": 0, "towel": 0, "dryer": 0, "brush": 0
 var day := 1
 ## 가위를 샀음 (다음 손님부터 미용 요청이 옴)
 var owns_scissors := false
+## 저장·이어하기에 들어가는 관리 값 (규칙은 다음 PR: 샴푸 소모·빗 닳음 TUNING_V4 3-5, 꾸미기 3-3, 택배 3-4)
+var shampoo_left := 0.0
+var brush_used := 0
+var decor := {"owned": [], "placed": {}}
+## 가게 앞에 도착했지만 아직 안 들인 상자 (V4Save.fresh 의 parcels 모양)
+var parcels: Array = []
 ## 지금 강아지의 미용 요청 모양 ("" = 없음)
 var trim_request := ""
 ## 미용 다발 (강아지 모형의 자식, 새 강아지마다 새로)
@@ -198,13 +205,88 @@ func _ready() -> void:
 	if quick_feature == "trim":
 		owns_scissors = true
 	_set_pickup_available("scissors", owns_scissors)
+	shampoo_left = float(Tuning.data.v4_shampoo_start)
+	if quick_feature == "save":
+		_quick_save_round_trip()
+	elif V4Save.continue_requested and quick_dogs == 0:
+		V4Save.continue_requested = false
+		var saved := V4Save.read()
+		if not saved.is_empty():
+			apply_state(saved)
 	if quick_feature == "upgrade":
 		# 빠른 확인 [도구 업그레이드]: 모든 도구를 가장 좋은 것으로 산 상태, 숫자 1~5 로 단계를 바꿔 봄
 		set_all_tiers(Tuning.data.v4_tool_tiers - 1)
 		_show_hint("최종 단계 도구예요. 숫자 1~5: 모든 도구 단계 바꾸기", 5.0)
 	new_dog()
 	_clear_tub()
-	_show_hint("손님이 오면 다가가서 클릭: 강아지 맡기", 4.0)
+	if quick_feature == "save" or day > 1:
+		_show_hint(_continue_hint(), 6.0)
+	else:
+		_show_hint("손님이 오면 다가가서 클릭: 강아지 맡기", 4.0)
+
+
+## 지금 상태 → 저장 Dictionary (next_day = 이어하면 시작할 날)
+func save_state(next_day: int) -> Dictionary:
+	return {
+		"next_day": next_day,
+		"money": money,
+		"tool_level": tool_level.duplicate(),
+		"owns_scissors": owns_scissors,
+		"shampoo_left": shampoo_left,
+		"brush_used": brush_used,
+		"decor": decor.duplicate(true),
+		"parcels": parcels.duplicate(true),
+	}
+
+
+## 저장 Dictionary (V4Save.read / normalize 모양) → 가게에 적용: 그날 처음부터
+func apply_state(data: Dictionary) -> void:
+	day = data.next_day
+	money = data.money
+	for tool_id in data.tool_level:
+		if tool_level.has(tool_id) and tool_level[tool_id] != data.tool_level[tool_id]:
+			set_tier(tool_id, data.tool_level[tool_id])
+	owns_scissors = data.owns_scissors
+	_set_pickup_available("scissors", owns_scissors)
+	guests.trim_chance = Tuning.data.v4_trim_request_ratio if owns_scissors else 0.0
+	shampoo_left = data.shampoo_left
+	brush_used = data.brush_used
+	decor = data.decor.duplicate(true)
+	parcels = data.parcels.duplicate(true)
+
+
+## 저장 (빠른 확인에서는 안 함). 영업 중에는 부르지 않음
+func save_game(next_day: int) -> bool:
+	if quick_dogs > 0 or not quick_feature.is_empty():
+		return false
+	return V4Save.write(save_state(next_day))
+
+
+## 이어할 때 한 줄: 날짜·돈·밖에 남은 택배 상자
+func _continue_hint() -> String:
+	var line := "%d일차 이어하기 · 돈 %d" % [day, money]
+	if not parcels.is_empty():
+		line += " · 밖에 택배 상자 %d개 (아직 안 들임)" % parcels.size()
+	return line
+
+
+## 빠른 확인 [저장·이어하기]: 예시 상태를 따로 된 파일에 쓰고 다시 읽어서 적용 (진짜 저장 파일은 안 건드림)
+func _quick_save_round_trip() -> void:
+	var sample := V4Save.fresh()
+	sample.next_day = 4
+	sample.money = 620
+	sample.tool_level = {"shower": 2, "shampoo": 1, "towel": 3, "dryer": 0, "brush": 4}
+	sample.owns_scissors = true
+	sample.shampoo_left = 7.5
+	sample.brush_used = 12
+	sample.parcels = [{"item": "shampoo_bottle", "kind": "shampoo", "size": "small"}, {"item": "plant_round", "kind": "decor", "size": "medium"}]
+	var real_path := V4Save.path
+	V4Save.path = "user://v4_quick_save.json"
+	V4Save.write(sample)
+	var loaded := V4Save.read()
+	V4Save.erase()
+	V4Save.path = real_path
+	apply_state(loaded)
 
 
 ## 새 강아지 (진흙 무늬 무작위)
@@ -356,11 +438,13 @@ func end_day() -> void:
 	_settle.name = "Settle"
 	_hud.get_parent().add_child(_settle)
 	_settle.buy_requested.connect(func(tool_id: String) -> void:
-		buy(tool_id)
+		if buy(tool_id):
+			save_game(day + 1)
 		_show_settle())
 	_settle.next_day_requested.connect(start_next_day)
 	_show_settle()
 	sfx.play("clap")
+	save_game(day + 1)
 
 
 ## 도구 단계별 칠하는 속도 배수
@@ -481,6 +565,7 @@ func start_next_day() -> void:
 	tips = 0
 	guests.start_day()
 	_clear_tub()
+	save_game(day)
 	if input_enabled:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	_show_hint("%d일차 영업 시작!" % day, 3.0)
