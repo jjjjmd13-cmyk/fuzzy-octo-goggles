@@ -21,6 +21,7 @@ const FpTrim := preload("res://scripts/v4/fp_trim.gd")
 const V4Save := preload("res://scripts/v4/v4_save.gd")
 const FpOutside := preload("res://scripts/v4/fp_outside.gd")
 const FpParcels := preload("res://scripts/v4/fp_parcels.gd")
+const FpDecor := preload("res://scripts/v4/fp_decor.gd")
 ## 가게 물건: 이름, 상자 크기 (도구 단계 올리기는 "tool:<도구>")
 const SUPPLIES := {
 	"shampoo_bottle": {"name": "샴푸 1병", "size": "small"},
@@ -126,6 +127,8 @@ var hovered_sign := false
 var morning := false
 var outside: FpOutside
 var parcels_view: FpParcels
+var decor_view: FpDecor
+var _tub_view: Node3D
 ## 들고 있는 택배 상자 (parcels 의 한 Dictionary, 비면 안 듦)
 var carried := {}
 var _carried_view: Node3D
@@ -230,6 +233,13 @@ func _ready() -> void:
 	parcels_view.mat_center = FpOutside.MAT_POS
 	add_child(parcels_view)
 	parcels_view.delivered.connect(_on_delivered)
+	decor_view = FpDecor.new()
+	decor_view.name = "Decor"
+	add_child(decor_view)
+	decor_view.defaults = {"tub": [_tub_view], "shelf": [get_node("Shelf")]}
+	for wall in ["WallBack", "WallFront", "WallLeft"]:
+		decor_view.wall_meshes.append(get_node(wall).get_child(1) as MeshInstance3D)
+	decor_view.floor_meshes.append(get_node("Floor").get_child(1) as MeshInstance3D)
 	_build_hud()
 	day_seconds = Tuning.data.v4_day_minutes * 60.0
 	# 가위는 사기 전엔 선반에 없음
@@ -255,6 +265,8 @@ func _ready() -> void:
 	# 빠른 확인은 바로 영업 (단, [아침·가게 밖]·[택배] 는 아침부터)
 	if quick_feature == "parcels":
 		_quick_parcels()
+	elif quick_feature == "decor":
+		_quick_decor(3)
 	if quick_dogs == 0 or quick_feature in ["morning", "parcels"]:
 		_start_morning()
 	else:
@@ -383,6 +395,7 @@ func apply_state(data: Dictionary) -> void:
 	brush_used = data.brush_used
 	decor = data.decor.duplicate(true)
 	parcels = data.parcels.duplicate(true)
+	_apply_decor()
 
 
 ## 저장 (빠른 확인에서는 안 함). 영업 중에는 부르지 않음
@@ -401,6 +414,20 @@ func _continue_hint() -> String:
 	if morning:
 		line += " · 문 옆 팻말을 뒤집으면 영업 시작"
 	return line
+
+
+## 빠른 확인 [꾸미기]: 30개를 다 가진 상태, 숫자 1 = 처음 모습, 2·3·4 = 모든 범주 ★1·★2·★3
+func _quick_decor(level: int) -> void:
+	for category in FpDecor.CATEGORIES:
+		for item in FpDecor.CATEGORIES[category].items:
+			if not decor.owned.has(item[0]):
+				decor.owned.append(item[0])
+		if level <= 0:
+			decor.placed.erase(category)
+		else:
+			decor.placed[category] = FpDecor.CATEGORIES[category].items[mini(level, 3) - 1][0]
+	_apply_decor()
+	_show_hint("꾸미기 %s · 아늑함 ★%d (숫자 1 처음 · 2 ★1 · 3 ★2 · 4 ★3)" % ["처음 모습" if level <= 0 else "★%d" % mini(level, 3), FpDecor.coziness(decor.placed)], 4.0)
 
 
 ## 빠른 확인 [택배]: 어제 주문한 상자 3개 (샤워기 2단계·샴푸 1병·가위)가 아침 트럭으로 옴, 샴푸는 2마리분 남음
@@ -595,6 +622,10 @@ func end_day() -> void:
 		if order(tool_id):
 			save_game(day + 1)
 		_show_settle())
+	_settle.place_requested.connect(func(id: String) -> void:
+		if place_decor(id):
+			save_game(day + 1)
+		_show_settle())
 	_settle.next_day_requested.connect(start_next_day)
 	_show_settle()
 	sfx.play("clap")
@@ -644,6 +675,8 @@ func tool_name(tool_id: String) -> String:
 
 ## 다음 단계 값 (더 없으면 -1). 주문해 둔(아직 안 연) 상자 단계까지 친 다음 단계. 가게 물건(샴푸·새 빗살)도
 func next_price(tool_id: String) -> int:
+	if not FpDecor.category_of(tool_id).is_empty():
+		return -1 if decor.owned.has(tool_id) or _ordered("decor:" + tool_id) > 0 else FpDecor.price_of(tool_id)
 	match tool_id:
 		"scissors":
 			return -1 if owns_scissors or _ordered("scissors") > 0 else Tuning.data.v4_price_scissors
@@ -668,12 +701,16 @@ func _ordered(item: String) -> int:
 	return parcels.filter(func(box: Dictionary) -> bool: return box.item == item).size()
 
 
-## 가게 줄 id → 상자 속 물건 id
+## 가게 줄 id → 상자 속 물건 id (꾸미기 = "decor:<id>")
 static func item_of(store_id: String) -> String:
+	if not FpDecor.category_of(store_id).is_empty():
+		return "decor:" + store_id
 	return store_id if store_id == "scissors" or SUPPLIES.has(store_id) else "tool:" + store_id
 
 
 func item_name(item: String) -> String:
+	if item.begins_with("decor:"):
+		return FpDecor.name_of(item.trim_prefix("decor:"))
 	if item.begins_with("tool:"):
 		var tool_id := item.trim_prefix("tool:")
 		return TOOL_LEVEL_NAMES[tool_id][mini(tool_level[tool_id] + 1, Tuning.data.v4_tool_tiers - 1)]
@@ -700,13 +737,27 @@ func order(store_id: String) -> bool:
 		return false
 	money -= price
 	var item := item_of(store_id)
-	parcels.append({"item": item, "kind": "tool" if item.begins_with("tool:") or item == "scissors" else ("shampoo" if item.begins_with("shampoo") else "brush_refill"), "size": SUPPLIES[item].size if SUPPLIES.has(item) else "small", "arrived": false})
+	var kind := "tool"
+	var size := "small"
+	if item.begins_with("decor:"):
+		kind = "decor"
+		size = FpDecor.box_size_of(store_id)
+	elif SUPPLIES.has(item):
+		kind = "shampoo" if item.begins_with("shampoo") else "brush_refill"
+		size = SUPPLIES[item].size
+	parcels.append({"item": item, "kind": kind, "size": size, "arrived": false})
 	sfx.play("coin")
 	return true
 
 
 ## 상자 속 물건을 제자리에 (도구 단계 하나 올림·가위·샴푸 채움·새 빗살)
 func apply_item(item: String) -> void:
+	if item.begins_with("decor:"):
+		var id := item.trim_prefix("decor:")
+		if not decor.owned.has(id):
+			decor.owned.append(id)
+		place_decor(id)
+		return
 	if item.begins_with("tool:"):
 		var tool_id := item.trim_prefix("tool:")
 		set_tier(tool_id, tool_level[tool_id] + 1)
@@ -724,6 +775,44 @@ func apply_item(item: String) -> void:
 			shampoo_left += Tuning.data.v4_shampoo_big
 		"brush_refill":
 			brush_used = 0
+
+
+## 꾸미기 놓기: 산 물건 id (그 범주 자리에, 하나만) 또는 "default:<범주>" (처음 모습). 산 적 없는 것은 false
+func place_decor(id: String) -> bool:
+	if id.begins_with("default:"):
+		decor.placed.erase(id.trim_prefix("default:"))
+	elif decor.owned.has(id):
+		decor.placed[FpDecor.category_of(id)] = id
+	else:
+		return false
+	_apply_decor()
+	return true
+
+
+## 놓인 꾸미기를 방에 보이고, 아늑함으로 대기 참을성을 늘림
+func _apply_decor() -> void:
+	decor_view.apply(decor.placed)
+	guests.patience_mult = FpDecor.patience_mult(decor.placed)
+
+
+## 정산 판 꾸미기 탭 내용
+func decor_rows() -> Dictionary:
+	var stars := FpDecor.coziness(decor.placed)
+	var rows := []
+	for category in FpDecor.CATEGORIES:
+		var items := []
+		for i in 3:
+			var id: String = FpDecor.CATEGORIES[category].items[i][0]
+			var state := "buy"
+			if decor.placed.get(category, "") == id:
+				state = "placed"
+			elif decor.owned.has(id):
+				state = "owned"
+			elif _ordered("decor:" + id) > 0:
+				state = "coming"
+			items.append({"id": id, "name": FpDecor.CATEGORIES[category].items[i][1], "stars": i + 1, "price": FpDecor.price_of(id), "state": state, "can_buy": money >= FpDecor.price_of(id)})
+		rows.append({"category": category, "name": FpDecor.CATEGORIES[category].name, "default_placed": not decor.placed.has(category), "items": items})
+	return {"title": "아늑함 ★%d — 손님이 %d%% 더 기다려 줘요 (산 것은 내일 아침 택배, 산 것끼리는 공짜로 바꿔 끼움)" % [stars, roundi((FpDecor.patience_mult(decor.placed) - 1.0) * 100.0)], "rows": rows}
 
 
 ## 빗 수명 (마리, 0 = 안 닳음)
@@ -811,7 +900,7 @@ func _show_settle() -> void:
 		"받은 손님  %d · 떠난 손님  %d" % [guests.served, guests.left_count],
 		"요금  %d + 팁  %d = 오늘  %d" % [fees, tips, fees + tips],
 		"가진 돈  %d" % money,
-	] + _supply_lines(), store_rows())
+	] + _supply_lines(), store_rows(), decor_rows())
 
 
 ## 정산 판: 남은 샴푸 (적으면 ⚠, 없으면 ⛔), 빗 닳음, 내일 아침 올 택배
@@ -1224,6 +1313,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				# 빠른 확인 [도구 업그레이드]: 모든 도구를 그 단계로 (5단계를 다 보기)
 				if quick_feature == "upgrade":
 					set_all_tiers(event.physical_keycode - KEY_1)
+				elif quick_feature == "decor":
+					_quick_decor(event.physical_keycode - KEY_1)
 			KEY_ESCAPE:
 				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 				get_tree().change_scene_to_file(MENU_SCENE)
@@ -1379,6 +1470,7 @@ func _build_room() -> void:
 	_box("WallLeft", Vector3(-4, 1.5, 0), Vector3(0.2, 3, 7), Color(0.8, 0.72, 0.6))
 	# 오른쪽 벽(정문)과 가게 앞 마당은 FpOutside
 	var tub := TUB_SCENE.instantiate() as Node3D
+	_tub_view = tub
 	tub.position = Vector3(DOG_SPOT.x, 0, DOG_SPOT.z)
 	add_child(tub)
 	# 목욕대 받침 충돌 (걸어서 통과하지 않게)

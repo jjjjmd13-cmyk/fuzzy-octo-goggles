@@ -259,6 +259,12 @@ extends Resource
 @export var v4_brush_worn_mult := 0.7
 ## 새 빗살 값 (0 = 가게에 안 보임)
 @export var v4_brush_refill_price5 := PackedInt32Array([20, 30, 50, 0, 0])
+## 가게 꾸미기 (TUNING_V4 3-3): 값 [★1, ★2, ★3] (작은 것·큰 것), 아늑함 ★, ★ 하나당 참을성 배수, 최대
+@export var v4_decor_price_small := PackedInt32Array([40, 100, 200])
+@export var v4_decor_price_big := PackedInt32Array([80, 180, 350])
+@export var v4_decor_points := PackedInt32Array([1, 2, 3])
+@export var v4_decor_patience_per_point := 0.01
+@export var v4_decor_patience_max := 0.3
 ## 가게 밖·택배 (TUNING_V4 3-4): 아침 시작 뒤 트럭이 와서 떠나기까지 (s), 상자를 들고 걷는 속도 [작은, 중간, 큰]
 @export var v4_truck_seconds := 4.0
 @export var v4_box_carry_speed := PackedFloat32Array([1.0, 0.9, 0.75])
