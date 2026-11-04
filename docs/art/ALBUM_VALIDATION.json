@@ -1,0 +1,363 @@
+{
+  "models": [
+    {
+      "file": "art/incoming/album/album_book.glb",
+      "sha256": "bed43a50ea9db80016514d157ac46f8c307a02cc99415d04762ff577d1a7448e",
+      "triangles": 794,
+      "budget": 800,
+      "bounds_m": [
+        [
+          -0.17499999981373549,
+          0.0,
+          -0.1457999944686889
+        ],
+        [
+          0.17499999701976776,
+          0.067200006917119,
+          0.14000000059604645
+        ]
+      ],
+      "dimensions_m": [
+        0.34999999683350325,
+        0.067200006917119,
+        0.28579999506473536
+      ],
+      "embedded_png": [
+        512,
+        32
+      ],
+      "rig": false,
+      "animations": false,
+      "normal_map_or_lighting_bake": false,
+      "cover_hinge_m": [
+        -0.17499999701976776,
+        0.052000001072883606,
+        0.0
+      ],
+      "cover_local_Y_world_axis": [
+        0.0,
+        2.220446049250313e-16,
+        0.9999999999999998
+      ],
+      "cover_open_75deg_free_edge_m": [
+        -0.09215931995059445,
+        0.37662042590376554,
+        -7.119203580069692e-17
+      ]
+    },
+    {
+      "file": "art/incoming/album/photo_board.glb",
+      "sha256": "cce247a8fda6f306fdd8dc561cd1e5365b55582f3475181c48f6f1310c3ba7cf",
+      "triangles": 910,
+      "budget": 1000,
+      "bounds_m": [
+        [
+          -0.49999999441206455,
+          -0.3499999940395355,
+          -0.05333012714982033
+        ],
+        [
+          0.49999999441206455,
+          0.3499999940395355,
+          0.0
+        ]
+      ],
+      "dimensions_m": [
+        0.9999999888241291,
+        0.699999988079071,
+        0.05333012714982033
+      ],
+      "embedded_png": [
+        512,
+        32
+      ],
+      "rig": false,
+      "animations": false,
+      "normal_map_or_lighting_bake": false,
+      "slots": [
+        {
+          "name": "Slot_1",
+          "position_m": [
+            -0.30000001192092896,
+            0.14000000059604645,
+            -0.028999999165534973
+          ],
+          "angle_deg": -3.9999993864420604,
+          "photo_size_m": [
+            0.2,
+            0.2
+          ]
+        },
+        {
+          "name": "Slot_2",
+          "position_m": [
+            0.0,
+            0.14000000059604645,
+            -0.028999999165534973
+          ],
+          "angle_deg": 2.999999739092839,
+          "photo_size_m": [
+            0.2,
+            0.2
+          ]
+        },
+        {
+          "name": "Slot_3",
+          "position_m": [
+            0.30000001192092896,
+            0.14000000059604645,
+            -0.028999999165534973
+          ],
+          "angle_deg": -1.9999996796867023,
+          "photo_size_m": [
+            0.2,
+            0.2
+          ]
+        },
+        {
+          "name": "Slot_4",
+          "position_m": [
+            -0.30000001192092896,
+            -0.14000000059604645,
+            -0.028999999165534973
+          ],
+          "angle_deg": 2.999999739092839,
+          "photo_size_m": [
+            0.2,
+            0.2
+          ]
+        },
+        {
+          "name": "Slot_5",
+          "position_m": [
+            0.0,
+            -0.14000000059604645,
+            -0.028999999165534973
+          ],
+          "angle_deg": -2.999999739092839,
+          "photo_size_m": [
+            0.2,
+            0.2
+          ]
+        },
+        {
+          "name": "Slot_6",
+          "position_m": [
+            0.30000001192092896,
+            -0.14000000059604645,
+            -0.028999999165534973
+          ],
+          "angle_deg": 3.9999993864420604,
+          "photo_size_m": [
+            0.2,
+            0.2
+          ]
+        }
+      ]
+    }
+  ],
+  "ui": {
+    "album_page.png": {
+      "size": [
+        1024,
+        1280
+      ],
+      "sha256": "fffa803b668ba5021f9e83b3b6761f1c6129cc698da4130541c9c4dfac686d1d",
+      "alpha": true
+    },
+    "fav_spot_back.png": {
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "ee4cb39634518894d030a67b38adbfc77a8d18628ead08d4ff48ce2bc3d662e1",
+      "alpha": true,
+      "pink_heart_center_px": [
+        50.220588235294116,
+        75.24264705882354
+      ]
+    },
+    "fav_spot_chin.png": {
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "cd9b377cfd85a3930cf5329b3e2e7c75624ecf7aa44204324b54433290437c16",
+      "alpha": true,
+      "pink_heart_center_px": [
+        98.56687898089172,
+        61.93630573248408
+      ]
+    },
+    "fav_spot_ear_back.png": {
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "dc438e5b0e85794ad6a392e2e01bc7199ff7c5940110494a69899bf435929293",
+      "alpha": true,
+      "pink_heart_center_px": [
+        38.601694915254235,
+        55.41525423728814
+      ]
+    },
+    "fav_spot_rump.png": {
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "9b2149a56db5d4a926b4b16e5012f3c5b6329755fd540f1179b1ba3eb0656629",
+      "alpha": true,
+      "pink_heart_center_px": [
+        38.68539325842696,
+        95.17977528089888
+      ]
+    },
+    "new_photo_badge.png": {
+      "size": [
+        128,
+        128
+      ],
+      "sha256": "5bae89568f40960eab8041320bb525cf8d6366111a1fecfe6e3a9c0dc9143ab8",
+      "alpha": true
+    },
+    "photo_frame_gold.png": {
+      "size": [
+        512,
+        600
+      ],
+      "sha256": "9506348fde8381513724d216ca6ea9cdb655ded5d31f6e7418ed59972154640a",
+      "alpha": true,
+      "transparent_photo_rect_px": [
+        64,
+        64,
+        384,
+        384
+      ],
+      "outer_rect_px": [
+        24,
+        24,
+        464,
+        552
+      ]
+    },
+    "photo_frame_grey.png": {
+      "size": [
+        512,
+        600
+      ],
+      "sha256": "625cbb9217679150f09d528fe18a9b6b03165291f0987a3363823046cae3c44d",
+      "alpha": true,
+      "transparent_photo_rect_px": [
+        64,
+        64,
+        384,
+        384
+      ],
+      "outer_rect_px": [
+        24,
+        24,
+        464,
+        552
+      ]
+    },
+    "photo_frame_pink.png": {
+      "size": [
+        512,
+        600
+      ],
+      "sha256": "9d4bdd8b135874b7a886942ed6fd440bd0d2e72d6071e2dc512544e84237c64b",
+      "alpha": true,
+      "transparent_photo_rect_px": [
+        64,
+        64,
+        384,
+        384
+      ],
+      "outer_rect_px": [
+        24,
+        24,
+        464,
+        552
+      ]
+    },
+    "photo_frame_white.png": {
+      "size": [
+        512,
+        600
+      ],
+      "sha256": "c31c69435d3038b3eb212c3ba08e084433b2fd96113689e91787e2058f787c5e",
+      "alpha": true,
+      "transparent_photo_rect_px": [
+        64,
+        64,
+        384,
+        384
+      ],
+      "outer_rect_px": [
+        24,
+        24,
+        464,
+        552
+      ]
+    },
+    "photo_unknown.png": {
+      "size": [
+        512,
+        512
+      ],
+      "sha256": "29bcd170d68fcf078ba848a54667197662405cf6e2cb81e2b7c0369769d48518",
+      "alpha": true
+    }
+  },
+  "ui_art_source": "Built-in image_gen, size/alpha/9-slice asset packaging",
+  "text_numbers_logos": "None in delivered art; visual inspection",
+  "gltf": "2.0 binary, metres, Y-up, front -Z",
+  "khronos": [
+    {
+      "file": "art/incoming/album/album_book.glb",
+      "errors": 0,
+      "warnings": 0,
+      "info": 0
+    },
+    {
+      "file": "art/incoming/album/photo_board.glb",
+      "errors": 0,
+      "warnings": 0,
+      "info": 6
+    }
+  ],
+  "godot_4_4_1": "PASS: final GLBs, Cover local-Y opening, ornament parenting, fixed pages, 6 empty tilted slots, embedded 512x32 texture, 11 RGBA UI PNG dimensions and alpha",
+  "previews": {
+    "art/incoming/album/photo_board_preview.png": {
+      "size": [
+        1000,
+        820
+      ],
+      "sha256": "8b6ca30bd5f6590f13c51777971757a4ae47428fbded06893749df6280c41507",
+      "fully_framed": "all model bound corners projected inside 4.5 percent render margins"
+    },
+    "art/incoming/album/album_book_preview.png": {
+      "size": [
+        1600,
+        720
+      ],
+      "sha256": "ed16912fdf9190a94dc9d39bcb8c9e8e6fda0cd9dd331f78935274937e5cc935",
+      "fully_framed": "all model bound corners projected inside 4.5 percent render margins"
+    },
+    "docs/art/screenshots/album_delivery_preview.png": {
+      "size": [
+        1600,
+        1360
+      ],
+      "sha256": "722a49c3888a517eb84e56a15ab100cf492e72c207f11d935f95d418cdc5c57d",
+      "fully_framed": "all model bound corners projected inside 4.5 percent render margins"
+    }
+  },
+  "existing_game_regression": {
+    "passed": 35,
+    "failed": 0,
+    "runner": "tests/run_tests.sh",
+    "engine": "Godot 4.4.1"
+  }
+}
