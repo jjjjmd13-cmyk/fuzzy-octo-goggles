@@ -44,9 +44,15 @@ var sign_open := false
 var watch: Node3D
 
 var door_pivot: Node3D
+## 문이 다 열린 각 (Y, 라디안). shop_front.glb 의 Door 는 −1.5 로 가게 안쪽(+Z → 방 안 −X)으로 열림
+var door_open_angle := -PI * 0.55
+var door_bell: Node3D
 var sign_body: StaticBody3D
 var sign_plate: Node3D
 var mailbox_flag: Node3D
+## 우편함 깃발 올린 각·내린 각 (X 축). mailbox.glb 는 0 = 내림, −π/2 = 올림
+var _flag_up := -PI / 2.0
+var _flag_down := 0.0
 ## 그래픽 파일을 쓴 이름 (테스트·확인용)
 var used_models: PackedStringArray = []
 
@@ -68,7 +74,10 @@ func _process(delta: float) -> void:
 		var flat := Vector2(watch.global_position.x - WALL_X, watch.global_position.z - DOOR_Z)
 		want = 1.0 if flat.length() < DOOR_OPEN_NEAR else 0.0
 	door_open = move_toward(door_open, want, DOOR_SPEED * delta)
-	door_pivot.rotation.y = -door_open * PI * 0.55
+	door_pivot.rotation.y = door_open * door_open_angle
+	if door_bell != null:
+		# 문이 움직이는 동안 종이 흔들림
+		door_bell.rotation.z = sin(door_open * PI * 3.0) * 0.4 * (1.0 - door_open)
 	if door_open > 0.05 and not _was_open:
 		door_opened.emit()
 	_was_open = door_open > 0.05
@@ -114,10 +123,14 @@ func _build_wall() -> void:
 	# 바깥 벽 그림: shop_front.glb (바깥쪽 −Z 를 +X 로, 문 구멍이 +Z 쪽 2.6 m 에 오게) 또는 임시 차양·창문·간판
 	var front := model("shop_front")
 	if front != null:
+		# 바깥쪽 −Z 를 +X 로 → 문 구멍(모형 +X 쪽 2.6 m)이 방 z = +2.6 에. 벽 두께 가운데가 원점이라 x = 4 그대로
 		front.name = "ShopFront"
-		front.position = Vector3(WALL_X + 0.11, 0, 0)
+		front.position = Vector3(WALL_X, 0, 0)
 		front.rotation.y = -PI / 2.0
 		add_child(front)
+		# 임시 벽은 충돌만 남기고 안 보이게 (같은 자리라 겹쳐 깜빡임)
+		for part in ["WallRight_A", "WallRight_B", "WallRight_Top"]:
+			get_node(part).get_child(1).visible = false
 	else:
 		_box("Awning", Vector3(WALL_X + 0.6, 2.7, 0), Vector3(1.0, 0.12, 2.0 * ROOM_HALF_Z), Color(1.0, 0.72, 0.78), false)
 		for z in [-2.0, -0.2]:
@@ -125,14 +138,24 @@ func _build_wall() -> void:
 	var sign := model("sign_outside")
 	if sign == null:
 		sign = _mesh_box(Vector3(0.1, 0.6, 2.0), Color(1.0, 0.95, 0.8))
-	sign.name = "SignOutside"
-	sign.position = Vector3(WALL_X + 0.16, 2.35, DOOR_Z)
-	if used_models.has("sign_outside"):
+		sign.position = Vector3(WALL_X + 0.16, 2.45, DOOR_Z)
+	else:
+		# 뒷면 가운데가 원점, 앞(−Z)을 바깥(+X)으로. 문 위, 차양 위 (yard_preview 처럼)
+		sign.position = Vector3(WALL_X + 0.11, 2.72, DOOR_Z)
 		sign.rotation.y = -PI / 2.0
+	sign.name = "SignOutside"
 	add_child(sign)
 
 
 func _build_door() -> void:
+	var front := get_node_or_null("ShopFront")
+	if front != null:
+		var glb_door := front.find_child("Door", true, false) as Node3D
+		if glb_door != null:
+			door_pivot = glb_door
+			door_open_angle = -1.5
+			door_bell = front.find_child("Bell", true, false) as Node3D
+			return
 	# 경첩 = 문 구멍의 −Z 쪽 끝, 바깥쪽으로 열림
 	door_pivot = Node3D.new()
 	door_pivot.name = "DoorPivot"
@@ -147,6 +170,7 @@ func _build_door() -> void:
 func _build_yard() -> void:
 	var yard_len := YARD_END_X - WALL_X
 	_floor("Paving", "paving", Vector3((WALL_X + YARD_END_X) / 2.0, -0.1, 0), Vector3(yard_len + 0.4, 0.2, 2.0 * ROOM_HALF_Z), Color(0.66, 0.6, 0.56))
+	_floor("RoadLine", "road_line", Vector3(ROAD_X + 0.6, -0.115, 0), Vector3(1.0, 0.2, 2.0 * ROOM_HALF_Z + 6.0), Color(0.42, 0.44, 0.48), false)
 	_floor("Road", "road", Vector3(ROAD_X + 0.6, -0.12, 0), Vector3(3.6, 0.2, 2.0 * ROOM_HALF_Z + 6.0), Color(0.42, 0.44, 0.48))
 	# 마당 둘레: 앞뒤(z) 낮은 벽 모양 울타리, 끝(x)은 울타리 + 화단 (손님 길 자리에 틈), 너머로는 못 나감
 	var gap_min := DOOR_Z - FENCE_GAP_WIDTH / 2.0
@@ -160,7 +184,7 @@ func _build_yard() -> void:
 	_box("YardBack", Vector3((WALL_X + YARD_END_X) / 2.0, 1.0, -ROOM_HALF_Z - 0.05), Vector3(yard_len, 2.0, 0.1), Color(0, 0, 0, 0), false, false)
 	_box("YardFront", Vector3((WALL_X + YARD_END_X) / 2.0, 1.0, ROOM_HALF_Z + 0.05), Vector3(yard_len, 2.0, 0.1), Color(0, 0, 0, 0), false, false)
 	# 화단: 끝 울타리 안쪽 (틈 자리 빼고)
-	for z in [-2.4, -0.6, 1.0]:
+	for z in [-2.5, -0.5]:
 		if absf(z - DOOR_Z) < FENCE_GAP_WIDTH:
 			continue
 		var bed := model("flower_bed")
@@ -197,8 +221,9 @@ func _build_yard() -> void:
 		var flag := Node3D.new()
 		flag.name = "Flag"
 		flag.position = Vector3(0.17, 1.05, 0.1)
-		var cloth := _mesh_box(Vector3(0.02, 0.25, 0.04), Color(1.0, 0.45, 0.5))
-		cloth.position.y = 0.12
+		# 내린 깃발은 뒤(+Z)로 누움, X 축으로 −π/2 돌면 위로 섬 (mailbox.glb 와 같은 방향)
+		var cloth := _mesh_box(Vector3(0.02, 0.04, 0.25), Color(1.0, 0.45, 0.5))
+		cloth.position.z = 0.12
 		flag.add_child(cloth)
 		mailbox.add_child(flag)
 	mailbox.name = "Mailbox"
@@ -220,10 +245,14 @@ func _build_yard() -> void:
 	add_child(lamp)
 	var light := OmniLight3D.new()
 	light.name = "LampLight"
-	light.position = LAMP_POS + Vector3(0, 2.8, 0)
 	light.omni_range = 4.0
 	light.light_energy = 0.3
-	add_child(light)
+	var bulb := lamp.find_child("Bulb", true, false) as Node3D
+	if bulb != null:
+		bulb.add_child(light)
+	else:
+		light.position = LAMP_POS + Vector3(0, 2.8, 0)
+		add_child(light)
 	# 바깥 해 (방 안 조명과 따로, 마당이 어둡지 않게)
 	var sky := OmniLight3D.new()
 	sky.name = "YardLight"
@@ -236,7 +265,7 @@ func _build_yard() -> void:
 ## 우편함 깃발 (택배가 오면 올라감)
 func set_mailbox_flag(up: bool) -> void:
 	if mailbox_flag != null:
-		mailbox_flag.rotation.x = 0.0 if up else -PI / 2.0
+		mailbox_flag.rotation.x = _flag_up if up else _flag_down
 
 
 func _build_sign() -> void:
@@ -254,8 +283,9 @@ func _build_sign() -> void:
 	add_child(sign_body)
 	var art := model("open_sign")
 	if art != null:
-		# 정면 −Z 를 방 안쪽(−X)으로
-		art.rotation.y = PI / 2.0
+		# open_sign.glb: 해 = −Z 면, 잠자는 달 = +Z 면, 원점 = 맨 위 걸이. 판 0 = 달이 방 안(−X)을 보게, π = 해
+		art.rotation.y = -PI / 2.0
+		art.position.y = 0.12
 		sign_body.add_child(art)
 		sign_plate = art.find_child("Plate", true, false) as Node3D
 	if sign_plate == null:
@@ -293,8 +323,11 @@ func _fence_run(from: Vector3, to: Vector3, axis: Vector3) -> void:
 			var holder := Node3D.new()
 			holder.add_child(piece)
 			piece = holder
-		elif axis == Vector3.FORWARD:
-			piece.rotation.y = PI / 2.0
+		else:
+			# fence.glb 는 X 로 2 m 한 칸 → 칸 길이에 맞춰 늘이고 줄임
+			piece.scale.x = step / 2.0
+			if axis == Vector3.FORWARD:
+				piece.rotation.y = PI / 2.0
 		piece.name = "Fence"
 		piece.position = center
 		add_child(piece)
@@ -303,13 +336,14 @@ func _fence_run(from: Vector3, to: Vector3, axis: Vector3) -> void:
 
 
 ## 반복 바닥: 텍스처가 있으면 1 m 마다 한 장, 없으면 단색
-func _floor(node_name: String, texture_name: String, pos: Vector3, size: Vector3, color: Color) -> void:
-	_box(node_name, pos, size, color)
+func _floor(node_name: String, texture_name: String, pos: Vector3, size: Vector3, color: Color, solid := true) -> void:
+	_box(node_name, pos, size, color, solid)
 	var view := get_node(node_name).get_child(1) as MeshInstance3D
 	var path := TEXTURE_DIR % texture_name
 	if ResourceLoader.exists(path):
 		var material := view.material_override as StandardMaterial3D
-		material.albedo_color = Color.WHITE
+		# 밝은 파스텔 바닥이 햇빛 아래 하얗게 날리지 않게 조금 어둡게
+		material.albedo_color = Color(0.62, 0.62, 0.62)
 		material.albedo_texture = load(path)
 		material.uv1_triplanar = true
 		material.uv1_world_triplanar = true
