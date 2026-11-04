@@ -439,11 +439,12 @@ func set_tier(tool_id: String, level: int) -> void:
 	var old := pickup.get_node_or_null("View") as Node3D
 	var view := _make_tool_mesh(model_id(tool_id))
 	if old != null:
-		view.transform = old.transform
+		view.position = old.position
+		view.rotate_y(PI / 2.0)
 		# 바로 지움 (queue_free 로 한 프레임 남기면 더미 렌더러에서 "material is null" 오류가 남)
 		old.free()
 	view.name = "View"
-	view.scale = Vector3.ONE * model_scale(tool_id)
+	view.scale *= model_scale(tool_id)
 	pickup.add_child(view)
 	_cache_glow_materials(tool_id, view)
 
@@ -517,7 +518,7 @@ func pick(tool_id: String) -> void:
 	_held_view = FpToolView.new()
 	_held_view.setup(tool_id, FpToolView.RETURN_SECONDS if not _returning_views.is_empty() else 0.0, model_id(tool_id))
 	player.camera.add_child(_held_view)
-	_held_view.model.scale = Vector3.ONE * model_scale(tool_id)
+	_held_view.model.scale *= model_scale(tool_id)
 	sfx.play("press")
 
 
@@ -1031,7 +1032,7 @@ func _build_shelf() -> void:
 		var view := _make_tool_mesh(tool_id)
 		# GLB 는 쥐는 곳이 원점: 각 메시 최저점을 선반 위에 맞춘다.
 		view.position.y = {"shower": 0.130, "shampoo": 0.074, "towel": 0.002, "dryer": 0.056, "brush": 0.02, "scissors": 0.01}[tool_id]
-		view.rotation.y = PI / 2.0 # -Z 앞면을 선반 바깥(+X)으로
+		view.rotate_y(PI / 2.0) # -Z 앞면을 선반 바깥(+X)으로 (보정 회전은 그대로)
 		view.name = "View"
 		pickup.add_child(view)
 		_cache_glow_materials(tool_id, view)

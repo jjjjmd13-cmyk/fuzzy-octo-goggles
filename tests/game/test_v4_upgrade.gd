@@ -46,6 +46,19 @@ func run_test() -> void:
 		shop.set_tier(tool_id, 4)
 		check_eq(shop.model_id(tool_id), shop.LEVEL_MODELS[tool_id][4], "%s 5단계 그림 (%s)" % [tool_id, shop.tool_name(tool_id)])
 		shop.set_tier(tool_id, 0)
+	# 도구 보정 표 (FpToolView.MODEL_FIX): 대포·드라이기 출구(-Z)가 화면 안쪽을 보고, 표의 크기가 들어감
+	for pair in [["shampoo", 3], ["shampoo", 4], ["dryer", 1], ["dryer", 2], ["dryer", 3], ["dryer", 4]]:
+		shop.set_tier(pair[0], pair[1])
+		shop.pick(pair[0])
+		var view: Node3D = shop._held_view
+		var model_name: String = shop.model_id(pair[0])
+		var outlet: Vector3 = -view.model.global_basis.z.normalized()
+		var look: Vector3 = -shop.player.camera.global_basis.z
+		check(outlet.dot(look) > 0.0, "%s 출구가 화면 안쪽을 봄 (%.2f)" % [model_name, outlet.dot(look)])
+		var fix: Dictionary = view.MODEL_FIX.get(model_name, {"scale": 1.0})
+		check(is_equal_approx(view.model.global_basis.get_scale().x / shop.player.camera.global_basis.get_scale().x, fix.scale), "%s 보정 크기 %.2f" % [model_name, fix.scale])
+		shop.drop()
+		shop.set_tier(pair[0], 0)
 	# 최종 단계 샤워기는 붓이 더 넓어 한 번에 더 많이 적심
 	var final := _wet_after(0.4)
 	check(final > fast * 1.3, "무지개 샤워기가 훨씬 빨리 (%.2f → %.2f)" % [fast, final])
