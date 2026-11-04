@@ -1,0 +1,931 @@
+{
+  "title": "멍냥 목욕탕 가게 꾸미기 A",
+  "count": 30,
+  "assets": [
+    {
+      "category": "wallpaper",
+      "stars": 1,
+      "file": "wall_stripe.png",
+      "preview": "wall_stripe_preview.png",
+      "sha256": "93428aaf61624cdaace3c3820e5bd7e6bd41c16b15816f4ff5cca54928dadc88",
+      "pixels": [
+        1024,
+        1024
+      ],
+      "metres_per_tile": 1,
+      "repeat": true
+    },
+    {
+      "category": "wallpaper",
+      "stars": 2,
+      "file": "wall_bubble.png",
+      "preview": "wall_bubble_preview.png",
+      "sha256": "3c1f89c1a852e53b0b53360dbc13fe73594eeb5ebe8bb1508d2a54d2afc3c43e",
+      "pixels": [
+        1024,
+        1024
+      ],
+      "metres_per_tile": 1,
+      "repeat": true
+    },
+    {
+      "category": "wallpaper",
+      "stars": 3,
+      "file": "wall_paw.png",
+      "preview": "wall_paw_preview.png",
+      "sha256": "901831a96429e7fb8d1fb84c1ae6f1d271a07bfa81f891b83ffc0ae26adaaec5",
+      "pixels": [
+        1024,
+        1024
+      ],
+      "metres_per_tile": 1,
+      "repeat": true
+    },
+    {
+      "category": "floor",
+      "stars": 1,
+      "file": "floor_wood.png",
+      "preview": "floor_wood_preview.png",
+      "sha256": "eac30f0bea0238f253e0dc09244f7cd7f765c4f2601f29f4b98f082cc0557487",
+      "pixels": [
+        1024,
+        1024
+      ],
+      "metres_per_tile": 1,
+      "repeat": true
+    },
+    {
+      "category": "floor",
+      "stars": 2,
+      "file": "floor_check.png",
+      "preview": "floor_check_preview.png",
+      "sha256": "e7120a4e67cf182c4ae8c1409706a692540163aa71dbf54f5cea1d014519644c",
+      "pixels": [
+        1024,
+        1024
+      ],
+      "metres_per_tile": 1,
+      "repeat": true
+    },
+    {
+      "category": "floor",
+      "stars": 3,
+      "file": "floor_star.png",
+      "preview": "floor_star_preview.png",
+      "sha256": "f8cb34e9a249da8afa7ba89c2edbf67348c32ff2b134834da41484161146ee69",
+      "pixels": [
+        1024,
+        1024
+      ],
+      "metres_per_tile": 1,
+      "repeat": true
+    },
+    {
+      "category": "tub",
+      "stars": 1,
+      "file": "tub_wood.glb",
+      "preview": "tub_wood_preview.png",
+      "sha256": "104884e39236730610672f2593d4723c6079abb8762db60cba960705ac2db2af",
+      "triangles": 2928,
+      "budget": 4000,
+      "dimensions_m": [
+        1.6,
+        1.06,
+        1.232
+      ],
+      "bounds_min_y_up": [
+        -0.800000011920929,
+        0.0,
+        -0.6159999966621399
+      ],
+      "bounds_max_y_up": [
+        0.800000011920929,
+        1.059999942779541,
+        0.6159999966621399
+      ],
+      "origin": "floor",
+      "parts": {
+        "Stand": [
+          0.0,
+          0.0,
+          -0.0
+        ],
+        "Tub": [
+          0.0,
+          0.0,
+          -0.0
+        ],
+        "Plug": [
+          0.0,
+          0.935,
+          -0.23
+        ]
+      },
+      "notes": "Stand 1.6 x 1.1 m, top Y=.9; round Tub radius .6; rear rim Y=1.06, front rim Y=1.018. Plug separate."
+    },
+    {
+      "category": "tub",
+      "stars": 2,
+      "file": "tub_claw.glb",
+      "preview": "tub_claw_preview.png",
+      "sha256": "c27aac523839f196df60184b8a3cc0fed27bb573c8188d3d619954759413f29f",
+      "triangles": 2896,
+      "budget": 4000,
+      "dimensions_m": [
+        1.6,
+        1.06,
+        1.232
+      ],
+      "bounds_min_y_up": [
+        -0.800000011920929,
+        0.0,
+        -0.6159999966621399
+      ],
+      "bounds_max_y_up": [
+        0.800000011920929,
+        1.059999942779541,
+        0.6159999966621399
+      ],
+      "origin": "floor",
+      "parts": {
+        "Stand": [
+          0.0,
+          0.0,
+          -0.0
+        ],
+        "Tub": [
+          0.0,
+          0.0,
+          -0.0
+        ],
+        "Plug": [
+          0.0,
+          0.935,
+          -0.23
+        ]
+      },
+      "notes": "Stand 1.6 x 1.1 m, top Y=.9; round Tub radius .6; rear rim Y=1.06, front rim Y=1.018. Plug separate."
+    },
+    {
+      "category": "tub",
+      "stars": 3,
+      "file": "tub_shell.glb",
+      "preview": "tub_shell_preview.png",
+      "sha256": "532d40b4f109fe6d8f5ddc2cc0b88793f7d8a994a62cfd5ca4da1c7b9925f30d",
+      "triangles": 2088,
+      "budget": 4000,
+      "dimensions_m": [
+        1.6,
+        1.06,
+        1.232
+      ],
+      "bounds_min_y_up": [
+        -0.800000011920929,
+        0.0,
+        -0.6159999966621399
+      ],
+      "bounds_max_y_up": [
+        0.800000011920929,
+        1.059999942779541,
+        0.6159999966621399
+      ],
+      "origin": "floor",
+      "parts": {
+        "Stand": [
+          0.0,
+          0.0,
+          -0.0
+        ],
+        "Tub": [
+          0.0,
+          0.0,
+          -0.0
+        ],
+        "Plug": [
+          0.0,
+          0.935,
+          -0.23
+        ]
+      },
+      "notes": "Stand 1.6 x 1.1 m, top Y=.9; round Tub radius .6; rear rim Y=1.06, front rim Y=1.018. Plug separate."
+    },
+    {
+      "category": "shelf",
+      "stars": 1,
+      "file": "shelf_wood.glb",
+      "preview": "shelf_wood_preview.png",
+      "sha256": "2619fb55c017bc13cb6c7a4e9160f9ccb03a3760e48c1c4b997b33d9f6dd5c52",
+      "triangles": 864,
+      "budget": 3000,
+      "dimensions_m": [
+        1.8,
+        0.9,
+        0.6
+      ],
+      "bounds_min_y_up": [
+        -0.8999999761581421,
+        0.0,
+        -0.30000001192092896
+      ],
+      "bounds_max_y_up": [
+        0.8999999761581421,
+        0.9000000357627869,
+        0.30000001192092896
+      ],
+      "origin": "floor",
+      "parts": {
+        "Body": [
+          0.0,
+          0.0,
+          -0.0
+        ]
+      },
+      "notes": "Flat horizontal working surface Y=.9, 1.8 x .6 m; ornaments remain below top."
+    },
+    {
+      "category": "shelf",
+      "stars": 2,
+      "file": "shelf_basket.glb",
+      "preview": "shelf_basket_preview.png",
+      "sha256": "74fcf33e55f98b1be93cab4f73cca726200d6e36b547184b11ddbcf07c352441",
+      "triangles": 1656,
+      "budget": 3000,
+      "dimensions_m": [
+        1.8,
+        0.9,
+        0.6
+      ],
+      "bounds_min_y_up": [
+        -0.8999999761581421,
+        0.0,
+        -0.30000001192092896
+      ],
+      "bounds_max_y_up": [
+        0.8999999761581421,
+        0.9000000357627869,
+        0.30000001192092896
+      ],
+      "origin": "floor",
+      "parts": {
+        "Body": [
+          0.0,
+          0.0,
+          -0.0
+        ]
+      },
+      "notes": "Flat horizontal working surface Y=.9, 1.8 x .6 m; ornaments remain below top."
+    },
+    {
+      "category": "shelf",
+      "stars": 3,
+      "file": "shelf_cloud.glb",
+      "preview": "shelf_cloud_preview.png",
+      "sha256": "18ede74a33c9260f371e662348e3da4860e6ef80acae98fa74f2cf1095687e0b",
+      "triangles": 1264,
+      "budget": 3000,
+      "dimensions_m": [
+        1.8,
+        0.9,
+        0.6
+      ],
+      "bounds_min_y_up": [
+        -0.8999999761581421,
+        0.0,
+        -0.30000001192092896
+      ],
+      "bounds_max_y_up": [
+        0.8999999761581421,
+        0.9000000357627869,
+        0.30000001192092896
+      ],
+      "origin": "floor",
+      "parts": {
+        "Body": [
+          0.0,
+          0.0,
+          -0.0
+        ]
+      },
+      "notes": "Flat horizontal working surface Y=.9, 1.8 x .6 m; ornaments remain below top."
+    },
+    {
+      "category": "counter",
+      "stars": 1,
+      "file": "counter_wood.glb",
+      "preview": "counter_wood_preview.png",
+      "sha256": "e94f4725a2f1ac193e3ce06fe4e3fb50ddf004bcf3d1f49d582d090046323522",
+      "triangles": 432,
+      "budget": 3000,
+      "dimensions_m": [
+        1.2,
+        0.95,
+        0.5
+      ],
+      "bounds_min_y_up": [
+        -0.6000000238418579,
+        0.0,
+        -0.25
+      ],
+      "bounds_max_y_up": [
+        0.6000000238418579,
+        0.9500000476837158,
+        0.25
+      ],
+      "origin": "floor",
+      "parts": {
+        "Body": [
+          0.0,
+          0.0,
+          -0.0
+        ]
+      },
+      "notes": ""
+    },
+    {
+      "category": "counter",
+      "stars": 2,
+      "file": "counter_bone.glb",
+      "preview": "counter_bone_preview.png",
+      "sha256": "3bc97ce3c5dba27d0b29eb956e8788ad60c5d4b25b1abf186fc26138ef3a5019",
+      "triangles": 640,
+      "budget": 3000,
+      "dimensions_m": [
+        1.2,
+        0.95,
+        0.49971
+      ],
+      "bounds_min_y_up": [
+        -0.6000000238418579,
+        0.0,
+        -0.24985723197460175
+      ],
+      "bounds_max_y_up": [
+        0.6000000238418579,
+        0.949999988079071,
+        0.24985723197460175
+      ],
+      "origin": "floor",
+      "parts": {
+        "Body": [
+          0.0,
+          0.0,
+          -0.0
+        ]
+      },
+      "notes": ""
+    },
+    {
+      "category": "counter",
+      "stars": 3,
+      "file": "counter_cake.glb",
+      "preview": "counter_cake_preview.png",
+      "sha256": "99c03ef9539ae17045d0f359e3719cd71f48c8f630fb642254c72bea59d7f4a1",
+      "triangles": 2288,
+      "budget": 3000,
+      "dimensions_m": [
+        1.2,
+        0.95,
+        0.5
+      ],
+      "bounds_min_y_up": [
+        -0.6000000238418579,
+        0.0,
+        -0.25
+      ],
+      "bounds_max_y_up": [
+        0.6000000238418579,
+        0.949999988079071,
+        0.25
+      ],
+      "origin": "floor",
+      "parts": {
+        "Body": [
+          0.0,
+          0.0,
+          -0.0
+        ]
+      },
+      "notes": "Overall height .95 m including cherry stem; two oval cake tiers."
+    },
+    {
+      "category": "sign",
+      "stars": 1,
+      "file": "sign_board.glb",
+      "preview": "sign_board_preview.png",
+      "sha256": "4a01296b0790476243f9b45a4ea605eedf27f2da91f7c7e875dd09c298461555",
+      "triangles": 272,
+      "budget": 1500,
+      "dimensions_m": [
+        1.6,
+        0.5,
+        0.08
+      ],
+      "bounds_min_y_up": [
+        -0.800000011920929,
+        -0.25,
+        -0.07999999821186066
+      ],
+      "bounds_max_y_up": [
+        0.800000011920929,
+        0.25,
+        -0.0
+      ],
+      "origin": "back centre",
+      "parts": {
+        "Body": [
+          0.0,
+          0.0,
+          -0.0
+        ]
+      },
+      "notes": "Blank label 1.32 x .23 m. Back Z=0."
+    },
+    {
+      "category": "sign",
+      "stars": 2,
+      "file": "sign_paw.glb",
+      "preview": "sign_paw_preview.png",
+      "sha256": "094171cd84a1483ab7518904dde6e32348389263ee4b91ea4d8f26eff1aaa8a7",
+      "triangles": 764,
+      "budget": 1500,
+      "dimensions_m": [
+        1.6,
+        0.5,
+        0.08
+      ],
+      "bounds_min_y_up": [
+        -0.800000011920929,
+        -0.25,
+        -0.07999999821186066
+      ],
+      "bounds_max_y_up": [
+        0.800000011920929,
+        0.25,
+        -0.0
+      ],
+      "origin": "back centre",
+      "parts": {
+        "Body": [
+          0.0,
+          0.0,
+          -0.0
+        ]
+      },
+      "notes": "Wide paw silhouette, blank central label 1.08 x .2 m; back Z=0."
+    },
+    {
+      "category": "sign",
+      "stars": 3,
+      "file": "sign_rainbow.glb",
+      "preview": "sign_rainbow_preview.png",
+      "sha256": "7482cf7310e96734c6e466f3b7f2d83c5a427f970c229f8a48ccb49cffb0714e",
+      "triangles": 748,
+      "budget": 1500,
+      "dimensions_m": [
+        1.6,
+        0.5,
+        0.08
+      ],
+      "bounds_min_y_up": [
+        -0.800000011920929,
+        -0.25,
+        -0.07999999821186066
+      ],
+      "bounds_max_y_up": [
+        0.800000011920929,
+        0.25,
+        -0.0
+      ],
+      "origin": "back centre",
+      "parts": {
+        "Body": [
+          0.0,
+          0.0,
+          -0.0
+        ]
+      },
+      "notes": "Cream blank label 1.05 x .25 m; rainbow trim, cloud ends, gold stars."
+    },
+    {
+      "category": "lamp",
+      "stars": 1,
+      "file": "lamp_bulb.glb",
+      "preview": "lamp_bulb_preview.png",
+      "sha256": "85b8ca32c7de49e771e3fec23aea5e9bf157330ae1cd4d18fbc0f2d52bcfa6d8",
+      "triangles": 540,
+      "budget": 1500,
+      "dimensions_m": [
+        0.4,
+        0.7,
+        0.4
+      ],
+      "bounds_min_y_up": [
+        -0.20000000298023224,
+        -0.699999988079071,
+        -0.20000000298023224
+      ],
+      "bounds_max_y_up": [
+        0.20000000298023224,
+        0.0,
+        0.20000000298023224
+      ],
+      "origin": "top hook",
+      "parts": {
+        "Body": [
+          0.0,
+          0.0,
+          -0.0
+        ],
+        "Bulb": [
+          0.0,
+          -0.64,
+          -0.0
+        ]
+      },
+      "notes": ""
+    },
+    {
+      "category": "lamp",
+      "stars": 2,
+      "file": "lamp_bubble.glb",
+      "preview": "lamp_bubble_preview.png",
+      "sha256": "f43128f97ffb2a73cf6b22c9acae2cf2ac3324c527107f382cda517a8d912bd4",
+      "triangles": 1320,
+      "budget": 1500,
+      "dimensions_m": [
+        0.466,
+        0.703,
+        0.34
+      ],
+      "bounds_min_y_up": [
+        -0.23800000548362732,
+        -0.703000009059906,
+        -0.20000000298023224
+      ],
+      "bounds_max_y_up": [
+        0.2280000001192093,
+        0.0,
+        0.14000000059604645
+      ],
+      "origin": "top hook",
+      "parts": {
+        "Body": [
+          0.0,
+          0.0,
+          -0.0
+        ],
+        "Bulb": [
+          0.0,
+          -0.53,
+          -0.0
+        ]
+      },
+      "notes": "Three alpha-blended bubble shades; Bulb groups all three bulb cores, no baked light."
+    },
+    {
+      "category": "lamp",
+      "stars": 3,
+      "file": "lamp_cloud.glb",
+      "preview": "lamp_cloud_preview.png",
+      "sha256": "33fbcf5f0a1870117fa2ba9257de4f1eeddf06bc1369024c7f25b85d454260e0",
+      "triangles": 692,
+      "budget": 1500,
+      "dimensions_m": [
+        0.408,
+        0.69751,
+        0.3
+      ],
+      "bounds_min_y_up": [
+        -0.20399999618530273,
+        -0.6975066065788269,
+        -0.15000000596046448
+      ],
+      "bounds_max_y_up": [
+        0.20399999618530273,
+        0.0,
+        0.15000000596046448
+      ],
+      "origin": "top hook",
+      "parts": {
+        "Body": [
+          0.0,
+          0.0,
+          -0.0
+        ],
+        "Bulb": [
+          0.0,
+          -0.445,
+          -0.0
+        ]
+      },
+      "notes": ""
+    },
+    {
+      "category": "plant",
+      "stars": 1,
+      "file": "plant_round.glb",
+      "preview": "plant_round_preview.png",
+      "sha256": "c8b052175451a1708318932b002bb1399c2d12d12b36de91981a3ba68807fa9e",
+      "triangles": 1020,
+      "budget": 2000,
+      "dimensions_m": [
+        0.495,
+        0.6,
+        0.402
+      ],
+      "bounds_min_y_up": [
+        -0.25,
+        0.0,
+        -0.23000000417232513
+      ],
+      "bounds_max_y_up": [
+        0.24500000476837158,
+        0.6000000238418579,
+        0.1720000058412552
+      ],
+      "origin": "floor",
+      "parts": {
+        "Body": [
+          0.0,
+          0.0,
+          -0.0
+        ]
+      },
+      "notes": ""
+    },
+    {
+      "category": "plant",
+      "stars": 2,
+      "file": "plant_monstera.glb",
+      "preview": "plant_monstera_preview.png",
+      "sha256": "828963fdeb16a0c0773474e64e062105e470e7c906a1465f8e217108756c713d",
+      "triangles": 1432,
+      "budget": 2000,
+      "dimensions_m": [
+        0.85056,
+        0.9,
+        0.384
+      ],
+      "bounds_min_y_up": [
+        -0.4267493784427643,
+        0.0,
+        -0.19200000166893005
+      ],
+      "bounds_max_y_up": [
+        0.42381447553634644,
+        0.8999999761581421,
+        0.19200000166893005
+      ],
+      "origin": "floor",
+      "parts": {
+        "Body": [
+          0.0,
+          0.0,
+          -0.0
+        ]
+      },
+      "notes": ""
+    },
+    {
+      "category": "plant",
+      "stars": 3,
+      "file": "plant_lemon.glb",
+      "preview": "plant_lemon_preview.png",
+      "sha256": "460e6c97de44a54c423e78b17a6afd65828c2614255a406856f87ec4eab16c0b",
+      "triangles": 1604,
+      "budget": 2000,
+      "dimensions_m": [
+        0.82,
+        1.3,
+        0.5127
+      ],
+      "bounds_min_y_up": [
+        -0.4099999964237213,
+        0.0,
+        -0.27070286870002747
+      ],
+      "bounds_max_y_up": [
+        0.4099999964237213,
+        1.2999999523162842,
+        0.24199999868869781
+      ],
+      "origin": "floor",
+      "parts": {
+        "Body": [
+          0.0,
+          0.0,
+          -0.0
+        ]
+      },
+      "notes": ""
+    },
+    {
+      "category": "rug",
+      "stars": 1,
+      "file": "rug_circle.glb",
+      "preview": "rug_circle_preview.png",
+      "sha256": "89319e304cdaff98db90de7abeb516c2ea82d6ef0c0f23e2d2cd2e9b0eae0a32",
+      "triangles": 312,
+      "budget": 500,
+      "dimensions_m": [
+        1.6,
+        0.02,
+        1.0
+      ],
+      "bounds_min_y_up": [
+        -0.800000011920929,
+        0.0,
+        -0.5
+      ],
+      "bounds_max_y_up": [
+        0.800000011920929,
+        0.019999999552965164,
+        0.5
+      ],
+      "origin": "floor",
+      "parts": {
+        "Body": [
+          0.0,
+          0.0,
+          -0.0
+        ]
+      },
+      "notes": "1.6 x 1 m, total thickness .02 m."
+    },
+    {
+      "category": "rug",
+      "stars": 2,
+      "file": "rug_paw.glb",
+      "preview": "rug_paw_preview.png",
+      "sha256": "aed5e211ec02efce81fce394dee31d8d9b5a478175db2b4987cc0534a94dd9ef",
+      "triangles": 332,
+      "budget": 500,
+      "dimensions_m": [
+        1.6,
+        0.018,
+        1.0
+      ],
+      "bounds_min_y_up": [
+        -0.800000011920929,
+        0.0,
+        -0.5
+      ],
+      "bounds_max_y_up": [
+        0.800000011920929,
+        0.017999999225139618,
+        0.5
+      ],
+      "origin": "floor",
+      "parts": {
+        "Body": [
+          0.0,
+          0.0,
+          -0.0
+        ]
+      },
+      "notes": ""
+    },
+    {
+      "category": "rug",
+      "stars": 3,
+      "file": "rug_rainbow.glb",
+      "preview": "rug_rainbow_preview.png",
+      "sha256": "513a5d281d895cc013f4ba07e2f318fedd5c06a1d3b9af9abff60a26c414cb1f",
+      "triangles": 462,
+      "budget": 500,
+      "dimensions_m": [
+        1.6,
+        0.02,
+        1.0
+      ],
+      "bounds_min_y_up": [
+        -0.800000011920929,
+        0.0,
+        -0.5
+      ],
+      "bounds_max_y_up": [
+        0.800000011920929,
+        0.019999999552965164,
+        0.5
+      ],
+      "origin": "floor",
+      "parts": {
+        "Body": [
+          0.0,
+          0.0,
+          -0.0
+        ]
+      },
+      "notes": ""
+    },
+    {
+      "category": "wall_art",
+      "stars": 1,
+      "file": "art_dog.glb",
+      "preview": "art_dog_preview.png",
+      "sha256": "f64802021aff5d0c0737fab6d11ed8a73eb74579a62e4cf082a2d4ad59a82d0b",
+      "triangles": 794,
+      "budget": 1500,
+      "dimensions_m": [
+        0.6,
+        0.5,
+        0.05
+      ],
+      "bounds_min_y_up": [
+        -0.30000001192092896,
+        -0.25,
+        -0.05000000074505806
+      ],
+      "bounds_max_y_up": [
+        0.30000001192092896,
+        0.25,
+        -0.0
+      ],
+      "origin": "back centre",
+      "parts": {
+        "Body": [
+          0.0,
+          0.0,
+          -0.0
+        ]
+      },
+      "notes": "Original smiling dog flat-colour relief picture. Back Z=0."
+    },
+    {
+      "category": "wall_art",
+      "stars": 2,
+      "file": "art_clock.glb",
+      "preview": "art_clock_preview.png",
+      "sha256": "fdbb8169c827b16fbbe9cdedb674ead7eca72027af82bb532b0a718d397294c7",
+      "triangles": 908,
+      "budget": 1500,
+      "dimensions_m": [
+        0.6,
+        0.5,
+        0.05
+      ],
+      "bounds_min_y_up": [
+        -0.30000001192092896,
+        -0.25,
+        -0.05000000074505806
+      ],
+      "bounds_max_y_up": [
+        0.30000001192092896,
+        0.25,
+        -0.0
+      ],
+      "origin": "back centre",
+      "parts": {
+        "Body": [
+          0.0,
+          0.0,
+          -0.0
+        ],
+        "Hand_H": [
+          0.0,
+          0.0,
+          -0.03686
+        ],
+        "Hand_M": [
+          0.0,
+          0.0,
+          -0.04088
+        ]
+      },
+      "notes": "Hand_H and Hand_M are separate mesh nodes, pivot at clock centre; rotate local Z. 12 face dots."
+    },
+    {
+      "category": "wall_art",
+      "stars": 3,
+      "file": "art_bubble.glb",
+      "preview": "art_bubble_preview.png",
+      "sha256": "4a183efbdf43b507c9046bb9645f9d9bd72509b81c2e066daee51358e707ae7d",
+      "triangles": 1416,
+      "budget": 1500,
+      "dimensions_m": [
+        0.6,
+        0.5,
+        0.05
+      ],
+      "bounds_min_y_up": [
+        -0.30000001192092896,
+        -0.25,
+        -0.05000000074505806
+      ],
+      "bounds_max_y_up": [
+        0.30000001192092896,
+        0.25,
+        -0.0
+      ],
+      "origin": "back centre",
+      "parts": {
+        "Body": [
+          0.0,
+          0.0,
+          -0.0
+        ]
+      },
+      "notes": "Rainbow bubble cloud, original small rubber duck, gold sparkles; back Z=0."
+    }
+  ]
+}
