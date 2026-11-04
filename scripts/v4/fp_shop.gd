@@ -747,6 +747,10 @@ func _update_aim() -> void:
 	var query := PhysicsRayQueryParameters3D.create(ray[0], ray[1], (1 << (PICK_LAYER - 1)) | DOG_LAYER)
 	query.exclude = [player.get_rid()]
 	var hit := get_world_3d().direct_space_state.intersect_ray(query)
+	# 씻는 중 (도구를 들고 아직 안 끝남) 이면 목욕통 옆 주인 몸이 가운데 점을 가려도 강아지를 겨눔
+	if not hit.is_empty() and hit.collider.has_meta("guest") and has_dog and not done and not held.is_empty():
+		query.exclude = [player.get_rid(), hit.rid]
+		hit = get_world_3d().direct_space_state.intersect_ray(query)
 	var collider: Object = hit.collider if not hit.is_empty() else null
 	if collider != null and collider.has_meta("tool"):
 		hovered = collider.get_meta("tool")
