@@ -241,6 +241,8 @@ extends Resource
 @export var v4_tool_tiers := 5
 @export var v4_tool_speed_mult5 := PackedFloat32Array([1.0, 1.3, 1.6, 2.0, 2.6])
 @export var v4_tool_price5 := PackedInt32Array([0, 120, 250, 450, 800])
+## 샴푸·빗 닳음 (TUNING_V4 3-5): 처음 가진 샴푸 (마리분). 저장·이어하기에서 처음 값으로 씀, 소모 규칙은 다음 PR
+@export var v4_shampoo_start := 20
 
 ## 기분 0~1 → 얼굴 단계 0(😣) / 1(😐) / 2(😊)
 func mood_face(mood: float) -> int:
