@@ -6,6 +6,9 @@ const SPEED := 3.2
 const MOUSE_SENSITIVITY := 0.0025
 const EYE_HEIGHT := 1.55
 
+## 걷는 속도 배수 (상자를 들면 느려짐)
+var speed_mult := 1.0
+
 @onready var camera: Camera3D = $Camera
 
 var _pitch := 0.0
@@ -26,7 +29,7 @@ func _physics_process(delta: float) -> void:
 	var input := Vector2(
 		float(Input.is_physical_key_pressed(KEY_D)) - float(Input.is_physical_key_pressed(KEY_A)),
 		float(Input.is_physical_key_pressed(KEY_S)) - float(Input.is_physical_key_pressed(KEY_W)))
-	var move := (transform.basis * Vector3(input.x, 0, input.y)).normalized() * SPEED
+	var move := (transform.basis * Vector3(input.x, 0, input.y)).normalized() * SPEED * speed_mult
 	velocity.x = move.x
 	velocity.z = move.z
 	velocity.y = 0.0 if is_on_floor() else velocity.y - 9.8 * delta

@@ -74,7 +74,9 @@ func run_test() -> void:
 	check(buy_brush != null and buy_brush.disabled == (shop.money < Tuning.data.v4_tool_price5[1]), "돈이 모자란 도구는 버튼 꺼짐")
 	buy_foam.pressed.emit()
 	await get_tree().process_frame
-	check_eq(shop.tool_name("shampoo"), "거품 펌프", "가게에서 산 도구")
+	# 산 도구는 택배로 다음 날 아침에 옴
+	check_eq(shop.tool_name("shampoo"), "샴푸병", "산 도구는 아직 안 옴 (택배)")
+	check_eq(shop.parcels.size(), 1, "주문한 상자 1개")
 	check_eq(shop.money, 0, "가진 돈에서 뺌")
 	var store_brush: Node = shop._settle.find_child("Store_brush", true, false)
 	check(store_brush != null and (store_brush.find_child("Buy", true, false) as Button).disabled, "산 뒤 가게가 새로 그려짐 (돈 0 → 다 꺼짐)")
@@ -82,6 +84,12 @@ func run_test() -> void:
 	await get_tree().process_frame
 	check_eq(shop.day, 2, "다음 날")
 	check(shop.morning and not shop.guests.open, "다음 날은 아침 준비부터")
+	# 아침 트럭 → 매트 → 들고 안에서 열기
+	shop.parcels_view.finish_now()
+	check_eq(shop.parcels_view.box_nodes().size(), 1, "트럭이 상자를 매트에 내려놓음")
+	shop.carry_box(shop.parcels[0])
+	check(shop.open_box(), "가게 안에서 상자 열기")
+	check_eq(shop.tool_name("shampoo"), "거품 펌프", "상자를 열면 산 도구가 선반에")
 	shop.open_shop()
 	check(not shop.day_over and shop.guests.open, "다시 영업")
 	check(shop._settle == null, "정산 판 닫힘")

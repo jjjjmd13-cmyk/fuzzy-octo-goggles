@@ -20,6 +20,13 @@ const FpTangles := preload("res://scripts/v4/fp_tangles.gd")
 const FpTrim := preload("res://scripts/v4/fp_trim.gd")
 const V4Save := preload("res://scripts/v4/v4_save.gd")
 const FpOutside := preload("res://scripts/v4/fp_outside.gd")
+const FpParcels := preload("res://scripts/v4/fp_parcels.gd")
+## 가게 물건: 이름, 상자 크기 (도구 단계 올리기는 "tool:<도구>")
+const SUPPLIES := {
+	"shampoo_bottle": {"name": "샴푸 1병", "size": "small"},
+	"shampoo_big": {"name": "샴푸 큰 통", "size": "medium"},
+	"brush_refill": {"name": "새 빗살", "size": "small"},
+}
 
 ## 빠른 확인에서 강아지를 다 돌려줌 (개발용 scenes/dev/quick_check.tscn 이 끝 화면을 띄움)
 signal quick_finished
@@ -118,6 +125,14 @@ var hovered_sign := false
 ## 아침 준비 시간: 시계가 멈춰 있고 손님이 안 옴. 팻말을 뒤집으면 영업 시작 (GDD_V4 '아침 준비 시간')
 var morning := false
 var outside: FpOutside
+var parcels_view: FpParcels
+## 들고 있는 택배 상자 (parcels 의 한 Dictionary, 비면 안 듦)
+var carried := {}
+var _carried_view: Node3D
+## 가운데 점이 가리키는 매트 위 상자
+var hovered_box := {}
+## 지금 강아지는 샴푸 없이 씻음 (요금 v4_no_shampoo_price, 팁 0)
+var no_shampoo := false
 ## 오늘 번 돈 = 요금 + 팁
 var money := 0
 var fees := 0
@@ -210,6 +225,11 @@ func _ready() -> void:
 	add_child(outside)
 	outside.watch = player
 	outside.door_opened.connect(func() -> void: sfx.play("bell"))
+	parcels_view = FpParcels.new()
+	parcels_view.name = "Parcels"
+	parcels_view.mat_center = FpOutside.MAT_POS
+	add_child(parcels_view)
+	parcels_view.delivered.connect(_on_delivered)
 	_build_hud()
 	day_seconds = Tuning.data.v4_day_minutes * 60.0
 	# 가위는 사기 전엔 선반에 없음
@@ -230,11 +250,19 @@ func _ready() -> void:
 		_show_hint("최종 단계 도구예요. 숫자 1~5: 모든 도구 단계 바꾸기", 5.0)
 	new_dog()
 	_clear_tub()
-	# 빠른 확인은 바로 영업 (단, [아침·가게 밖] 은 아침부터)
-	if quick_dogs == 0 or quick_feature == "morning":
+	# 이미 매트에 도착한 상자 (이어하기)
+	parcels_view.place(parcels.filter(func(box: Dictionary) -> bool: return box.get("arrived", true)))
+	# 빠른 확인은 바로 영업 (단, [아침·가게 밖]·[택배] 는 아침부터)
+	if quick_feature == "parcels":
+		_quick_parcels()
+	if quick_dogs == 0 or quick_feature in ["morning", "parcels"]:
 		_start_morning()
 	else:
 		outside.set_sign(true, true)
+		for box in parcels:
+			if not box.get("arrived", true):
+				box.arrived = true
+				parcels_view.place([box])
 	if quick_feature == "save" or day > 1:
 		_show_hint(_continue_hint(), 6.0)
 	elif not morning:
@@ -248,6 +276,67 @@ func _start_morning() -> void:
 	guests.process_mode = Node.PROCESS_MODE_DISABLED
 	outside.set_sign(false, true)
 	_show_hint("%d일차 아침 · 문 옆 팻말을 뒤집으면 영업 시작 (정문으로 밖에 나가 볼 수 있어요)" % day, 6.0)
+	# 어제 주문한 상자: 트럭이 와서 매트에 내려놓음
+	var coming := parcels.filter(func(box: Dictionary) -> bool: return not box.get("arrived", true))
+	parcels_view.deliver(coming, Tuning.data.v4_truck_seconds)
+	if not coming.is_empty():
+		sfx.play("bell")
+
+
+## 트럭이 상자를 내려놓음: 우편함 깃발, 안내, 저장 (도착했음)
+func _on_delivered(count: int) -> void:
+	outside.set_mailbox_flag(true)
+	sfx.play("coin")
+	_show_hint("빵빵! 택배 상자 %d개가 왔어요 (정문 밖 매트에서 들고 들어와 열어요)" % count, 5.0)
+	if morning:
+		save_game(day)
+
+
+## 매트 위 상자를 두 손으로 듦 (도구는 내려놓음, 큰 상자는 느리게 걸음)
+func carry_box(box: Dictionary) -> void:
+	if not carried.is_empty():
+		return
+	var node := parcels_view.node_of(box)
+	if node == null:
+		return
+	drop()
+	parcels_view.take(node)
+	node.queue_free()
+	carried = box
+	_carried_view = parcels_view.make_box_view(box.size)
+	_carried_view.position = Vector3(0, -0.55, -0.7)
+	player.camera.add_child(_carried_view)
+	var speeds: PackedFloat32Array = Tuning.data.v4_box_carry_speed
+	player.speed_mult = speeds[clampi(FpParcels.SIZES.find(box.size), 0, speeds.size() - 1)]
+	sfx.play("press")
+	if parcels_view.box_nodes().is_empty():
+		outside.set_mailbox_flag(false)
+
+
+## 들고 있는 상자 열기 (가게 안에서만): 물건이 제자리로 (도구 단계·샴푸·새 빗살·가위)
+func open_box() -> bool:
+	if carried.is_empty():
+		return false
+	if FpOutside.is_outside(player.global_position):
+		_show_hint("가게 안에서 열어요", 1.5)
+		return false
+	var box := carried
+	carried = {}
+	var name := item_name(box.item)
+	apply_item(box.item)
+	parcels.erase(box)
+	_sparkle.global_position = _carried_view.global_position
+	_sparkle.restart()
+	_sparkle.emitting = true
+	_carried_view.queue_free()
+	_carried_view = null
+	player.speed_mult = 1.0
+	sfx.play("clap")
+	_banner = "짜잔! %s" % name
+	_banner_left = 2.0
+	if morning:
+		save_game(day)
+	return true
 
 
 ## 팻말을 해 쪽으로 뒤집음 → 영업 시작 (8분 시계가 감, 첫 손님이 곧 옴)
@@ -259,8 +348,11 @@ func open_shop() -> void:
 	guests.process_mode = Node.PROCESS_MODE_INHERIT
 	guests.open = true
 	outside.set_sign(true)
+	parcels_view.finish_now()
 	sfx.play("bell")
-	_show_hint("영업 시작! 손님이 와요", 3.0)
+	var left_outside := parcels_view.box_nodes().size()
+	# 벌칙 없음: 상자는 매트에 그대로, 영업 중에도 가져와도 됨
+	_show_hint("영업 시작! 손님이 와요" + (" (택배 상자 %d개가 아직 밖에 있어요)" % left_outside if left_outside > 0 else ""), 3.5)
 
 
 ## 지금 상태 → 저장 Dictionary (next_day = 이어하면 시작할 날)
@@ -303,11 +395,21 @@ func save_game(next_day: int) -> bool:
 ## 이어할 때 한 줄: 날짜·돈·밖에 남은 택배 상자
 func _continue_hint() -> String:
 	var line := "%d일차 이어하기 · 돈 %d" % [day, money]
-	if not parcels.is_empty():
-		line += " · 밖에 택배 상자 %d개 (아직 안 들임)" % parcels.size()
+	var outside_count := parcels.filter(func(box: Dictionary) -> bool: return box.get("arrived", true)).size()
+	if outside_count > 0:
+		line += " · 밖에 택배 상자 %d개 (아직 안 들임)" % outside_count
 	if morning:
 		line += " · 문 옆 팻말을 뒤집으면 영업 시작"
 	return line
+
+
+## 빠른 확인 [택배]: 어제 주문한 상자 3개 (샤워기 2단계·샴푸 1병·가위)가 아침 트럭으로 옴, 샴푸는 2마리분 남음
+func _quick_parcels() -> void:
+	money = 500
+	shampoo_left = 2.0
+	for id in ["shower", "shampoo_bottle", "scissors"]:
+		money += next_price(id)
+		order(id)
 
 
 ## 빠른 확인 [저장·이어하기]: 예시 상태를 따로 된 파일에 쓰고 다시 읽어서 적용 (진짜 저장 파일은 안 건드림)
@@ -402,6 +504,11 @@ func interact_guest(owner: Node3D) -> void:
 	_taken = guests.take(owner)
 	if not _taken.is_empty():
 		new_dog()
+		# 샴푸가 없으면 거품 단계를 건너뛰고 씻김 (막지 않음, 요금이 거의 없음 — 사람 대표 결정)
+		no_shampoo = shampoo_left < 0.01
+		if no_shampoo:
+			dog.mask.fill("scrub", 1.0)
+			_show_hint("샴푸가 없어요! 거품 없이 씻어요 (요금 %d, 팁 없음)" % Tuning.data.v4_no_shampoo_price, 4.0)
 
 
 ## 다 씻은 강아지를 주인에게: 요금 + 기분 팁 + 빠른 팁 (TUNING_V4 3장), 주인은 기뻐하며 떠남
@@ -412,10 +519,16 @@ func give_back() -> void:
 	if not trim_request.is_empty():
 		fee += Tuning.data.v4_price_trim
 		tip += trim_tip(trim.match_score())
+	var say := "+%d"
+	if no_shampoo:
+		fee += Tuning.data.v4_no_shampoo_price - Tuning.data.v4_price_wash
+		tip = 0
+		say = "+%d · 샴푸 냄새가 안 나요…"
+		no_shampoo = false
 	fees += fee
 	tips += tip
 	money += fee + tip
-	guests.return_current("+%d" % (fee + tip))
+	guests.return_current(say % (fee + tip))
 	sfx.play("coin")
 	_clear_tub()
 	_taken = {}
@@ -479,7 +592,7 @@ func end_day() -> void:
 	_settle.name = "Settle"
 	_hud.get_parent().add_child(_settle)
 	_settle.buy_requested.connect(func(tool_id: String) -> void:
-		if buy(tool_id):
+		if order(tool_id):
 			save_game(day + 1)
 		_show_settle())
 	_settle.next_day_requested.connect(start_next_day)
@@ -529,30 +642,105 @@ func tool_name(tool_id: String) -> String:
 	return TOOL_LEVEL_NAMES[tool_id][tool_level[tool_id]]
 
 
-## 다음 단계 값 (더 없으면 -1)
+## 다음 단계 값 (더 없으면 -1). 주문해 둔(아직 안 연) 상자 단계까지 친 다음 단계. 가게 물건(샴푸·새 빗살)도
 func next_price(tool_id: String) -> int:
-	if tool_id == "scissors":
-		return -1 if owns_scissors else Tuning.data.v4_price_scissors
+	match tool_id:
+		"scissors":
+			return -1 if owns_scissors or _ordered("scissors") > 0 else Tuning.data.v4_price_scissors
+		"shampoo_bottle":
+			return Tuning.data.v4_shampoo_bottle_price
+		"shampoo_big":
+			return Tuning.data.v4_shampoo_big_price
+		"brush_refill":
+			var refill: int = Tuning.data.v4_brush_refill_price5[tool_level.brush]
+			return refill if refill > 0 and brush_used > 0 and _ordered("brush_refill") + _ordered("tool:brush") == 0 else -1
 	var prices: PackedInt32Array = Tuning.data.v4_tool_price5
-	var next: int = tool_level[tool_id] + 1
+	var next: int = ordered_level(tool_id) + 1
 	return prices[next] if next < prices.size() and next < Tuning.data.v4_tool_tiers else -1
 
 
-## 가게에서 사기: 돈이 모자라거나 더 없으면 false
+## 주문까지 친 도구 단계 (지금 단계 + 안 연 단계 상자 수)
+func ordered_level(tool_id: String) -> int:
+	return tool_level[tool_id] + _ordered("tool:" + tool_id)
+
+
+func _ordered(item: String) -> int:
+	return parcels.filter(func(box: Dictionary) -> bool: return box.item == item).size()
+
+
+## 가게 줄 id → 상자 속 물건 id
+static func item_of(store_id: String) -> String:
+	return store_id if store_id == "scissors" or SUPPLIES.has(store_id) else "tool:" + store_id
+
+
+func item_name(item: String) -> String:
+	if item.begins_with("tool:"):
+		var tool_id := item.trim_prefix("tool:")
+		return TOOL_LEVEL_NAMES[tool_id][mini(tool_level[tool_id] + 1, Tuning.data.v4_tool_tiers - 1)]
+	if item == "scissors":
+		return "가위"
+	return SUPPLIES[item].name if SUPPLIES.has(item) else item
+
+
+## 바로 사서 바로 씀 (빠른 확인·테스트). 정산 판의 가게는 order (택배)
 func buy(tool_id: String) -> bool:
 	var price := next_price(tool_id)
 	if price < 0 or money < price:
 		return false
 	money -= price
-	if tool_id == "scissors":
-		owns_scissors = true
-		guests.trim_chance = Tuning.data.v4_trim_request_ratio
-		_set_pickup_available("scissors", true)
-		sfx.play("coin")
-		return true
-	set_tier(tool_id, tool_level[tool_id] + 1)
+	apply_item(item_of(tool_id))
 	sfx.play("coin")
 	return true
+
+
+## 정산 판 가게에서 주문: 돈을 내고 다음 날 아침 택배로 옴 (GDD_V4 '택배 흐름')
+func order(store_id: String) -> bool:
+	var price := next_price(store_id)
+	if price < 0 or money < price:
+		return false
+	money -= price
+	var item := item_of(store_id)
+	parcels.append({"item": item, "kind": "tool" if item.begins_with("tool:") or item == "scissors" else ("shampoo" if item.begins_with("shampoo") else "brush_refill"), "size": SUPPLIES[item].size if SUPPLIES.has(item) else "small", "arrived": false})
+	sfx.play("coin")
+	return true
+
+
+## 상자 속 물건을 제자리에 (도구 단계 하나 올림·가위·샴푸 채움·새 빗살)
+func apply_item(item: String) -> void:
+	if item.begins_with("tool:"):
+		var tool_id := item.trim_prefix("tool:")
+		set_tier(tool_id, tool_level[tool_id] + 1)
+		if tool_id == "brush":
+			brush_used = 0
+		return
+	match item:
+		"scissors":
+			owns_scissors = true
+			guests.trim_chance = Tuning.data.v4_trim_request_ratio
+			_set_pickup_available("scissors", true)
+		"shampoo_bottle":
+			shampoo_left += Tuning.data.v4_shampoo_bottle
+		"shampoo_big":
+			shampoo_left += Tuning.data.v4_shampoo_big
+		"brush_refill":
+			brush_used = 0
+
+
+## 빗 수명 (마리, 0 = 안 닳음)
+func brush_life() -> int:
+	return Tuning.data.v4_brush_life5[tool_level.brush]
+
+
+## 빗 닳음 → 빗질 속도 배수: 남은 수명이 v4_brush_worn_from 아래로 가면 v4_brush_worn_mult 까지 천천히
+func brush_wear_mult() -> float:
+	var life := brush_life()
+	if life <= 0:
+		return 1.0
+	var left := 1.0 - minf(float(brush_used) / life, 1.0)
+	var from: float = Tuning.data.v4_brush_worn_from
+	if left >= from:
+		return 1.0
+	return lerpf(Tuning.data.v4_brush_worn_mult, 1.0, left / from)
 
 
 ## 도구 단계를 바로 정함 (가게·빠른 확인): 선반 모형을 그 단계 모형으로, 손에 들고 있으면 다시 집음
@@ -582,15 +770,21 @@ func set_all_tiers(level: int) -> void:
 		_show_hint("모든 도구 %d단계" % (level + 1), 2.0)
 
 
-## 정산 판 아래 가게 줄: 도구마다 다음 단계 이름·값
+## 정산 판 아래 가게 줄: 도구마다 다음 단계 이름·값, 가위, 샴푸, 새 빗살 (산 것은 다음 날 아침 택배)
 func store_rows() -> Array:
 	var rows := []
 	for tool_id in TOOL_LEVEL_NAMES:
 		var price := next_price(tool_id)
-		rows.append({"id": tool_id, "name": tool_name(tool_id), "next": TOOL_LEVEL_NAMES[tool_id][tool_level[tool_id] + 1] if price >= 0 else "", "price": price, "can_buy": price >= 0 and money >= price})
-	if not owns_scissors:
+		var level := ordered_level(tool_id)
+		rows.append({"id": tool_id, "name": TOOL_LEVEL_NAMES[tool_id][level], "next": TOOL_LEVEL_NAMES[tool_id][level + 1] if price >= 0 else "", "price": price, "can_buy": price >= 0 and money >= price})
+	if next_price("scissors") >= 0:
 		var scissors := next_price("scissors")
-		rows.append({"id": "scissors", "name": "가위 없음", "next": "가위 (다음 날부터 미용 요청 손님)", "price": scissors, "can_buy": money >= scissors})
+		rows.append({"id": "scissors", "name": "가위 없음", "next": "가위 (미용 요청 손님)", "price": scissors, "can_buy": money >= scissors})
+	for id in ["shampoo_bottle", "shampoo_big"]:
+		var amount: int = Tuning.data.v4_shampoo_bottle if id == "shampoo_bottle" else Tuning.data.v4_shampoo_big
+		rows.append({"id": id, "name": SUPPLIES[id].name, "next": "%d마리분 채움" % amount, "price": next_price(id), "can_buy": money >= next_price(id)})
+	if next_price("brush_refill") >= 0:
+		rows.append({"id": "brush_refill", "name": "빗 닳음 %d/%d" % [brush_used, brush_life()], "next": "새 빗살", "price": next_price("brush_refill"), "can_buy": money >= next_price("brush_refill")})
 	return rows
 
 
@@ -617,7 +811,24 @@ func _show_settle() -> void:
 		"받은 손님  %d · 떠난 손님  %d" % [guests.served, guests.left_count],
 		"요금  %d + 팁  %d = 오늘  %d" % [fees, tips, fees + tips],
 		"가진 돈  %d" % money,
-	], store_rows())
+	] + _supply_lines(), store_rows())
+
+
+## 정산 판: 남은 샴푸 (적으면 ⚠, 없으면 ⛔), 빗 닳음, 내일 아침 올 택배
+func _supply_lines() -> Array:
+	var lines := []
+	var mark := ""
+	if shampoo_left < 0.01:
+		mark = "⛔ "
+	elif shampoo_left <= Tuning.data.v4_shampoo_warn_at:
+		mark = "⚠ "
+	lines.append("%s남은 샴푸  %s마리분" % [mark, _amount(shampoo_left)])
+	if brush_life() > 0:
+		lines.append("빗 닳음  %d / %d마리%s" % [brush_used, brush_life(), " (느려졌어요)" if brush_wear_mult() < 1.0 else ""])
+	var coming := parcels.filter(func(box: Dictionary) -> bool: return not box.get("arrived", true)).size()
+	if coming > 0:
+		lines.append("내일 아침 도착 📦 %d개" % coming)
+	return lines
 
 
 func _on_guest_left(_kind: String) -> void:
@@ -632,6 +843,9 @@ func progress() -> Dictionary:
 
 func pick(tool_id: String) -> void:
 	if not TOOLS.has(tool_id) or held == tool_id:
+		return
+	if not carried.is_empty():
+		_show_hint("상자를 먼저 열어요 (가게 안에서 클릭)", 1.5)
 		return
 	drop()
 	# 빠르게 Q→같은 도구를 집어도 이전 반납 콜백이 선반을 다시 보이지 않게 한다.
@@ -734,7 +948,7 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 			var strokes: PackedInt32Array = Tuning.data.v4_brush_strokes
 			var needed: int = strokes[1] if hand_move.y < -moved * 0.5 else strokes[0]
 			var amount: float = maxf(Tuning.data.v4_brush_hold_rate * delta, moved / (Tuning.data.v4_brush_stroke_len * needed))
-			tangles.brush(point, radius * BRUSH_REACH, amount * speed)
+			tangles.brush(point, radius * BRUSH_REACH, amount * speed * brush_wear_mult())
 			if is_final("brush"):
 				_final_sparkle(point)
 			sfx.set_loop("scrub", 0.4)
@@ -882,11 +1096,29 @@ func _finish_stage(stage: Dictionary) -> void:
 	_banner = stage.text
 	_banner_left = 2.0
 	dog.set_blink(0.0, stage.id)
+	if stage.id == "scrub" and not no_shampoo:
+		_use_shampoo()
+	elif stage.id == "brush" and brush_life() > 0:
+		brush_used += 1
 	if stage.id == "dry":
 		_spawn_tangles()
 	elif stage.id == "brush" and not trim_request.is_empty():
 		_spawn_trim()
 		_banner = "빗질 끝! 이제 가위로 %s" % FpTrim.SHAPES[trim_request].name
+
+
+## 거품 단계 하나 = 샴푸 한 마리분 (거품 도구 단계가 높으면 덜 씀). 3마리분 남는 순간 한 번 알림
+func _use_shampoo() -> void:
+	var before := shampoo_left
+	var uses: PackedFloat32Array = Tuning.data.v4_shampoo_use5
+	shampoo_left = maxf(0.0, shampoo_left - uses[tool_level.shampoo])
+	var alert: float = Tuning.data.v4_shampoo_alert_at
+	if before > alert and shampoo_left <= alert:
+		_show_hint("샴푸가 %s마리분 남았어요 (하루 끝 가게에서 사요)" % _amount(shampoo_left), 4.0)
+
+
+static func _amount(value: float) -> String:
+	return str(int(value)) if is_equal_approx(value, roundf(value)) else "%.1f" % value
 
 
 ## 드라이가 끝나면 엉킨 털 뭉치가 보임
@@ -972,6 +1204,10 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		if Input.mouse_mode != Input.MOUSE_MODE_CAPTURED:
 			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+		elif not carried.is_empty():
+			open_box()
+		elif not hovered_box.is_empty():
+			carry_box(hovered_box)
 		elif not hovered.is_empty():
 			pick(hovered)
 		elif hovered_guest != null:
@@ -998,6 +1234,7 @@ func _update_aim() -> void:
 	hovered = ""
 	hovered_guest = null
 	hovered_sign = false
+	hovered_box = {}
 	aim_point = null
 	var ray: Array[Vector3] = player.aim_ray(REACH)
 	var query := PhysicsRayQueryParameters3D.create(ray[0], ray[1], (1 << (PICK_LAYER - 1)) | DOG_LAYER)
@@ -1016,6 +1253,9 @@ func _update_aim() -> void:
 		return
 	if collider != null and collider.has_meta("sign"):
 		hovered_sign = true
+		return
+	if collider != null and collider.has_meta("box"):
+		hovered_box = collider.get_meta("box")
 		return
 	# 가위·빗: 가운데 점 둘레의 다발·뭉치를 바로 겨눔 (몸 겉면 판정이 다른 부위에 먼저 닿거나
 	# 강아지가 고개를 돌려도 바라보는 다발이 잘리게, 사람 대표 플레이 버그)
@@ -1267,9 +1507,13 @@ func _draw_hud() -> void:
 	# 가운데 점 (도구를 쓸 수 있는 곳이면 노랑)
 	var ready_to_use := aim_point != null and not held.is_empty()
 	_hud.draw_circle(center, 5.0, Color(0, 0, 0, 0.6))
-	_hud.draw_circle(center, 3.0, Color(1, 0.85, 0.3) if ready_to_use or not hovered.is_empty() or hovered_guest != null or hovered_sign else Color(1, 1, 1))
+	_hud.draw_circle(center, 3.0, Color(1, 0.85, 0.3) if ready_to_use or not hovered.is_empty() or hovered_guest != null or hovered_sign or not hovered_box.is_empty() else Color(1, 1, 1))
 	var under := ""
-	if not hovered.is_empty():
+	if not carried.is_empty():
+		under = "가게 밖에서는 못 열어요 · 안으로 들고 가요" if FpOutside.is_outside(player.global_position) else "클릭: 상자 열기"
+	elif not hovered_box.is_empty():
+		under = "클릭: 택배 상자 들기"
+	elif not hovered.is_empty():
 		under = "클릭: %s 집기" % TOOLS[hovered].name
 	elif hovered_sign:
 		under = "클릭: 팻말 뒤집기 (영업 시작)" if morning else ("영업 중" if guests.open else "오늘 영업 끝")

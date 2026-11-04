@@ -243,6 +243,25 @@ extends Resource
 @export var v4_tool_price5 := PackedInt32Array([0, 120, 250, 450, 800])
 ## 샴푸·빗 닳음 (TUNING_V4 3-5): 처음 가진 샴푸 (마리분). 저장·이어하기에서 처음 값으로 씀, 소모 규칙은 다음 PR
 @export var v4_shampoo_start := 20
+@export var v4_shampoo_bottle := 20
+@export var v4_shampoo_bottle_price := 80
+@export var v4_shampoo_big := 50
+@export var v4_shampoo_big_price := 180
+## 거품 도구 단계별 한 마리에 쓰는 샴푸 (마리분)
+@export var v4_shampoo_use5 := PackedFloat32Array([1.0, 1.0, 0.75, 0.75, 0.5])
+## 샴푸 없이 씻긴 요금 (팁 0)
+@export var v4_no_shampoo_price := 10
+@export var v4_shampoo_warn_at := 5
+@export var v4_shampoo_alert_at := 3
+## 빗 단계별 수명 (마리, 0 = 안 닳음), 남은 수명이 이 비율 아래면 느려지기 시작, 수명 0 일 때 빗질 속도
+@export var v4_brush_life5 := PackedInt32Array([30, 60, 120, 0, 0])
+@export var v4_brush_worn_from := 0.5
+@export var v4_brush_worn_mult := 0.7
+## 새 빗살 값 (0 = 가게에 안 보임)
+@export var v4_brush_refill_price5 := PackedInt32Array([20, 30, 50, 0, 0])
+## 가게 밖·택배 (TUNING_V4 3-4): 아침 시작 뒤 트럭이 와서 떠나기까지 (s), 상자를 들고 걷는 속도 [작은, 중간, 큰]
+@export var v4_truck_seconds := 4.0
+@export var v4_box_carry_speed := PackedFloat32Array([1.0, 0.9, 0.75])
 
 ## 기분 0~1 → 얼굴 단계 0(😣) / 1(😐) / 2(😊)
 func mood_face(mood: float) -> int:

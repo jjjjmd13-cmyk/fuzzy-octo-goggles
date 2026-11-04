@@ -27,7 +27,7 @@ func run_test() -> void:
 	shop.shampoo_left = 6.25
 	shop.brush_used = 9
 	shop.decor = {"owned": ["plant_round", "rug_paw"], "placed": {"plant": "plant_round"}}
-	shop.parcels = [{"item": "shampoo_bottle", "kind": "shampoo", "size": "small"}, {"item": "rug_paw", "kind": "decor", "size": "medium"}]
+	shop.parcels = [{"item": "shampoo_bottle", "kind": "shampoo", "size": "small", "arrived": true}, {"item": "rug_paw", "kind": "decor", "size": "medium", "arrived": true}]
 	var money: int = shop.money
 	shop.end_day()
 	var saved := V4Save.read()
@@ -40,11 +40,11 @@ func run_test() -> void:
 	check_eq(saved.brush_used, 9, "빗 닳음")
 	check_eq(saved.decor, {"owned": ["plant_round", "rug_paw"], "placed": {"plant": "plant_round"}}, "꾸미기 (산 것·놓인 것)")
 	check_eq(saved.parcels.size(), 2, "아직 안 들인 택배 상자 2개")
-	check_eq(saved.parcels[1], {"item": "rug_paw", "kind": "decor", "size": "medium"}, "상자 내용·크기")
+	check_eq(saved.parcels[1], {"item": "rug_paw", "kind": "decor", "size": "medium", "arrived": true}, "상자 내용·크기·도착")
 
 	# 정산 판에서 사면 바로 저장
 	shop._settle.buy_requested.emit("towel")
-	check_eq(V4Save.read().tool_level.towel, 1, "정산 판에서 산 수건 단계가 저장됨")
+	check_eq(V4Save.read().parcels[-1], {"item": "tool:towel", "kind": "tool", "size": "small", "arrived": false}, "정산 판에서 산 수건은 내일 아침 올 상자로 저장됨")
 	check_eq(V4Save.read().money, shop.money, "산 뒤의 돈이 저장됨")
 	# [다음 날] → 2일차 시작에 저장 (영업 중에 끄면 2일차 처음부터)
 	shop._settle.next_day_requested.emit()
