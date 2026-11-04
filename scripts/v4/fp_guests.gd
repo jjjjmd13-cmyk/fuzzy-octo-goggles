@@ -68,16 +68,7 @@ func _ready() -> void:
 		add_child(chair)
 		chair.position = SEATS[i]
 		chair.rotation.y = atan2(LOOK_AT.x - SEATS[i].x, LOOK_AT.z - SEATS[i].z)
-	var door := MeshInstance3D.new()
-	door.name = "Door"
-	var box := BoxMesh.new()
-	box.size = Vector3(0.05, 2.0, 0.9)
-	door.mesh = box
-	door.position = Vector3(3.88, 1.0, DOOR.z)
-	var material := StandardMaterial3D.new()
-	material.albedo_color = Color(0.55, 0.38, 0.25)
-	door.material_override = material
-	add_child(door)
+	# 정문 문짝은 가게 밖(fp_outside.gd)이 만듦 (다가가면 열리는 진짜 문)
 
 
 ## 다음 날: 오늘 센 것과 처음 줄을 새로 (시간 elapsed 도 0 부터, 급함은 다시 v4_hurry_after 뒤에)

@@ -19,6 +19,9 @@ func run_test() -> void:
 	guests._spawn_left = 1e9
 	for i in 3:
 		await get_tree().physics_frame
+	# 아침 준비 시간 (팻말을 뒤집기 전엔 시계가 안 감)
+	check(shop.morning, "하루는 아침 준비로 시작")
+	shop.open_shop()
 	check(is_equal_approx(shop.day_seconds, Tuning.data.v4_day_minutes * 60.0), "하루 영업 = v4_day_minutes")
 	check_eq(shop.clock_text(), "오전 9:00", "문 열 때 시계")
 
