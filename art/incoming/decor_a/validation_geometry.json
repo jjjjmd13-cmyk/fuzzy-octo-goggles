@@ -1,0 +1,729 @@
+{
+  "tub_wood": {
+    "triangles": 2928,
+    "budget": 4000,
+    "dimensions_m": [
+      1.6,
+      1.06,
+      1.232
+    ],
+    "bounds_min_y_up": [
+      -0.800000011920929,
+      0.0,
+      -0.6159999966621399
+    ],
+    "bounds_max_y_up": [
+      0.800000011920929,
+      1.059999942779541,
+      0.6159999966621399
+    ],
+    "origin": "floor",
+    "parts": {
+      "Stand": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "Tub": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "Plug": [
+        0.0,
+        0.935,
+        -0.23
+      ]
+    },
+    "notes": "Stand 1.6 x 1.1 m, top Y=.9; round Tub radius .6; rear rim Y=1.06, front rim Y=1.018. Plug separate."
+  },
+  "tub_claw": {
+    "triangles": 2896,
+    "budget": 4000,
+    "dimensions_m": [
+      1.6,
+      1.06,
+      1.232
+    ],
+    "bounds_min_y_up": [
+      -0.800000011920929,
+      0.0,
+      -0.6159999966621399
+    ],
+    "bounds_max_y_up": [
+      0.800000011920929,
+      1.059999942779541,
+      0.6159999966621399
+    ],
+    "origin": "floor",
+    "parts": {
+      "Stand": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "Tub": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "Plug": [
+        0.0,
+        0.935,
+        -0.23
+      ]
+    },
+    "notes": "Stand 1.6 x 1.1 m, top Y=.9; round Tub radius .6; rear rim Y=1.06, front rim Y=1.018. Plug separate."
+  },
+  "tub_shell": {
+    "triangles": 2088,
+    "budget": 4000,
+    "dimensions_m": [
+      1.6,
+      1.06,
+      1.232
+    ],
+    "bounds_min_y_up": [
+      -0.800000011920929,
+      0.0,
+      -0.6159999966621399
+    ],
+    "bounds_max_y_up": [
+      0.800000011920929,
+      1.059999942779541,
+      0.6159999966621399
+    ],
+    "origin": "floor",
+    "parts": {
+      "Stand": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "Tub": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "Plug": [
+        0.0,
+        0.935,
+        -0.23
+      ]
+    },
+    "notes": "Stand 1.6 x 1.1 m, top Y=.9; round Tub radius .6; rear rim Y=1.06, front rim Y=1.018. Plug separate."
+  },
+  "shelf_wood": {
+    "triangles": 864,
+    "budget": 3000,
+    "dimensions_m": [
+      1.8,
+      0.9,
+      0.6
+    ],
+    "bounds_min_y_up": [
+      -0.8999999761581421,
+      0.0,
+      -0.30000001192092896
+    ],
+    "bounds_max_y_up": [
+      0.8999999761581421,
+      0.9000000357627869,
+      0.30000001192092896
+    ],
+    "origin": "floor",
+    "parts": {
+      "Body": [
+        0.0,
+        0.0,
+        -0.0
+      ]
+    },
+    "notes": "Flat horizontal working surface Y=.9, 1.8 x .6 m; ornaments remain below top."
+  },
+  "shelf_basket": {
+    "triangles": 1656,
+    "budget": 3000,
+    "dimensions_m": [
+      1.8,
+      0.9,
+      0.6
+    ],
+    "bounds_min_y_up": [
+      -0.8999999761581421,
+      0.0,
+      -0.30000001192092896
+    ],
+    "bounds_max_y_up": [
+      0.8999999761581421,
+      0.9000000357627869,
+      0.30000001192092896
+    ],
+    "origin": "floor",
+    "parts": {
+      "Body": [
+        0.0,
+        0.0,
+        -0.0
+      ]
+    },
+    "notes": "Flat horizontal working surface Y=.9, 1.8 x .6 m; ornaments remain below top."
+  },
+  "shelf_cloud": {
+    "triangles": 1264,
+    "budget": 3000,
+    "dimensions_m": [
+      1.8,
+      0.9,
+      0.6
+    ],
+    "bounds_min_y_up": [
+      -0.8999999761581421,
+      0.0,
+      -0.30000001192092896
+    ],
+    "bounds_max_y_up": [
+      0.8999999761581421,
+      0.9000000357627869,
+      0.30000001192092896
+    ],
+    "origin": "floor",
+    "parts": {
+      "Body": [
+        0.0,
+        0.0,
+        -0.0
+      ]
+    },
+    "notes": "Flat horizontal working surface Y=.9, 1.8 x .6 m; ornaments remain below top."
+  },
+  "counter_wood": {
+    "triangles": 432,
+    "budget": 3000,
+    "dimensions_m": [
+      1.2,
+      0.95,
+      0.5
+    ],
+    "bounds_min_y_up": [
+      -0.6000000238418579,
+      0.0,
+      -0.25
+    ],
+    "bounds_max_y_up": [
+      0.6000000238418579,
+      0.9500000476837158,
+      0.25
+    ],
+    "origin": "floor",
+    "parts": {
+      "Body": [
+        0.0,
+        0.0,
+        -0.0
+      ]
+    },
+    "notes": ""
+  },
+  "counter_bone": {
+    "triangles": 640,
+    "budget": 3000,
+    "dimensions_m": [
+      1.2,
+      0.95,
+      0.49971
+    ],
+    "bounds_min_y_up": [
+      -0.6000000238418579,
+      0.0,
+      -0.24985723197460175
+    ],
+    "bounds_max_y_up": [
+      0.6000000238418579,
+      0.949999988079071,
+      0.24985723197460175
+    ],
+    "origin": "floor",
+    "parts": {
+      "Body": [
+        0.0,
+        0.0,
+        -0.0
+      ]
+    },
+    "notes": ""
+  },
+  "counter_cake": {
+    "triangles": 2288,
+    "budget": 3000,
+    "dimensions_m": [
+      1.2,
+      0.95,
+      0.5
+    ],
+    "bounds_min_y_up": [
+      -0.6000000238418579,
+      0.0,
+      -0.25
+    ],
+    "bounds_max_y_up": [
+      0.6000000238418579,
+      0.949999988079071,
+      0.25
+    ],
+    "origin": "floor",
+    "parts": {
+      "Body": [
+        0.0,
+        0.0,
+        -0.0
+      ]
+    },
+    "notes": "Overall height .95 m including cherry stem; two oval cake tiers."
+  },
+  "sign_board": {
+    "triangles": 272,
+    "budget": 1500,
+    "dimensions_m": [
+      1.6,
+      0.5,
+      0.08
+    ],
+    "bounds_min_y_up": [
+      -0.800000011920929,
+      -0.25,
+      -0.07999999821186066
+    ],
+    "bounds_max_y_up": [
+      0.800000011920929,
+      0.25,
+      -0.0
+    ],
+    "origin": "back centre",
+    "parts": {
+      "Body": [
+        0.0,
+        0.0,
+        -0.0
+      ]
+    },
+    "notes": "Blank label 1.32 x .23 m. Back Z=0."
+  },
+  "sign_paw": {
+    "triangles": 764,
+    "budget": 1500,
+    "dimensions_m": [
+      1.6,
+      0.5,
+      0.08
+    ],
+    "bounds_min_y_up": [
+      -0.800000011920929,
+      -0.25,
+      -0.07999999821186066
+    ],
+    "bounds_max_y_up": [
+      0.800000011920929,
+      0.25,
+      -0.0
+    ],
+    "origin": "back centre",
+    "parts": {
+      "Body": [
+        0.0,
+        0.0,
+        -0.0
+      ]
+    },
+    "notes": "Wide paw silhouette, blank central label 1.08 x .2 m; back Z=0."
+  },
+  "sign_rainbow": {
+    "triangles": 748,
+    "budget": 1500,
+    "dimensions_m": [
+      1.6,
+      0.5,
+      0.08
+    ],
+    "bounds_min_y_up": [
+      -0.800000011920929,
+      -0.25,
+      -0.07999999821186066
+    ],
+    "bounds_max_y_up": [
+      0.800000011920929,
+      0.25,
+      -0.0
+    ],
+    "origin": "back centre",
+    "parts": {
+      "Body": [
+        0.0,
+        0.0,
+        -0.0
+      ]
+    },
+    "notes": "Cream blank label 1.05 x .25 m; rainbow trim, cloud ends, gold stars."
+  },
+  "lamp_bulb": {
+    "triangles": 540,
+    "budget": 1500,
+    "dimensions_m": [
+      0.4,
+      0.7,
+      0.4
+    ],
+    "bounds_min_y_up": [
+      -0.20000000298023224,
+      -0.699999988079071,
+      -0.20000000298023224
+    ],
+    "bounds_max_y_up": [
+      0.20000000298023224,
+      0.0,
+      0.20000000298023224
+    ],
+    "origin": "top hook",
+    "parts": {
+      "Body": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "Bulb": [
+        0.0,
+        -0.64,
+        -0.0
+      ]
+    },
+    "notes": ""
+  },
+  "lamp_bubble": {
+    "triangles": 1320,
+    "budget": 1500,
+    "dimensions_m": [
+      0.466,
+      0.703,
+      0.34
+    ],
+    "bounds_min_y_up": [
+      -0.23800000548362732,
+      -0.703000009059906,
+      -0.20000000298023224
+    ],
+    "bounds_max_y_up": [
+      0.2280000001192093,
+      0.0,
+      0.14000000059604645
+    ],
+    "origin": "top hook",
+    "parts": {
+      "Body": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "Bulb": [
+        0.0,
+        -0.53,
+        -0.0
+      ]
+    },
+    "notes": "Three alpha-blended bubble shades; Bulb groups all three bulb cores, no baked light."
+  },
+  "lamp_cloud": {
+    "triangles": 692,
+    "budget": 1500,
+    "dimensions_m": [
+      0.408,
+      0.69751,
+      0.3
+    ],
+    "bounds_min_y_up": [
+      -0.20399999618530273,
+      -0.6975066065788269,
+      -0.15000000596046448
+    ],
+    "bounds_max_y_up": [
+      0.20399999618530273,
+      0.0,
+      0.15000000596046448
+    ],
+    "origin": "top hook",
+    "parts": {
+      "Body": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "Bulb": [
+        0.0,
+        -0.445,
+        -0.0
+      ]
+    },
+    "notes": ""
+  },
+  "plant_round": {
+    "triangles": 1020,
+    "budget": 2000,
+    "dimensions_m": [
+      0.495,
+      0.6,
+      0.402
+    ],
+    "bounds_min_y_up": [
+      -0.25,
+      0.0,
+      -0.23000000417232513
+    ],
+    "bounds_max_y_up": [
+      0.24500000476837158,
+      0.6000000238418579,
+      0.1720000058412552
+    ],
+    "origin": "floor",
+    "parts": {
+      "Body": [
+        0.0,
+        0.0,
+        -0.0
+      ]
+    },
+    "notes": ""
+  },
+  "plant_monstera": {
+    "triangles": 1432,
+    "budget": 2000,
+    "dimensions_m": [
+      0.85056,
+      0.9,
+      0.384
+    ],
+    "bounds_min_y_up": [
+      -0.4267493784427643,
+      0.0,
+      -0.19200000166893005
+    ],
+    "bounds_max_y_up": [
+      0.42381447553634644,
+      0.8999999761581421,
+      0.19200000166893005
+    ],
+    "origin": "floor",
+    "parts": {
+      "Body": [
+        0.0,
+        0.0,
+        -0.0
+      ]
+    },
+    "notes": ""
+  },
+  "plant_lemon": {
+    "triangles": 1604,
+    "budget": 2000,
+    "dimensions_m": [
+      0.82,
+      1.3,
+      0.5127
+    ],
+    "bounds_min_y_up": [
+      -0.4099999964237213,
+      0.0,
+      -0.27070286870002747
+    ],
+    "bounds_max_y_up": [
+      0.4099999964237213,
+      1.2999999523162842,
+      0.24199999868869781
+    ],
+    "origin": "floor",
+    "parts": {
+      "Body": [
+        0.0,
+        0.0,
+        -0.0
+      ]
+    },
+    "notes": ""
+  },
+  "rug_circle": {
+    "triangles": 312,
+    "budget": 500,
+    "dimensions_m": [
+      1.6,
+      0.02,
+      1.0
+    ],
+    "bounds_min_y_up": [
+      -0.800000011920929,
+      0.0,
+      -0.5
+    ],
+    "bounds_max_y_up": [
+      0.800000011920929,
+      0.019999999552965164,
+      0.5
+    ],
+    "origin": "floor",
+    "parts": {
+      "Body": [
+        0.0,
+        0.0,
+        -0.0
+      ]
+    },
+    "notes": "1.6 x 1 m, total thickness .02 m."
+  },
+  "rug_paw": {
+    "triangles": 332,
+    "budget": 500,
+    "dimensions_m": [
+      1.6,
+      0.018,
+      1.0
+    ],
+    "bounds_min_y_up": [
+      -0.800000011920929,
+      0.0,
+      -0.5
+    ],
+    "bounds_max_y_up": [
+      0.800000011920929,
+      0.017999999225139618,
+      0.5
+    ],
+    "origin": "floor",
+    "parts": {
+      "Body": [
+        0.0,
+        0.0,
+        -0.0
+      ]
+    },
+    "notes": ""
+  },
+  "rug_rainbow": {
+    "triangles": 462,
+    "budget": 500,
+    "dimensions_m": [
+      1.6,
+      0.02,
+      1.0
+    ],
+    "bounds_min_y_up": [
+      -0.800000011920929,
+      0.0,
+      -0.5
+    ],
+    "bounds_max_y_up": [
+      0.800000011920929,
+      0.019999999552965164,
+      0.5
+    ],
+    "origin": "floor",
+    "parts": {
+      "Body": [
+        0.0,
+        0.0,
+        -0.0
+      ]
+    },
+    "notes": ""
+  },
+  "art_dog": {
+    "triangles": 794,
+    "budget": 1500,
+    "dimensions_m": [
+      0.6,
+      0.5,
+      0.05
+    ],
+    "bounds_min_y_up": [
+      -0.30000001192092896,
+      -0.25,
+      -0.05000000074505806
+    ],
+    "bounds_max_y_up": [
+      0.30000001192092896,
+      0.25,
+      -0.0
+    ],
+    "origin": "back centre",
+    "parts": {
+      "Body": [
+        0.0,
+        0.0,
+        -0.0
+      ]
+    },
+    "notes": "Original smiling dog flat-colour relief picture. Back Z=0."
+  },
+  "art_clock": {
+    "triangles": 908,
+    "budget": 1500,
+    "dimensions_m": [
+      0.6,
+      0.5,
+      0.05
+    ],
+    "bounds_min_y_up": [
+      -0.30000001192092896,
+      -0.25,
+      -0.05000000074505806
+    ],
+    "bounds_max_y_up": [
+      0.30000001192092896,
+      0.25,
+      -0.0
+    ],
+    "origin": "back centre",
+    "parts": {
+      "Body": [
+        0.0,
+        0.0,
+        -0.0
+      ],
+      "Hand_H": [
+        0.0,
+        0.0,
+        -0.03686
+      ],
+      "Hand_M": [
+        0.0,
+        0.0,
+        -0.04088
+      ]
+    },
+    "notes": "Hand_H and Hand_M are separate mesh nodes, pivot at clock centre; rotate local Z. 12 face dots."
+  },
+  "art_bubble": {
+    "triangles": 1416,
+    "budget": 1500,
+    "dimensions_m": [
+      0.6,
+      0.5,
+      0.05
+    ],
+    "bounds_min_y_up": [
+      -0.30000001192092896,
+      -0.25,
+      -0.05000000074505806
+    ],
+    "bounds_max_y_up": [
+      0.30000001192092896,
+      0.25,
+      -0.0
+    ],
+    "origin": "back centre",
+    "parts": {
+      "Body": [
+        0.0,
+        0.0,
+        -0.0
+      ]
+    },
+    "notes": "Rainbow bubble cloud, original small rubber duck, gold sparkles; back Z=0."
+  }
+}

@@ -1,0 +1,1250 @@
+[
+  {
+    "file": "art_bubble.glb",
+    "uri": "art_bubble.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.041Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 97248
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 9,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 9,
+      "totalVertexCount": 2778,
+      "totalTriangleCount": 1416,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "art_clock.glb",
+    "uri": "art_clock.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.053Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 52184
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 6,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 6,
+      "totalVertexCount": 1450,
+      "totalTriangleCount": 908,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "art_dog.glb",
+    "uri": "art_dog.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.064Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 45004
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 6,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 6,
+      "totalVertexCount": 1247,
+      "totalTriangleCount": 794,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "counter_bone.glb",
+    "uri": "counter_bone.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.069Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 41040
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 2,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 2,
+      "totalVertexCount": 1152,
+      "totalTriangleCount": 640,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "counter_cake.glb",
+    "uri": "counter_cake.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.075Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 154608
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 6,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 6,
+      "totalVertexCount": 4392,
+      "totalTriangleCount": 2288,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "counter_wood.glb",
+    "uri": "counter_wood.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.079Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 21224
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 3,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 3,
+      "totalVertexCount": 592,
+      "totalTriangleCount": 432,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "lamp_bubble.glb",
+    "uri": "lamp_bubble.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.082Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 91648
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 4,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 5,
+      "totalVertexCount": 2606,
+      "totalTriangleCount": 1320,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "lamp_bulb.glb",
+    "uri": "lamp_bulb.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.085Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 35512
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 4,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 4,
+      "totalVertexCount": 998,
+      "totalTriangleCount": 540,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "lamp_cloud.glb",
+    "uri": "lamp_cloud.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.091Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 46888
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 4,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 4,
+      "totalVertexCount": 1325,
+      "totalTriangleCount": 692,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "plant_lemon.glb",
+    "uri": "plant_lemon.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.095Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 109416
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 5,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 5,
+      "totalVertexCount": 3108,
+      "totalTriangleCount": 1604,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "plant_monstera.glb",
+    "uri": "plant_monstera.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.101Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 73952
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 5,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 5,
+      "totalVertexCount": 2032,
+      "totalTriangleCount": 1432,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "plant_round.glb",
+    "uri": "plant_round.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.105Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 69304
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 4,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 4,
+      "totalVertexCount": 1964,
+      "totalTriangleCount": 1020,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "rug_circle.glb",
+    "uri": "rug_circle.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.107Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 16632
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 2,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 2,
+      "totalVertexCount": 480,
+      "totalTriangleCount": 312,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "rug_paw.glb",
+    "uri": "rug_paw.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.109Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 19224
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 1,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 1,
+      "totalVertexCount": 528,
+      "totalTriangleCount": 332,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "rug_rainbow.glb",
+    "uri": "rug_rainbow.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.115Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 30564
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 7,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 7,
+      "totalVertexCount": 858,
+      "totalTriangleCount": 462,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "shelf_basket.glb",
+    "uri": "shelf_basket.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.121Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 84896
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 6,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 6,
+      "totalVertexCount": 2332,
+      "totalTriangleCount": 1656,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "shelf_cloud.glb",
+    "uri": "shelf_cloud.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.124Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 72880
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 3,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 3,
+      "totalVertexCount": 2030,
+      "totalTriangleCount": 1264,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "shelf_wood.glb",
+    "uri": "shelf_wood.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.126Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 43408
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 1,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 1,
+      "totalVertexCount": 1184,
+      "totalTriangleCount": 864,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "sign_board.glb",
+    "uri": "sign_board.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.130Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 14256
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 3,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 3,
+      "totalVertexCount": 384,
+      "totalTriangleCount": 272,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "sign_paw.glb",
+    "uri": "sign_paw.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.133Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 51960
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 2,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 2,
+      "totalVertexCount": 1470,
+      "totalTriangleCount": 764,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "sign_rainbow.glb",
+    "uri": "sign_rainbow.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.135Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 48648
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 7,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 7,
+      "totalVertexCount": 1401,
+      "totalTriangleCount": 748,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "tub_claw.glb",
+    "uri": "tub_claw.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.142Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 187696
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 6,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 7,
+      "totalVertexCount": 5312,
+      "totalTriangleCount": 2896,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "tub_shell.glb",
+    "uri": "tub_shell.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.147Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 137024
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 6,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 8,
+      "totalVertexCount": 3880,
+      "totalTriangleCount": 2088,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  },
+  {
+    "file": "tub_wood.glb",
+    "uri": "tub_wood.glb",
+    "mimeType": "model/gltf-binary",
+    "validatorVersion": "2.0.0-dev.3.10",
+    "validatedAt": "2026-11-04T08:57:31.152Z",
+    "issues": {
+      "numErrors": 0,
+      "numWarnings": 0,
+      "numInfos": 0,
+      "numHints": 0,
+      "messages": [],
+      "truncated": false
+    },
+    "info": {
+      "version": "2.0",
+      "generator": "Khronos glTF Blender I/O v4.2.57",
+      "resources": [
+        {
+          "pointer": "/buffers/0",
+          "mimeType": "application/gltf-buffer",
+          "storage": "glb",
+          "byteLength": 185840
+        },
+        {
+          "pointer": "/images/0",
+          "mimeType": "image/png",
+          "storage": "buffer-view",
+          "image": {
+            "width": 128,
+            "height": 64,
+            "format": "rgba",
+            "primaries": "srgb",
+            "transfer": "srgb",
+            "bits": 8
+          }
+        }
+      ],
+      "animationCount": 0,
+      "materialCount": 4,
+      "hasMorphTargets": false,
+      "hasSkins": false,
+      "hasTextures": true,
+      "hasDefaultScene": true,
+      "drawCallCount": 7,
+      "totalVertexCount": 5248,
+      "totalTriangleCount": 2928,
+      "maxUVs": 1,
+      "maxInfluences": 0,
+      "maxAttributes": 3
+    }
+  }
+]
