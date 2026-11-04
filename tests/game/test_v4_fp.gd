@@ -60,6 +60,11 @@ func run_test() -> void:
 	shop.use_tool_at(points[0], 0.5)
 	check_eq(shop.dog.foam_count(), 0, "마른 털에는 거품이 안 생김")
 
+	# 수건은 기본 순서에서 빠짐: 단계 글자·도구 이름에 "수건" 이 남아 있으면 안 됨 (사람 대표 플레이 버그)
+	for stage in shop.STAGES:
+		check(not String(stage.text).contains("수건"), "단계 글자에 수건 없음 (%s)" % stage.text)
+	for tool_id in shop.TOOLS:
+		check(not String(shop.TOOLS[tool_id].name).contains("수건"), "도구 이름에 수건 없음")
 	check_eq(shop.stage_tool(), "shower", "처음 빛나는 도구는 샤워기")
 	var t_wet := _sweep("shower", "wet")
 	_check_stage(1, "적시기 끝", "shampoo")

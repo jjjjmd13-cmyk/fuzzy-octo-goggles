@@ -17,7 +17,8 @@ const SHAPES := {
 const ZONES := {
 	"head": {"dir": Vector3(0, 0.75, 0.65), "count": 3},
 	"body": {"dir": Vector3(0, 0.55, -0.85), "count": 4},
-	"legs": {"dir": Vector3(0, -0.55, 0.85), "count": 3},
+	# 다리는 앞에서 (아래에서 쏘면 배 밑에 붙어 위에서 안 보임)
+	"legs": {"dir": Vector3(0, -0.3, 0.95), "count": 3},
 	"tail": {"dir": Vector3(0, 0.1, -1.0), "count": 2},
 }
 
