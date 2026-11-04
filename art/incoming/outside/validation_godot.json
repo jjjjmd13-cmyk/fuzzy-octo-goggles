@@ -1,0 +1,195 @@
+{
+  "assets": [
+    {
+      "file": "box_large.glb",
+      "joints_tested": [
+        {
+          "axis": "Z",
+          "name": "Lid_L",
+          "pivot_stable": true,
+          "radians": 1.9
+        },
+        {
+          "axis": "Z",
+          "name": "Lid_R",
+          "pivot_stable": true,
+          "radians": -1.9
+        }
+      ],
+      "mesh_count": 3,
+      "status": "PASS"
+    },
+    {
+      "file": "box_medium.glb",
+      "joints_tested": [
+        {
+          "axis": "Z",
+          "name": "Lid_L",
+          "pivot_stable": true,
+          "radians": 1.9
+        },
+        {
+          "axis": "Z",
+          "name": "Lid_R",
+          "pivot_stable": true,
+          "radians": -1.9
+        }
+      ],
+      "mesh_count": 3,
+      "status": "PASS"
+    },
+    {
+      "file": "box_small.glb",
+      "joints_tested": [
+        {
+          "axis": "Z",
+          "name": "Lid_L",
+          "pivot_stable": true,
+          "radians": 1.9
+        },
+        {
+          "axis": "Z",
+          "name": "Lid_R",
+          "pivot_stable": true,
+          "radians": -1.9
+        }
+      ],
+      "mesh_count": 3,
+      "status": "PASS"
+    },
+    {
+      "file": "cart.glb",
+      "joints_tested": [
+        {
+          "axis": "X",
+          "name": "Wheel_L",
+          "pivot_stable": true,
+          "radians": 1.2
+        },
+        {
+          "axis": "X",
+          "name": "Wheel_R",
+          "pivot_stable": true,
+          "radians": 1.2
+        }
+      ],
+      "mesh_count": 3,
+      "status": "PASS"
+    },
+    {
+      "file": "delivery_mat.glb",
+      "joints_tested": [],
+      "mesh_count": 1,
+      "status": "PASS"
+    },
+    {
+      "file": "fence.glb",
+      "joints_tested": [],
+      "mesh_count": 1,
+      "status": "PASS"
+    },
+    {
+      "file": "flower_bed.glb",
+      "joints_tested": [],
+      "mesh_count": 1,
+      "status": "PASS"
+    },
+    {
+      "file": "mailbox.glb",
+      "joints_tested": [
+        {
+          "axis": "X",
+          "name": "Flag",
+          "pivot_stable": true,
+          "radians": -1.5707963267949
+        }
+      ],
+      "mesh_count": 2,
+      "status": "PASS"
+    },
+    {
+      "file": "open_sign.glb",
+      "joints_tested": [
+        {
+          "axis": "Y",
+          "name": "Plate",
+          "pivot_stable": true,
+          "radians": 3.14159265358979
+        }
+      ],
+      "mesh_count": 2,
+      "status": "PASS"
+    },
+    {
+      "file": "shop_front.glb",
+      "joints_tested": [
+        {
+          "axis": "Y",
+          "name": "Door",
+          "pivot_stable": true,
+          "radians": -1.5
+        },
+        {
+          "axis": "Z",
+          "name": "Bell",
+          "pivot_stable": true,
+          "radians": 0.4
+        }
+      ],
+      "mesh_count": 3,
+      "status": "PASS"
+    },
+    {
+      "file": "sign_outside.glb",
+      "joints_tested": [],
+      "mesh_count": 1,
+      "status": "PASS"
+    },
+    {
+      "file": "street_lamp.glb",
+      "joints_tested": [],
+      "mesh_count": 1,
+      "status": "PASS"
+    },
+    {
+      "file": "truck.glb",
+      "joints_tested": [
+        {
+          "axis": "X",
+          "name": "Door_Back",
+          "pivot_stable": true,
+          "radians": -1.8
+        },
+        {
+          "axis": "X",
+          "name": "Wheel_FL",
+          "pivot_stable": true,
+          "radians": 1.2
+        },
+        {
+          "axis": "X",
+          "name": "Wheel_BL",
+          "pivot_stable": true,
+          "radians": 1.2
+        },
+        {
+          "axis": "X",
+          "name": "Wheel_FR",
+          "pivot_stable": true,
+          "radians": 1.2
+        },
+        {
+          "axis": "X",
+          "name": "Wheel_BR",
+          "pivot_stable": true,
+          "radians": 1.2
+        }
+      ],
+      "mesh_count": 6,
+      "status": "PASS"
+    }
+  ],
+  "godot": "4.4.1-stable (official)",
+  "method": "Fresh project GLTFDocument load and actual local-axis articulation",
+  "status": "PASS"
+}

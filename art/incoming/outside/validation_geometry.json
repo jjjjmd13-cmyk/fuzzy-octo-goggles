@@ -1,0 +1,468 @@
+{
+  "shop_front": {
+    "triangles": 4838,
+    "budget": 7000,
+    "dimensions_m": [
+      7.0,
+      3.0,
+      0.92378
+    ],
+    "bounds_min": [
+      -3.5,
+      0.0,
+      -0.8237764239311218
+    ],
+    "bounds_max": [
+      3.5,
+      3.0,
+      0.10000000149011612
+    ],
+    "origin": "wall bottom centre",
+    "joints": {
+      "Door": {
+        "pivot": [
+          2.02,
+          0.02,
+          -0.035
+        ],
+        "axis": "Y",
+        "test_angle_radians": -1.5
+      },
+      "Bell": {
+        "pivot": [
+          2.6,
+          2.36,
+          -0.36
+        ],
+        "axis": "Z",
+        "test_angle_radians": 0.4
+      }
+    },
+    "empty_nodes": {},
+    "notes": "Wall itself 7 x 3 x .2 m. True opening X=2.0..3.2, Y=0..2.1; door centre +2.6m. Overall depth includes the awning. Two actual circular wall openings with alpha glass."
+  },
+  "sign_outside": {
+    "triangles": 1212,
+    "budget": 2000,
+    "dimensions_m": [
+      2.0,
+      0.6,
+      0.1
+    ],
+    "bounds_min": [
+      -1.0,
+      -0.30000001192092896,
+      -0.10000000149011612
+    ],
+    "bounds_max": [
+      1.0,
+      0.30000001192092896,
+      -0.0
+    ],
+    "origin": "back centre",
+    "joints": {},
+    "empty_nodes": {},
+    "notes": "Blank centre approx 1.25 x .36 m; no lettering."
+  },
+  "open_sign": {
+    "triangles": 260,
+    "budget": 1500,
+    "dimensions_m": [
+      0.35,
+      0.25,
+      0.0248
+    ],
+    "bounds_min": [
+      -0.17499999701976776,
+      -0.25,
+      -0.012400000356137753
+    ],
+    "bounds_max": [
+      0.17499999701976776,
+      0.0,
+      0.012400000356137753
+    ],
+    "origin": "top hanger",
+    "joints": {
+      "Plate": {
+        "pivot": [
+          0,
+          -0.07,
+          0
+        ],
+        "axis": "Y",
+        "test_angle_radians": 3.141592653589793
+      }
+    },
+    "empty_nodes": {},
+    "notes": "Sun front -Z, sleeping moon back +Z. Plate includes lower strings and flips around its upper central Y pivot."
+  },
+  "box_small": {
+    "triangles": 338,
+    "budget": 500,
+    "dimensions_m": [
+      0.3003,
+      0.25001,
+      0.25
+    ],
+    "bounds_min": [
+      -0.15000000596046448,
+      0.0,
+      -0.125
+    ],
+    "bounds_max": [
+      0.15029999613761902,
+      0.25001001358032227,
+      0.125
+    ],
+    "origin": "floor",
+    "joints": {
+      "Lid_L": {
+        "pivot": [
+          -0.149,
+          0.2445,
+          0
+        ],
+        "axis": "Z",
+        "test_angle_radians": 1.9
+      },
+      "Lid_R": {
+        "pivot": [
+          0.149,
+          0.2445,
+          0
+        ],
+        "axis": "Z",
+        "test_angle_radians": -1.9
+      }
+    },
+    "empty_nodes": {},
+    "notes": "Hollow carton, two independent flaps. Lid_L local Z +1.9, Lid_R local Z -1.9 opens outward. Tape is part of each lid."
+  },
+  "box_medium": {
+    "triangles": 338,
+    "budget": 500,
+    "dimensions_m": [
+      0.5003,
+      0.40001,
+      0.4
+    ],
+    "bounds_min": [
+      -0.25,
+      0.0,
+      -0.20000000298023224
+    ],
+    "bounds_max": [
+      0.25029999017715454,
+      0.40000998973846436,
+      0.20000000298023224
+    ],
+    "origin": "floor",
+    "joints": {
+      "Lid_L": {
+        "pivot": [
+          -0.249,
+          0.3945,
+          0
+        ],
+        "axis": "Z",
+        "test_angle_radians": 1.9
+      },
+      "Lid_R": {
+        "pivot": [
+          0.249,
+          0.3945,
+          0
+        ],
+        "axis": "Z",
+        "test_angle_radians": -1.9
+      }
+    },
+    "empty_nodes": {},
+    "notes": "Hollow carton, two independent flaps. Lid_L local Z +1.9, Lid_R local Z -1.9 opens outward. Tape is part of each lid."
+  },
+  "box_large": {
+    "triangles": 338,
+    "budget": 500,
+    "dimensions_m": [
+      0.9003,
+      0.60001,
+      0.6
+    ],
+    "bounds_min": [
+      -0.44999998807907104,
+      0.0,
+      -0.30000001192092896
+    ],
+    "bounds_max": [
+      0.450300008058548,
+      0.6000099778175354,
+      0.30000001192092896
+    ],
+    "origin": "floor",
+    "joints": {
+      "Lid_L": {
+        "pivot": [
+          -0.449,
+          0.5945,
+          0
+        ],
+        "axis": "Z",
+        "test_angle_radians": 1.9
+      },
+      "Lid_R": {
+        "pivot": [
+          0.449,
+          0.5945,
+          0
+        ],
+        "axis": "Z",
+        "test_angle_radians": -1.9
+      }
+    },
+    "empty_nodes": {},
+    "notes": "Hollow carton, two independent flaps. Lid_L local Z +1.9, Lid_R local Z -1.9 opens outward. Tape is part of each lid."
+  },
+  "truck": {
+    "triangles": 3728,
+    "budget": 6000,
+    "dimensions_m": [
+      1.8,
+      2.0,
+      3.5
+    ],
+    "bounds_min": [
+      -0.8999999761581421,
+      0.0,
+      -1.75
+    ],
+    "bounds_max": [
+      0.8999999761581421,
+      2.0,
+      1.75
+    ],
+    "origin": "floor",
+    "joints": {
+      "Door_Back": {
+        "pivot": [
+          0.0,
+          1.92,
+          1.7024708613853798
+        ],
+        "axis": "X",
+        "test_angle_radians": -1.8
+      },
+      "Wheel_FL": {
+        "pivot": [
+          -0.7722772451427624,
+          0.3,
+          -1.0297144467566932
+        ],
+        "axis": "X",
+        "test_angle_radians": 1.2
+      },
+      "Wheel_BL": {
+        "pivot": [
+          -0.7722772451427624,
+          0.3,
+          1.0968429846164411
+        ],
+        "axis": "X",
+        "test_angle_radians": 1.2
+      },
+      "Wheel_FR": {
+        "pivot": [
+          0.7722772451427624,
+          0.3,
+          -1.0297144467566932
+        ],
+        "axis": "X",
+        "test_angle_radians": 1.2
+      },
+      "Wheel_BR": {
+        "pivot": [
+          0.7722772451427624,
+          0.3,
+          1.0968429846164411
+        ],
+        "axis": "X",
+        "test_angle_radians": 1.2
+      }
+    },
+    "empty_nodes": {},
+    "notes": "1.8m overall width, 3.5m overall length, 2m high. Left=-X. Four X-axis wheels, upper X-hinged rear cargo door. Frosted opaque cab windows; no people."
+  },
+  "cart": {
+    "triangles": 1584,
+    "budget": 2000,
+    "dimensions_m": [
+      1.058,
+      1.0,
+      0.775
+    ],
+    "bounds_min": [
+      -0.5289999842643738,
+      0.0,
+      -0.30000001192092896
+    ],
+    "bounds_max": [
+      0.5289999842643738,
+      1.0,
+      0.4749999940395355
+    ],
+    "origin": "floor",
+    "joints": {
+      "Wheel_L": {
+        "pivot": [
+          -0.46,
+          0.16,
+          0.16
+        ],
+        "axis": "X",
+        "test_angle_radians": 1.2
+      },
+      "Wheel_R": {
+        "pivot": [
+          0.46,
+          0.16,
+          0.16
+        ],
+        "axis": "X",
+        "test_angle_radians": 1.2
+      }
+    },
+    "empty_nodes": {},
+    "notes": "Tray footprint .9 x .6m, tray rim top .3m, inner deck .24m; handle +Z, overall handle height 1m. Wheels rotate local X."
+  },
+  "mailbox": {
+    "triangles": 700,
+    "budget": 1000,
+    "dimensions_m": [
+      0.403,
+      1.2,
+      0.51131
+    ],
+    "bounds_min": [
+      -0.18000000715255737,
+      0.0,
+      -0.271314799785614
+    ],
+    "bounds_max": [
+      0.22300000488758087,
+      1.2000000476837158,
+      0.23999999463558197
+    ],
+    "origin": "floor",
+    "joints": {
+      "Flag": {
+        "pivot": [
+          0.215,
+          0.99,
+          0.02
+        ],
+        "axis": "X",
+        "test_angle_radians": -1.5707963267948966
+      }
+    },
+    "empty_nodes": {},
+    "notes": "1.2m high arched red mailbox. Flag raises with negative local X rotation."
+  },
+  "street_lamp": {
+    "triangles": 1028,
+    "budget": 1500,
+    "dimensions_m": [
+      0.4,
+      3.0,
+      0.4
+    ],
+    "bounds_min": [
+      -0.20000000298023224,
+      0.0,
+      -0.20000000298023224
+    ],
+    "bounds_max": [
+      0.20000000298023224,
+      3.0,
+      0.20000000298023224
+    ],
+    "origin": "floor",
+    "joints": {},
+    "empty_nodes": {
+      "Bulb": [
+        0,
+        2.6844742261147565,
+        0
+      ]
+    },
+    "notes": "Exactly 3m high. Bulb is an EMPTY node at the round lamp centre, ready for a game light."
+  },
+  "fence": {
+    "triangles": 488,
+    "budget": 800,
+    "dimensions_m": [
+      2.0,
+      0.8,
+      0.07
+    ],
+    "bounds_min": [
+      -1.0,
+      0.0,
+      -0.03500000014901161
+    ],
+    "bounds_max": [
+      1.0,
+      0.800000011920929,
+      0.03500000014901161
+    ],
+    "origin": "floor",
+    "joints": {},
+    "empty_nodes": {},
+    "notes": "Repeat pitch X=2m. Rail endpoint cross-sections match at X=-1,+1; picket pitch .2m. Height .8m."
+  },
+  "flower_bed": {
+    "triangles": 1928,
+    "budget": 2000,
+    "dimensions_m": [
+      2.0,
+      0.4,
+      0.6
+    ],
+    "bounds_min": [
+      -1.0,
+      0.0,
+      -0.30000001192092896
+    ],
+    "bounds_max": [
+      1.0,
+      0.4000000059604645,
+      0.30000004172325134
+    ],
+    "origin": "floor",
+    "joints": {},
+    "empty_nodes": {},
+    "notes": "2 x .6m repeat footprint; wood border .2m high, flowers reach about .4m; repeat along X every 2m."
+  },
+  "delivery_mat": {
+    "triangles": 122,
+    "budget": 300,
+    "dimensions_m": [
+      1.6,
+      0.02,
+      1.0
+    ],
+    "bounds_min": [
+      -0.800000011920929,
+      0.0,
+      -0.5
+    ],
+    "bounds_max": [
+      0.800000011920929,
+      0.019999999552965164,
+      0.5
+    ],
+    "origin": "floor",
+    "joints": {},
+    "empty_nodes": {},
+    "notes": "1.6 x 1m, .02m thick, original box picture and paw border in colour-only PNG; no text."
+  }
+}
