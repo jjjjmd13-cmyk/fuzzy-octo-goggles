@@ -1,0 +1,151 @@
+{
+  "assets": [
+    {
+      "file": "art_bubble.glb",
+      "meshes": 1,
+      "status": "PASS",
+      "surfaces": 9
+    },
+    {
+      "file": "art_clock.glb",
+      "meshes": 3,
+      "status": "PASS",
+      "surfaces": 6
+    },
+    {
+      "file": "art_dog.glb",
+      "meshes": 1,
+      "status": "PASS",
+      "surfaces": 6
+    },
+    {
+      "file": "counter_bone.glb",
+      "meshes": 1,
+      "status": "PASS",
+      "surfaces": 2
+    },
+    {
+      "file": "counter_cake.glb",
+      "meshes": 1,
+      "status": "PASS",
+      "surfaces": 6
+    },
+    {
+      "file": "counter_wood.glb",
+      "meshes": 1,
+      "status": "PASS",
+      "surfaces": 3
+    },
+    {
+      "file": "lamp_bubble.glb",
+      "meshes": 2,
+      "status": "PASS",
+      "surfaces": 5
+    },
+    {
+      "file": "lamp_bulb.glb",
+      "meshes": 2,
+      "status": "PASS",
+      "surfaces": 4
+    },
+    {
+      "file": "lamp_cloud.glb",
+      "meshes": 2,
+      "status": "PASS",
+      "surfaces": 4
+    },
+    {
+      "file": "plant_lemon.glb",
+      "meshes": 1,
+      "status": "PASS",
+      "surfaces": 5
+    },
+    {
+      "file": "plant_monstera.glb",
+      "meshes": 1,
+      "status": "PASS",
+      "surfaces": 5
+    },
+    {
+      "file": "plant_round.glb",
+      "meshes": 1,
+      "status": "PASS",
+      "surfaces": 4
+    },
+    {
+      "file": "rug_circle.glb",
+      "meshes": 1,
+      "status": "PASS",
+      "surfaces": 2
+    },
+    {
+      "file": "rug_paw.glb",
+      "meshes": 1,
+      "status": "PASS",
+      "surfaces": 1
+    },
+    {
+      "file": "rug_rainbow.glb",
+      "meshes": 1,
+      "status": "PASS",
+      "surfaces": 7
+    },
+    {
+      "file": "shelf_basket.glb",
+      "meshes": 1,
+      "status": "PASS",
+      "surfaces": 6
+    },
+    {
+      "file": "shelf_cloud.glb",
+      "meshes": 1,
+      "status": "PASS",
+      "surfaces": 3
+    },
+    {
+      "file": "shelf_wood.glb",
+      "meshes": 1,
+      "status": "PASS",
+      "surfaces": 1
+    },
+    {
+      "file": "sign_board.glb",
+      "meshes": 1,
+      "status": "PASS",
+      "surfaces": 3
+    },
+    {
+      "file": "sign_paw.glb",
+      "meshes": 1,
+      "status": "PASS",
+      "surfaces": 2
+    },
+    {
+      "file": "sign_rainbow.glb",
+      "meshes": 1,
+      "status": "PASS",
+      "surfaces": 7
+    },
+    {
+      "file": "tub_claw.glb",
+      "meshes": 3,
+      "status": "PASS",
+      "surfaces": 7
+    },
+    {
+      "file": "tub_shell.glb",
+      "meshes": 3,
+      "status": "PASS",
+      "surfaces": 8
+    },
+    {
+      "file": "tub_wood.glb",
+      "meshes": 3,
+      "status": "PASS",
+      "surfaces": 7
+    }
+  ],
+  "godot": "4.4.1-stable (official)",
+  "method": "GLTFDocument fresh project, meshes/materials/textures/parts/Z-axis joints",
+  "status": "PASS"
+}

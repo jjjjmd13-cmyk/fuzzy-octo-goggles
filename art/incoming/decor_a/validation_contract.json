@@ -1,0 +1,547 @@
+{
+  "art_bubble.glb": {
+    "status": "PASS",
+    "triangles": 1416,
+    "dimensions_m": [
+      0.6,
+      0.5,
+      0.05
+    ],
+    "checked_uv_vertices": 2778,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "art_bubble",
+      "Body"
+    ]
+  },
+  "art_clock.glb": {
+    "status": "PASS",
+    "triangles": 908,
+    "dimensions_m": [
+      0.6,
+      0.5,
+      0.05
+    ],
+    "checked_uv_vertices": 1450,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "art_clock",
+      "Body",
+      "Hand_H",
+      "Hand_M"
+    ]
+  },
+  "art_dog.glb": {
+    "status": "PASS",
+    "triangles": 794,
+    "dimensions_m": [
+      0.6,
+      0.5,
+      0.05
+    ],
+    "checked_uv_vertices": 1247,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "art_dog",
+      "Body"
+    ]
+  },
+  "counter_bone.glb": {
+    "status": "PASS",
+    "triangles": 640,
+    "dimensions_m": [
+      1.2,
+      0.95,
+      0.49971
+    ],
+    "checked_uv_vertices": 1152,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "counter_bone",
+      "Body"
+    ]
+  },
+  "counter_cake.glb": {
+    "status": "PASS",
+    "triangles": 2288,
+    "dimensions_m": [
+      1.2,
+      0.95,
+      0.5
+    ],
+    "checked_uv_vertices": 4392,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "counter_cake",
+      "Body"
+    ]
+  },
+  "counter_wood.glb": {
+    "status": "PASS",
+    "triangles": 432,
+    "dimensions_m": [
+      1.2,
+      0.95,
+      0.5
+    ],
+    "checked_uv_vertices": 592,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "counter_wood",
+      "Body"
+    ]
+  },
+  "lamp_bubble.glb": {
+    "status": "PASS",
+    "triangles": 1320,
+    "dimensions_m": [
+      0.466,
+      0.703,
+      0.34
+    ],
+    "checked_uv_vertices": 2606,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "lamp_bubble",
+      "Body",
+      "Bulb"
+    ]
+  },
+  "lamp_bulb.glb": {
+    "status": "PASS",
+    "triangles": 540,
+    "dimensions_m": [
+      0.4,
+      0.7,
+      0.4
+    ],
+    "checked_uv_vertices": 998,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "lamp_bulb",
+      "Body",
+      "Bulb"
+    ]
+  },
+  "lamp_cloud.glb": {
+    "status": "PASS",
+    "triangles": 692,
+    "dimensions_m": [
+      0.408,
+      0.69751,
+      0.3
+    ],
+    "checked_uv_vertices": 1325,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "lamp_cloud",
+      "Body",
+      "Bulb"
+    ]
+  },
+  "plant_lemon.glb": {
+    "status": "PASS",
+    "triangles": 1604,
+    "dimensions_m": [
+      0.82,
+      1.3,
+      0.5127
+    ],
+    "checked_uv_vertices": 3108,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "plant_lemon",
+      "Body"
+    ]
+  },
+  "plant_monstera.glb": {
+    "status": "PASS",
+    "triangles": 1432,
+    "dimensions_m": [
+      0.85056,
+      0.9,
+      0.384
+    ],
+    "checked_uv_vertices": 2032,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "plant_monstera",
+      "Body"
+    ]
+  },
+  "plant_round.glb": {
+    "status": "PASS",
+    "triangles": 1020,
+    "dimensions_m": [
+      0.495,
+      0.6,
+      0.402
+    ],
+    "checked_uv_vertices": 1964,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "plant_round",
+      "Body"
+    ]
+  },
+  "rug_circle.glb": {
+    "status": "PASS",
+    "triangles": 312,
+    "dimensions_m": [
+      1.6,
+      0.02,
+      1.0
+    ],
+    "checked_uv_vertices": 480,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "rug_circle",
+      "Body"
+    ]
+  },
+  "rug_paw.glb": {
+    "status": "PASS",
+    "triangles": 332,
+    "dimensions_m": [
+      1.6,
+      0.018,
+      1.0
+    ],
+    "checked_uv_vertices": 528,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "rug_paw",
+      "Body"
+    ]
+  },
+  "rug_rainbow.glb": {
+    "status": "PASS",
+    "triangles": 462,
+    "dimensions_m": [
+      1.6,
+      0.02,
+      1.0
+    ],
+    "checked_uv_vertices": 858,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "rug_rainbow",
+      "Body"
+    ]
+  },
+  "shelf_basket.glb": {
+    "status": "PASS",
+    "triangles": 1656,
+    "dimensions_m": [
+      1.8,
+      0.9,
+      0.6
+    ],
+    "checked_uv_vertices": 2332,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "shelf_basket",
+      "Body"
+    ]
+  },
+  "shelf_cloud.glb": {
+    "status": "PASS",
+    "triangles": 1264,
+    "dimensions_m": [
+      1.8,
+      0.9,
+      0.6
+    ],
+    "checked_uv_vertices": 2030,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "shelf_cloud",
+      "Body"
+    ]
+  },
+  "shelf_wood.glb": {
+    "status": "PASS",
+    "triangles": 864,
+    "dimensions_m": [
+      1.8,
+      0.9,
+      0.6
+    ],
+    "checked_uv_vertices": 1184,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "shelf_wood",
+      "Body"
+    ]
+  },
+  "sign_board.glb": {
+    "status": "PASS",
+    "triangles": 272,
+    "dimensions_m": [
+      1.6,
+      0.5,
+      0.08
+    ],
+    "checked_uv_vertices": 384,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "sign_board",
+      "Body"
+    ]
+  },
+  "sign_paw.glb": {
+    "status": "PASS",
+    "triangles": 764,
+    "dimensions_m": [
+      1.6,
+      0.5,
+      0.08
+    ],
+    "checked_uv_vertices": 1470,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "sign_paw",
+      "Body"
+    ]
+  },
+  "sign_rainbow.glb": {
+    "status": "PASS",
+    "triangles": 748,
+    "dimensions_m": [
+      1.6,
+      0.5,
+      0.08
+    ],
+    "checked_uv_vertices": 1401,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "sign_rainbow",
+      "Body"
+    ]
+  },
+  "tub_claw.glb": {
+    "status": "PASS",
+    "triangles": 2896,
+    "dimensions_m": [
+      1.6,
+      1.06,
+      1.232
+    ],
+    "checked_uv_vertices": 5312,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "tub_claw",
+      "Plug",
+      "Stand",
+      "Tub"
+    ]
+  },
+  "tub_shell.glb": {
+    "status": "PASS",
+    "triangles": 2088,
+    "dimensions_m": [
+      1.6,
+      1.06,
+      1.232
+    ],
+    "checked_uv_vertices": 3880,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "tub_shell",
+      "Plug",
+      "Stand",
+      "Tub"
+    ]
+  },
+  "tub_wood.glb": {
+    "status": "PASS",
+    "triangles": 2928,
+    "dimensions_m": [
+      1.6,
+      1.06,
+      1.232
+    ],
+    "checked_uv_vertices": 5248,
+    "embedded_png_sizes": [
+      [
+        128,
+        64
+      ]
+    ],
+    "parts": [
+      "tub_wood",
+      "Plug",
+      "Stand",
+      "Tub"
+    ]
+  },
+  "wall_stripe.png": {
+    "status": "PASS",
+    "pixels": [
+      1024,
+      1024
+    ],
+    "metres_per_tile": 1,
+    "colour_only": true
+  },
+  "wall_bubble.png": {
+    "status": "PASS",
+    "pixels": [
+      1024,
+      1024
+    ],
+    "metres_per_tile": 1,
+    "colour_only": true
+  },
+  "wall_paw.png": {
+    "status": "PASS",
+    "pixels": [
+      1024,
+      1024
+    ],
+    "metres_per_tile": 1,
+    "colour_only": true
+  },
+  "floor_wood.png": {
+    "status": "PASS",
+    "pixels": [
+      1024,
+      1024
+    ],
+    "metres_per_tile": 1,
+    "colour_only": true
+  },
+  "floor_check.png": {
+    "status": "PASS",
+    "pixels": [
+      1024,
+      1024
+    ],
+    "metres_per_tile": 1,
+    "colour_only": true
+  },
+  "floor_star.png": {
+    "status": "PASS",
+    "pixels": [
+      1024,
+      1024
+    ],
+    "metres_per_tile": 1,
+    "colour_only": true
+  }
+}
