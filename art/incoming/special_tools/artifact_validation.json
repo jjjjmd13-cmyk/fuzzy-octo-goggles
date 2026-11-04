@@ -1,0 +1,403 @@
+[
+  {
+    "file": "assets/models/tools/shower_massage.glb",
+    "result": "PASS",
+    "triangles": 1240,
+    "dimensions_m": [
+      0.146939,
+      0.3,
+      0.062245
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        128
+      ]
+    ],
+    "joints": {
+      "Dial": {
+        "pivot_m": [
+          0.0,
+          -0.005102,
+          -0.02449
+        ],
+        "axis": "Z",
+        "motion": "rotate"
+      }
+    },
+    "sha256": "23b2d68e8d9cda6a0b4d7ecdfa15883f5dc21e47b02daa7d12ddd3ae2a128288"
+  },
+  {
+    "file": "assets/models/tools/shower_rainbow.glb",
+    "result": "PASS",
+    "triangles": 2856,
+    "dimensions_m": [
+      0.178996,
+      0.35,
+      0.059367
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        128
+      ]
+    ],
+    "joints": {
+      "Ring": {
+        "pivot_m": [
+          0.0,
+          0.103072,
+          -0.010105
+        ],
+        "axis": "Z",
+        "motion": "rotate"
+      }
+    },
+    "sha256": "3a15c537e30dcd872e65de75beeb64e11f788718b607a191196c787a3697b9f3"
+  },
+  {
+    "file": "assets/models/tools/foam_sponge.glb",
+    "result": "PASS",
+    "triangles": 644,
+    "dimensions_m": [
+      0.15,
+      0.1,
+      0.058883
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        128
+      ]
+    ],
+    "joints": {},
+    "sha256": "c07ee69ad5104c07e93bf6eb539d4409f605aaa9651fc354d060eae8d26688ac"
+  },
+  {
+    "file": "assets/models/tools/foam_cloud.glb",
+    "result": "PASS",
+    "triangles": 2936,
+    "dimensions_m": [
+      0.246518,
+      0.403591,
+      0.4
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        128
+      ]
+    ],
+    "joints": {
+      "Bubbles": {
+        "pivot_m": [
+          0.0,
+          0.242154,
+          -0.02727
+        ],
+        "axis": "XYZ",
+        "motion": "float"
+      }
+    },
+    "sha256": "6572a82961e37fb88b34a21a6a210d35614f7e3cc2a5c2626543fbe8eae2f60f"
+  },
+  {
+    "file": "assets/models/tools/towel.glb",
+    "result": "PASS",
+    "triangles": 1112,
+    "dimensions_m": [
+      0.25,
+      0.15,
+      0.041315
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        128
+      ]
+    ],
+    "joints": {},
+    "sha256": "b818cfc333d70e0cc6ade9f76958c2ef389b7702bc2a0a1038a525612f083c6f"
+  },
+  {
+    "file": "assets/models/tools/towel_thick.glb",
+    "result": "PASS",
+    "triangles": 1400,
+    "dimensions_m": [
+      0.28,
+      0.18,
+      0.061015
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        128
+      ]
+    ],
+    "joints": {},
+    "sha256": "5581cbb7744e97a9d0cb5ee275a046fb816d16732fb4a908196204fb73d440c0"
+  },
+  {
+    "file": "assets/models/tools/towel_microfiber.glb",
+    "result": "PASS",
+    "triangles": 1790,
+    "dimensions_m": [
+      0.28,
+      0.18,
+      0.057445
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        128
+      ]
+    ],
+    "joints": {},
+    "sha256": "eb494eddb74613c1d8dfe1e8943a324a45f09926fabd244fee5e723584be2049"
+  },
+  {
+    "file": "assets/models/tools/towel_mitt.glb",
+    "result": "PASS",
+    "triangles": 940,
+    "dimensions_m": [
+      0.152343,
+      0.2,
+      0.071098
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        128
+      ]
+    ],
+    "joints": {},
+    "sha256": "9ecacf2326113cbb0da1788bff1634eb25d4949fa0b6bc0ed5a46b263c8c52b4"
+  },
+  {
+    "file": "assets/models/tools/towel_cloud.glb",
+    "result": "PASS",
+    "triangles": 932,
+    "dimensions_m": [
+      0.3,
+      0.189,
+      0.0645
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        128
+      ]
+    ],
+    "joints": {},
+    "sha256": "0b98ba8e3dda6a53f8498fe4e8ed68aa0eaae3ed443c8be7f2b4bbd543df0698"
+  },
+  {
+    "file": "assets/models/tools/dryer_twin.glb",
+    "result": "PASS",
+    "triangles": 1820,
+    "dimensions_m": [
+      0.209174,
+      0.253422,
+      0.4
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        128
+      ]
+    ],
+    "joints": {
+      "Fan_L": {
+        "pivot_m": [
+          -0.052293,
+          0.115649,
+          -0.247388
+        ],
+        "axis": "Z",
+        "motion": "rotate"
+      },
+      "Fan_R": {
+        "pivot_m": [
+          0.052293,
+          0.115649,
+          -0.247388
+        ],
+        "axis": "Z",
+        "motion": "rotate"
+      }
+    },
+    "sha256": "583cc5ce0d506bf86213940f8de9c4c8565174043b9ef6fe67c8ef88363bfdad"
+  },
+  {
+    "file": "assets/models/tools/dryer_turbo.glb",
+    "result": "PASS",
+    "triangles": 2054,
+    "dimensions_m": [
+      0.181694,
+      0.30349,
+      0.42
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        128
+      ]
+    ],
+    "joints": {
+      "Fan": {
+        "pivot_m": [
+          0.0,
+          0.122793,
+          -0.262558
+        ],
+        "axis": "Z",
+        "motion": "rotate"
+      }
+    },
+    "sha256": "1c2797d4fbd12aa95e46fc7ba93a5b34ab2a9bb1edf1673c478cf00a9ca292bf"
+  },
+  {
+    "file": "assets/models/tools/dryer_tornado.glb",
+    "result": "PASS",
+    "triangles": 2596,
+    "dimensions_m": [
+      0.196968,
+      0.327407,
+      0.45
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        128
+      ]
+    ],
+    "joints": {
+      "Spiral": {
+        "pivot_m": [
+          0.0,
+          0.130263,
+          -0.277303
+        ],
+        "axis": "Z",
+        "motion": "rotate"
+      }
+    },
+    "sha256": "d81418e44bdb59d1b3c9d78e6d73b19432315580e24c0034901ff9bba85cc455"
+  },
+  {
+    "file": "assets/models/tools/brush_twin.glb",
+    "result": "PASS",
+    "triangles": 2252,
+    "dimensions_m": [
+      0.091461,
+      0.22,
+      0.091461
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        128
+      ]
+    ],
+    "joints": {},
+    "sha256": "e1c1821bd7afd7de665250ae4e2302c43356c3fd1c9f5daead09c30ea5447838"
+  },
+  {
+    "file": "assets/models/tools/brush_sparkle.glb",
+    "result": "PASS",
+    "triangles": 2464,
+    "dimensions_m": [
+      0.104328,
+      0.25,
+      0.066208
+    ],
+    "root_origin_m": [
+      0,
+      0,
+      0
+    ],
+    "embedded_pngs": [
+      [
+        128,
+        128
+      ]
+    ],
+    "joints": {
+      "Head": {
+        "pivot_m": [
+          0.0,
+          0.090284,
+          -0.008025
+        ],
+        "axis": "Z",
+        "motion": "rotate"
+      }
+    },
+    "sha256": "fc2bb9fbad501d4871b25a9242a16d8f4951357f3fe7d06b90dfc3167c4fa48d"
+  }
+]
