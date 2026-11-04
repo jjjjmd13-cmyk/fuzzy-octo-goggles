@@ -99,5 +99,5 @@ func _wash_to_trim() -> void:
 func await_brush() -> void:
 	shop.pick("brush")
 	for pos in shop.tangles.world_positions():
-		for k in 15:
-			shop.use_tool_at(pos, 1.0 / 30.0)
+		for k in 30:
+			shop.use_tool_at(pos + Vector3(0, 0.05 - (k % 10) * 0.01, 0), 1.0 / 30.0)

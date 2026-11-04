@@ -185,6 +185,20 @@ extends Resource
 @export var v4_rate_shower := 2.5
 @export var v4_rate_shampoo := 2.2
 @export var v4_rate_dryer := 2.0
+## 단계마다 손동작 (TUNING_V4 3-2, GDD_V4 손동작 다시 정리): 서툴러도 진행, 잘 맞으면 빨라짐
+## 거품: 이 속도(m/s) 이상으로 비비면 거품이 커짐 / 빗질: 뭉치 풀리는 쓸기 수 [아무 방향, 털 방향(위→아래)]
+@export var v4_foam_rub_speed := 0.3
+@export var v4_brush_strokes := PackedInt32Array([3, 2])
+## (개발 임시값) 손동작 배수 [서툴 때, 잘 맞을 때] — 거품 비비기·헹굼 쓸어내리기
+@export var v4_gesture_mult := PackedFloat32Array([0.6, 1.8])
+## (개발 임시값) 헹굼: 이 속도(m/s) 로 아래로 쓸면 가장 빠름
+@export var v4_rinse_down_speed := 0.3
+## (개발 임시값) 빗질: 쓸기 한 번 길이 (m), 대고만 있을 때 초당 풀리는 양
+@export var v4_brush_stroke_len := 0.08
+@export var v4_brush_hold_rate := 0.25
+## (개발 임시값) 드라이: [너무 붙음(찡그림), 이보다 멀면 가장 느림] (m, 눈에서 겨눈 점까지), 속도 배수 [멀 때, 가까울 때]
+@export var v4_dryer_near := PackedFloat32Array([0.35, 1.6])
+@export var v4_dryer_mult := PackedFloat32Array([0.5, 1.8])
 ## 수건 톡 한 번에 닦이는 양 (TUNING_V4 3-2, 기본 수건 2~4초 = 약 10번)
 @export var v4_rate_towel_tap := 0.25
 ## 빗질: 드라이가 끝나면 보이는 엉킨 털 뭉치 수, 뭉치 하나를 푸는 속도 (/s, 1 이면 1초 대면 풀림)

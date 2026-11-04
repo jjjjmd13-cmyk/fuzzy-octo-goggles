@@ -13,6 +13,7 @@ const FpSettle := preload("res://scripts/v4/fp_settle.gd")
 ## id, 메뉴 버튼, 강아지 수, 끝 화면의 "새로 들어간 것"
 const FEATURES: Array[Dictionary] = [
 	{"id": "day", "name": "하루 돌리기", "dogs": 2, "new": "손님 클릭으로 맡기기·돌려주기, 요금 + 팁"},
+	{"id": "foam", "name": "거품·헹굼", "dogs": 1, "new": "거품은 좌우로 비비기 (몽글몽글 번짐), 헹굼은 위 → 아래로 쓸어내리기"},
 	{"id": "towel", "name": "수건", "dogs": 1, "new": "헹굼 뒤 수건으로 톡톡 두드리기 (클릭할 때마다 꾹, 물방울 뚝뚝)"},
 	{"id": "dryer", "name": "드라이기", "dogs": 1, "new": "헹군 뒤 드라이기로 말리기 (털 뽕·귀 펄럭)"},
 	{"id": "brush", "name": "빗질", "dogs": 1, "new": "드라이 뒤 빗으로 엉킨 털 뭉치 풀기 (쓱 풀리며 반짝)"},

@@ -117,6 +117,12 @@ var day_seconds := 0.0
 var day_over := false
 ## 지금 강아지 주인 정보: 성격·들어온 시각 (팁 계산)
 var _taken := {}
+## 손동작: 이번 프레임 손(가운데 점이 가리키는 자리) 이 움직인 양 (월드, m). 단계마다 다른 손동작 판정에 씀
+var hand_move := Vector3.ZERO
+var _last_hand: Variant = null
+## _process 가 광선으로 손 자리를 잰 프레임 (아니면 use_tool_at 에 온 점으로 잼: 테스트)
+var _hand_tracked := false
+var _huff_left := 0.0
 ## 엉킨 털 뭉치 (강아지 모형의 자식, 새 강아지마다 새로)
 var tangles: FpTangles
 ## 도구 단계 (0 = 기본). 정산 뒤 가게에서 사면 오름
@@ -225,7 +231,7 @@ func new_dog() -> void:
 
 ## 빠른 확인: 그 기능의 단계부터 바로 시작 (앞 단계는 이미 끝난 강아지)
 func _start_quick_stage() -> void:
-	var start: String = {"towel": "towel", "dryer": "dry", "brush": "brush", "trim": "trim"}.get(quick_feature, "")
+	var start: String = {"foam": "scrub", "towel": "towel", "dryer": "dry", "brush": "brush", "trim": "trim"}.get(quick_feature, "")
 	if start.is_empty():
 		return
 	for i in STAGES.size():
@@ -530,16 +536,22 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 		return
 	var dir := dog.dir_of(point)
 	var wet_here := dog.mask.value_at("wet", dir)
+	if not _hand_tracked:
+		_track_hand(point)
 	var radius := brush_radius(point) * size_mult(held)
 	var speed := speed_mult(held)
 	var stage := ""
+	var mood := 2
 	match held:
 		"shower":
 			stage = "wet"
 			dog.paint("wet", point, radius, Tuning.data.v4_rate_shower * speed * delta)
 			if dog.foam_count() > 0:
 				stage = "rinse"
-				dog.rinse_foam(point, radius * RINSE_REACH, delta * RINSE_SPEED * speed)
+				# 헹굼: 위 → 아래로 쓸어내리면 빨리 (거품이 덩어리째 주르륵)
+				var down := clampf(-hand_move.y / maxf(delta, 0.001) / Tuning.data.v4_rinse_down_speed, 0.0, 1.0)
+				var rinse_mult := lerpf(Tuning.data.v4_gesture_mult[0], Tuning.data.v4_gesture_mult[1], down)
+				dog.rinse_foam(point, radius * RINSE_REACH * (1.0 + 0.3 * down), delta * RINSE_SPEED * speed * rinse_mult)
 				dog.paint("rinse", point, radius, Tuning.data.v4_rate_shower * speed * delta)
 			dog.spray(point)
 			dog.show_stream(_tool_tip(), point, Color(0.55, 0.85, 1.0))
@@ -549,18 +561,27 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 				_show_hint("먼저 샤워기로 물을 뿌려요", 1.5)
 				return
 			stage = "scrub"
-			dog.paint("scrub", point, radius, Tuning.data.v4_rate_shampoo * speed * delta)
-			_foam_carry += delta * 10.0 * speed
+			# 거품: 한 곳에서 좌우로 작게 비비면 (v4_foam_rub_speed 이상) 거품이 커지며 옆으로 번짐
+			var rub := clampf(hand_move.length() / maxf(delta, 0.001) / Tuning.data.v4_foam_rub_speed, 0.0, 1.0)
+			var rub_mult := lerpf(Tuning.data.v4_gesture_mult[0], Tuning.data.v4_gesture_mult[1], rub)
+			dog.paint("scrub", point, radius * (1.0 + 0.25 * rub), Tuning.data.v4_rate_shampoo * speed * rub_mult * delta)
+			_foam_carry += delta * 10.0 * speed * rub_mult
 			while _foam_carry >= 1.0:
 				_foam_carry -= 1.0
-				dog.add_foam(point, 1, _rng, FOAM_SIZE * size_mult("shampoo"))
+				dog.add_foam(point, 1, _rng, FOAM_SIZE * size_mult("shampoo") * (1.0 + 0.4 * rub))
 			sfx.set_loop("scrub", 0.8)
 		"brush":
 			if stage_index < STAGES.size() and STAGES[stage_index].id != "brush":
 				_show_hint("드라이기로 다 말린 뒤에 빗어요", 1.5)
 				return
 			stage = "brush"
-			tangles.brush(point, radius * BRUSH_REACH, Tuning.data.v4_rate_brush * speed * delta)
+			# 빗질: 뭉치에 대고 쓸기. 쓸어간 거리 / (한 번 길이 × 필요한 번수), 위 → 아래(털 방향)면 번수가 하나 적음.
+			# 대고만 있어도 아주 천천히는 풀림 (서툴러도 진행)
+			var moved := hand_move.length()
+			var strokes: PackedInt32Array = Tuning.data.v4_brush_strokes
+			var needed: int = strokes[1] if hand_move.y < -moved * 0.5 else strokes[0]
+			var amount: float = maxf(Tuning.data.v4_brush_hold_rate * delta, moved / (Tuning.data.v4_brush_stroke_len * needed))
+			tangles.brush(point, radius * BRUSH_REACH, amount * speed)
 			sfx.set_loop("scrub", 0.4)
 		"scissors":
 			if trim_request.is_empty():
@@ -576,14 +597,25 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 			stage = "dry"
 			if dog.foam_count() > 0 and dog.mask.value_at("scrub", dir) > 0.5:
 				_show_hint("거품을 샤워기로 먼저 헹궈요", 1.5)
-			dog.paint("dry", point, radius, Tuning.data.v4_rate_dryer * speed * delta * clampf(wet_here + 0.2, 0.0, 1.0))
+			# 드라이: 다가가면 빠르고 털이 크게 날림, 물러서면 느림, 너무 붙으면 찡그림 (그래도 마름)
+			var near: PackedFloat32Array = Tuning.data.v4_dryer_near
+			var distance: float = player.camera.global_position.distance_to(point)
+			var closeness := clampf((near[1] - distance) / (near[1] - near[0]), 0.0, 1.0)
+			var dry_mult := lerpf(Tuning.data.v4_dryer_mult[0], Tuning.data.v4_dryer_mult[1], closeness)
+			dog.paint("dry", point, radius, Tuning.data.v4_rate_dryer * speed * dry_mult * delta * clampf(wet_here + 0.2, 0.0, 1.0))
 			dog.fluff = clampf(dog.mask.ratio("dry") / Tuning.data.v4_done_ratio, 0.0, 1.0)
 			if dog.model.has_method("blow"):
-				dog.model.blow(1.0)
+				dog.model.blow(closeness)
+			if distance < near[0]:
+				mood = 0
+				if _huff_left <= 0.0:
+					_huff_left = 1.5
+					sfx.play("huff")
+					_show_hint("너무 가까워요! 조금 물러서요", 1.2)
 			dog.show_stream(_tool_tip(), point, Color(1.0, 0.93, 0.8))
 			sfx.set_loop("dryer", 0.8)
 	# 반응: 씻는 동안 꼬리 흔들기 + 도구를 바라봄, 단계마다 처음 한 번 몸짓 (칠하기는 멈추지 않음)
-	dog.react("set_mood", 2)
+	dog.react("set_mood", mood)
 	if dog.model.has_method("watch"): dog.model.watch(point, true)
 	if not _reacted.has(stage):
 		_reacted[stage] = true
@@ -592,6 +624,12 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 			dog.splash()
 			sfx.play("shake")
 	_check_done()
+
+
+## 손 자리를 받아 이번 프레임 움직임(hand_move)을 잼. null 이면 손을 뗀 것
+func _track_hand(hand: Variant) -> void:
+	hand_move = (hand - _last_hand) if hand != null and _last_hand != null else Vector3.ZERO
+	_last_hand = hand
 
 
 ## 수건 톡: 클릭 한 번마다 그 자리를 꾹 눌러 닦음 (누르고만 있으면 안 닦임, GDD_V4 손동작 다시 정리).
@@ -741,9 +779,16 @@ func _process(delta: float) -> void:
 	_update_leftovers()
 	var active := has_dog and using and aim_point != null and not held.is_empty() and not done
 	_update_tool_views(delta, active)
+	_huff_left = maxf(_huff_left - delta, 0.0)
 	if active:
+		# 손 자리 = 가운데 점 광선 위, 겨눈 점까지의 거리 (다발에 겨눔이 붙어도 손을 흔든 만큼 움직임)
+		var ray: Array[Vector3] = player.aim_ray(1.0)
+		_track_hand(ray[0] + (ray[1] - ray[0]).normalized() * ray[0].distance_to(aim_point))
+		_hand_tracked = true
 		use_tool_at(aim_point, delta)
+		_hand_tracked = false
 	else:
+		_track_hand(null)
 		_stop_effects()
 		if not done:
 			dog.react("set_mood", 1)
@@ -1056,7 +1101,7 @@ func _draw_hud() -> void:
 	elif ready_to_use and held == "towel":
 		under = "클릭할 때마다 톡톡 닦아요"
 	elif ready_to_use and not using:
-		under = "누르고 있으면 %s" % {"shower": "물이 나와요", "shampoo": "거품이 나요", "towel": "", "dryer": "바람이 나와요", "brush": "빗어요", "scissors": "사각사각 잘라요"}[held]
+		under = "누르고 있으면 %s" % {"shower": "물이 나와요 (헹굴 땐 위→아래로)", "shampoo": "거품 (좌우로 비비면 몽글몽글)", "towel": "", "dryer": "바람 (가까이 가면 빨라요)", "brush": "빗어요 (뭉치에 위→아래로 쓱쓱)", "scissors": "사각사각 잘라요"}[held]
 	_text(font, center + Vector2(0, 40), under, 22, true)
 	# 진행 (목욕통에 강아지가 있을 때만)
 	var p := progress()
