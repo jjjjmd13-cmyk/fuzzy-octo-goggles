@@ -147,6 +147,20 @@ L/R(왼쪽·오른쪽)은 **캐릭터 자신의** 왼쪽·오른쪽입니다. / 
 - 이름이 다르거나 움직이는 부위가 없어도 **들고 쓰는 건 됨** (부위가 있으면 코드가 움직임).
 - 요청문: [ORDER_V4_TOOLS.md](ORDER_V4_TOOLS.md).
 
+### 6-2. V4 도구 5단계 — 아직 없는 것 (2026-11-04)
+
+GDD_V4 '업그레이드 — 도구마다 5단계' 표 기준. 6-1 과 같은 규칙 (원점 = 쥐는 곳, 끝 −Z, 1u = 1m, 파스텔 장난감풍, 삼각형 3,000 이하, 텍스처 1024² 이하). `assets/models/tools/<이름>.glb`.
+
+| 단계 | 샤워기 | 거품 | 수건 | 드라이 | 빗 |
+|---|---|---|---|---|---|
+| 1 | `shower` ✔ | `shampoo` ✔ | `towel` (**다시**: 손에 쥔 모양) | `dryer` ✔ | `brush` ✔ |
+| 2 | `shower_wide` ✔ | `foam_pump` ✔ | `towel_thick` 새로 | `dryer_big` ✔ | `brush_slicker` ✔ |
+| 3 | `shower_rain` ✔ | `foam_sponge` 새로 | `towel_microfiber` 새로 | `dryer_twin` 새로 | `brush_twin` 새로 |
+| 4 | `shower_massage` 새로 | `foam_cannon` ✔ | `towel_mitt` 새로 | `dryer_turbo` 새로 | `brush_electric` ✔ |
+| 5 ("와") | `shower_rainbow` 새로 | `foam_cloud` 새로 | `towel_cloud` 새로 | `dryer_tornado` 새로 | `brush_sparkle` 새로 |
+
+✔ = 이미 있음 (PR #85 등). 새로 필요한 것 **14개** — 크기·움직이는 부위는 [ORDER_V4_TOOLS.md](ORDER_V4_TOOLS.md) 2차 요청문.
+
 ## 7. 2D 그림 (PNG 만 / PNG only)
 
 원래 2D 인 것만 PNG 입니다. 이름·크기·쓰는 곳 표는 **`assets/ui/README.md`** 에 있습니다 (도구 아이콘 6, 세로 요청 카드, ✓ 도장, 기분 얼굴 3, 동전, 말풍선, 요청 아이콘, 가게 간판, 목욕대 뒤 배경 그림, 주인 판자 그림).
