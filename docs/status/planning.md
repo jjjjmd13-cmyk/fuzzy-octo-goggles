@@ -1,6 +1,6 @@
 # 기획팀 상태
 
-**지금 하는 일**: V4 손 도구 그래픽 명세·요청문 PR 검토 대기 (`planning/art-v4-tools`)
+**지금 하는 일**: V4 도구 5단계 그래픽 요청문(2차) PR 검토 대기 (`planning/art-v4-tiers`)
 
 **끝낸 일**:
 - 등불 원정대 → 플레이 테스트 1 뒤 접음 (2026-10-26). 문서는 기록으로 남김
@@ -23,6 +23,7 @@
 - 수치표 `docs/design/TUNING_V4.md` (개발팀 키 `v4_*` ✅ 5개, 참을성 키 제안)
 - 사람 대표 V4 첫 시제품 승인 (2026-11-02) → GDD_V4 '시제품 2', TUNING_V4 3장 요금·팁 제안
 - V4 손 도구 9개 명세 (`docs/art/ART_SLOTS.md` 6-1) + ChatGPT 요청문 (`docs/art/ORDER_V4_TOOLS.md`)
+- V4 도구 5단계 중 없는 14개 명세 (`ART_SLOTS.md` 6-2) + ChatGPT 요청문 2차 (`ORDER_V4_TOOLS.md`)
 - 글꼴 `docs/design/FONT.md` 그대로
 
 **막힌 것**: 없음
