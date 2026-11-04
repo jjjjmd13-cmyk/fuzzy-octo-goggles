@@ -38,32 +38,30 @@ func spawn(shape_id: String, dog_model: Node3D, center: Vector3, rng: RandomNumb
 	shape = shape_id
 	var space := dog_model.get_world_3d().direct_space_state
 	var cut: Array = SHAPES[shape].cut
+	var placed := {}
 	for zone in ZONES:
-		var placed := 0
+		placed[zone] = 0
 		for attempt in ZONES[zone].count * 12:
-			if placed >= ZONES[zone].count:
+			if placed[zone] >= ZONES[zone].count:
 				break
 			var base: Vector3 = ZONES[zone].dir
 			var dir := (base + Vector3(rng.randf_range(-0.6, 0.6), rng.randf_range(-0.25, 0.25), rng.randf_range(-0.2, 0.2))).normalized()
-			var query := PhysicsRayQueryParameters3D.create(dog_model.to_global(center + dir * 1.5), dog_model.to_global(center), DOG_LAYER)
-			var hit := space.intersect_ray(query)
-			if hit.is_empty():
-				continue
-			var local := to_local(hit.position)
-			if _too_close(local):
-				continue
-			# 자를 곳은 요청 카드처럼 분홍빛, 남길 곳은 털색보다 조금 진하게 (흰 털 위에서도 보이게)
-			var wanted: bool = zone in cut
-			var tuft := make_tuft(color.lerp(Color(1.0, 0.55, 0.7), 0.5) if wanted else color.darkened(0.2), rng)
-			add_child(tuft)
-			tuft.position = local
-			# 다발이 몸 바깥으로 뻗게 (+Y 를 몸 중심에서 나가는 쪽으로)
-			tuft.quaternion = Quaternion(Vector3.UP, (local - center).normalized())
-			tuft.set_meta("zone", zone)
-			tuft.set_meta("wanted", wanted)
-			_tufts.append(tuft)
-			_left.append(1.0)
-			placed += 1
+			if _cast_and_place(space, dog_model, center, dir, zone, cut, color, rng):
+				placed[zone] += 1
+	# 강아지가 몸짓하는 중이면 어떤 부위는 광선이 빗나가 모자랄 수 있음 → 모자란 부위마다 더 넓게 다시 쏴서 채움
+	for attempt in 240:
+		var short := ""
+		for zone in ZONES:
+			var need: int = ZONES[zone].count - placed[zone]
+			if need > 0 and (short.is_empty() or need > ZONES[short].count - placed[short]):
+				short = zone
+		if short.is_empty():
+			break
+		var base: Vector3 = ZONES[short].dir
+		var spread := 0.6 + 0.6 * minf(1.0, attempt / 60.0)
+		var dir := (base + Vector3(rng.randf_range(-spread, spread), rng.randf_range(-spread, spread) * 0.6, rng.randf_range(-spread, spread) * 0.6)).normalized()
+		if _cast_and_place(space, dog_model, center, dir, short, cut, color, rng):
+			placed[short] += 1
 	_wanted_total = 0
 	for tuft in _tufts:
 		if tuft.get_meta("wanted"):
@@ -98,26 +96,32 @@ func match_score() -> float:
 
 
 ## 가위를 world_point 에 댐: reach(m) 안 다발이 amount 만큼 줄고, 다 줄면 잘림. 자른 수
+## 가위가 닿은 곳에서 가장 가까운 다발 하나만 자름 (겨눈 다발 옆의 남길 곳까지 같이 잘리지 않게). 잘린 다발 수
 func snip(world_point: Vector3, reach: float, amount: float) -> int:
-	var cut := 0
-	for i in range(_tufts.size() - 1, -1, -1):
-		var tuft := _tufts[i]
-		if tuft.global_position.distance_to(world_point) > reach:
-			continue
-		_left[i] -= amount
-		tuft.scale = Vector3(1.0, 0.3 + 0.7 * maxf(_left[i], 0.0), 1.0)
-		if _left[i] <= 0.0:
-			var wanted: bool = tuft.get_meta("wanted")
-			if wanted:
-				_wanted_cut += 1
-			else:
-				_unwanted_cut += 1
-			snipped.emit(tuft.global_position, wanted)
-			tuft.queue_free()
-			_tufts.remove_at(i)
-			_left.remove_at(i)
-			cut += 1
-	return cut
+	var i := -1
+	var best := reach
+	for k in _tufts.size():
+		var d := _tufts[k].global_position.distance_to(world_point)
+		if d <= best:
+			best = d
+			i = k
+	if i < 0:
+		return 0
+	var tuft := _tufts[i]
+	_left[i] -= amount
+	tuft.scale = Vector3(1.0, 0.3 + 0.7 * maxf(_left[i], 0.0), 1.0)
+	if _left[i] > 0.0:
+		return 0
+	var wanted: bool = tuft.get_meta("wanted")
+	if wanted:
+		_wanted_cut += 1
+	else:
+		_unwanted_cut += 1
+	snipped.emit(tuft.global_position, wanted)
+	tuft.queue_free()
+	_tufts.remove_at(i)
+	_left.remove_at(i)
+	return 1
 
 
 ## 다발 월드 위치 (wanted: true = 자를 곳만, false = 남길 곳만)
@@ -149,6 +153,29 @@ static func make_tuft(color: Color, rng: RandomNumberGenerator) -> MeshInstance3
 		piece.rotation = Vector3(rng.randf_range(-0.5, 0.5), 0, rng.randf_range(-0.5, 0.5))
 		root.add_child(piece)
 	return root
+
+
+## 모형 바깥에서 몸 중심 쪽으로 광선을 쏴 닿은 곳에 다발 하나 놓기 (빗나가거나 너무 가까우면 false)
+func _cast_and_place(space: PhysicsDirectSpaceState3D, dog_model: Node3D, center: Vector3, dir: Vector3, zone: String, cut: Array, color: Color, rng: RandomNumberGenerator) -> bool:
+	var query := PhysicsRayQueryParameters3D.create(dog_model.to_global(center + dir * 1.5), dog_model.to_global(center), DOG_LAYER)
+	var hit := space.intersect_ray(query)
+	if hit.is_empty():
+		return false
+	var local := to_local(hit.position)
+	if _too_close(local):
+		return false
+	# 자를 곳은 요청 카드처럼 분홍빛, 남길 곳은 털색보다 조금 진하게 (흰 털 위에서도 보이게)
+	var wanted: bool = zone in cut
+	var tuft := make_tuft(color.lerp(Color(1.0, 0.55, 0.7), 0.5) if wanted else color.darkened(0.2), rng)
+	add_child(tuft)
+	tuft.position = local
+	# 다발이 몸 바깥으로 뻗게 (+Y 를 몸 중심에서 나가는 쪽으로)
+	tuft.quaternion = Quaternion(Vector3.UP, (local - center).normalized())
+	tuft.set_meta("zone", zone)
+	tuft.set_meta("wanted", wanted)
+	_tufts.append(tuft)
+	_left.append(1.0)
+	return true
 
 
 func _too_close(local: Vector3) -> bool:
