@@ -119,7 +119,7 @@
 **English**
 
 > **The shy ones learn to trust you**
-> Mongsil used to hide behind her owner, shaking. Wet her paws first, find her favorite spot behind the ears, and she opens up a little more with every visit — until one day she hops onto the tub before you even call. Every one of your 24 regulars goes from shy to best friend, and the trust you build changes every bath that follows.
+> Puff used to hide behind Grandma, shaking. Wet those little paws first, find the favorite spot behind the ears, and Puff opens up a little more with every visit — until one day, Puff hops onto the tub before you even call. Every one of your 24 regulars goes from shy to best friend, and the trust you build changes every bath that follows.
 >
 > **A tiny bath shop, washed by your own hands**
 > In a quiet little street sits a cozy pet bath shop. Owners walk in with their pups — you greet them, carry their pet to the tub, and wash them yourself from start to finish.
