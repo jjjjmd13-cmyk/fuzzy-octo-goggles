@@ -1,11 +1,13 @@
 extends "res://tests/qa_test.gd"
 ## V4 18일 전체 흐름 (GDD_V4 '18일 전체 흐름', TUNING_V4 6장) + 18일 점검 도구 (이슈 #122, scripts/dev/fp_day_tools.gd):
-## 날마다 손님 간격 · 급한 손님 2일차 · 가위 4일차 · 의자 4번째 9일차 · 초대장 12일차 · 18일차 축제 (끝까지·금색 없는 단골 먼저·팁 ×1.5·모자·마당 장식)
-## → 정산 뒤 엔딩 (단체 사진·별 3개·크레딧·[계속 영업하기]) → 19일차 자유 영업. 점검 도구: 날 건너뛰기·돈 +1,000·하루 결과 기록.
+## 날마다 손님 간격 · 급한 손님 2일차 · 가위 4일차 · 의자 4번째 9일차 · 18일차는 평소 영업
+## → 정산 뒤 '감사의 날' 엔딩 (fp_thanks.gd: 저녁 → 단골 한마디 → 그때와 지금 → 단체 사진 → 별 3개 → 고마워요 → [계속 영업하기]) → 19일차 자유 영업.
+## 점검 도구: 날 건너뛰기·돈 +1,000·하루 결과 기록.
 
 const SCENE := preload("res://scenes/v4/fp_shop.tscn")
 const FpDays := preload("res://scripts/v4/fp_days.gd")
 const FpRegulars := preload("res://scripts/v4/fp_regulars.gd")
+const FpThanks := preload("res://scripts/v4/fp_thanks.gd")
 const FpDayTools := preload("res://scripts/dev/fp_day_tools.gd")
 const V4Save := preload("res://scripts/v4/v4_save.gd")
 
@@ -23,19 +25,40 @@ func run_test() -> void:
 	check_eq(FpDays.guest_every(25), float(Tuning.data.v4_free_play_guest_every), "자유 영업 간격")
 	check(not FpDays.hurry_open(1) and FpDays.hurry_open(2), "급한 손님은 2일차부터")
 	check(FpDays.seat_count(8) == 3 and FpDays.seat_count(9) == 4, "대기 의자 9일차부터 4개")
-	for day in [1, 2, 3, 4, 5, 6, 7, 9, 12, 13, 18, 19]:
+	for day in [1, 2, 3, 4, 5, 6, 7, 9, 19]:
 		check(not FpDays.notice(day).is_empty(), "%d일차 아침 알림: %s" % [day, FpDays.notice(day)])
-	check(FpDays.notice(8).is_empty(), "8일차는 새 것 없음")
-	check(FpDays.notice(13).contains("5일"), "축제까지 남은 날")
-	check(not FpDays.invite_open(11) and FpDays.invite_open(12) and FpDays.invite_open(18) and not FpDays.invite_open(19), "초대장 12~18일차")
-	check_eq(FpDays.tip_mult(18), 1.5, "축제 팁 ×1.5")
-	var stars := FpDays.stars({"a": {"best_mood": 3}, "b": {"best_mood": 2}}, {"shower": 4, "dryer": 4, "brush": 4, "towel": 1}, 21)
-	check(not stars[0].got and stars[1].got and stars[2].got, "별: 금색 1 (12 필요) ✗ · 5단계 3개 ✓ · 아늑함 21 ✓")
-	# 축제 날 뽑기: prefer (금색 없는 단골) 먼저
-	var rng := RandomNumberGenerator.new()
-	rng.seed = 7
-	for i in 10:
-		check_eq(FpRegulars.pick(18, i + 1, ["kongi", "bori", "dubu"], 0, [], rng, ["bori"]), "bori", "축제: 금색 없는 단골 먼저")
+	for day in [8, 12, 13, 18]:
+		check(FpDays.notice(day).is_empty(), "%d일차는 새 것 없음 (축제·초대장은 뺌)" % day)
+	check(FpDays.is_last_day(18) and not FpDays.is_last_day(17), "18일차 = 마지막 날")
+	# 별 3개: 금색 사진 12 · 5단계 도구 3 · 단짝 단골 6
+	var six := {}
+	for i in 6:
+		six["r%d" % i] = {"best_mood": 2, "trust": 3}
+	six["gold"] = {"best_mood": 3, "trust": 1}
+	var stars := FpDays.stars(six, {"shower": 4, "dryer": 4, "brush": 4, "towel": 1})
+	check(not stars[0].got and stars[1].got and stars[2].got, "별: 금색 1 ✗ · 5단계 3개 ✓ · 단짝 6 ✓")
+	check(stars[2].name.contains("단짝 단골 6마리"), "별 이름 '단짝 단골 6마리'")
+	six.erase("r0")
+	check(not FpDays.stars(six, {})[2].got, "단짝 5마리면 ⭐3 아직")
+	# 감사의 날: 들어오는 차례 (신뢰 낮은 → 높은, 마지막 짱구 → 나비 → 몽실), 최대 12쌍 (대표 단골은 늘)
+	var many := {}
+	for i in 14:
+		many["d%02d" % i] = {"trust": i % 4, "trust_pts": i, "first": {"day": 1, "mood": 1}, "recent": {"day": 9, "mood": 2}}
+	for id in ["mongsil", "nabi", "jjanggu"]:
+		many[id] = {"trust": 0, "trust_pts": 0, "first": {"day": 2, "mood": 1}, "recent": {"day": 18, "mood": 3}}
+	var order := FpThanks.visitor_order(many, Tuning.data.v4_thanks_visitors_max)
+	check_eq(order.size(), Tuning.data.v4_thanks_visitors_max, "최대 12쌍")
+	check_eq(order.slice(-3), ["jjanggu", "nabi", "mongsil"], "마지막 셋은 짱구 → 나비 → 몽실")
+	var rising := true
+	for i in range(1, order.size() - 3):
+		rising = rising and int(many[order[i]].trust) >= int(many[order[i - 1]].trust)
+	check(rising, "신뢰 낮은 단골부터")
+	check(not order.has("d00"), "넘치면 신뢰 낮은 단골은 단체 사진에만")
+	var pairs := FpThanks.photo_pairs(many, Tuning.data.v4_thanks_photo_pairs)
+	check(pairs.size() == 5 and pairs.slice(0, 3) == ["jjanggu", "nabi", "mongsil"], "그때와 지금 5쌍: 대표 단골 3 + 신뢰 높은 2")
+	check_eq(FpThanks.group_order(["kongi", "jjanggu", "bori", "mongsil"]), ["mongsil", "jjanggu", "kongi", "bori"], "단체 사진 앞줄은 대표 단골")
+	check_eq(FpThanks.line_of("kongi", 2), FpThanks.COMMON_LINES[2], "다른 단골은 공통 대사")
+	check_eq(FpThanks.line_of("mongsil", 3), FpRegulars.get_regular("mongsil").lines[3], "대표 단골은 자기 대사")
 
 	var real_path := V4Save.path
 	V4Save.path = "user://test_v4_days_save.json"
@@ -79,54 +102,75 @@ func run_test() -> void:
 	check_eq(guests.guests.size(), 4, "4명까지 기다림")
 	_clear_guests()
 
-	# 12일차: 우편함 초대장
-	_set_day(12)
-	check(shop.outside.get_node_or_null("Invite") != null, "12일차 우편함 초대장")
-	check(shop.outside.get_node_or_null("Festival") == null, "축제 장식은 아직")
-
-	# 17일차 팁 (비교용) → 18일차 축제
+	# 18일차는 평소 영업 (팁 배수·모자·마당 장식 없음)
 	_set_day(17)
 	var tip_17 := _wash_one("kongi")
 	_set_day(18)
-	check(shop.outside.get_node_or_null("Festival") != null, "18일차 마당 풍선·깃발")
-	check(shop.outside.get_node("Invite/InviteLabel").text.contains("오늘"), "초대장 '오늘!'")
-	check(guests.festival, "축제 손님")
-	check_eq(guests.roll_kind(), "forever", "축제: 모두 끝까지 (안 떠남)")
 	var tip_18 := _wash_one("kongi")
-	check_eq(tip_18, roundi(tip_17 * 1.5), "축제 팁 ×1.5 (%d → %d)" % [tip_17, tip_18])
-	guests.quick_animals = [{"regular": "bori"}]
-	guests.spawn()
-	check(guests.guests[-1].owner.find_child("FestivalHat", true, false) != null, "주인 축제 모자")
-	check_eq(guests.guests[-1].kind, "forever", "축제 손님은 끝까지")
+	check_eq(tip_18, tip_17, "18일차 팁도 평소대로")
+	check(guests.roll_kind() != "" and shop.outside.get_node_or_null("Festival") == null, "축제 장식 없음")
 	_clear_guests()
 
 	# 엔딩: 18일차 정산 → [다음 날] = 엔딩 (날은 그대로), 저장은 19일차
 	var closed: Array = []
 	shop.day_closed.connect(func(summary: Dictionary) -> void: closed.append(summary))
-	shop.album["dubu"] = {"visits": 3, "best_mood": 3, "day": 5, "trim": "", "wall": "", "floor": "", "fav_found": true}
+	shop.album["dubu"] = {"visits": 3, "best_mood": 3, "day": 5, "trim": "", "wall": "", "floor": "", "fav_found": true, "trust": 3, "trust_pts": 14, "first": {"day": 1, "mood": 1}, "recent": {"day": 18, "mood": 3}, "moments": [{"id": "trust_3", "day": 12}]}
 	shop.regulars_met_order.append("dubu")
+	shop.album["mongsil"] = {"visits": 6, "best_mood": 2, "day": 9, "trim": "", "wall": "", "floor": "", "fav_found": false, "trust": 2, "trust_pts": 8, "first": {"day": 5, "mood": 0}, "recent": {"day": 17, "mood": 2}, "moments": []}
+	shop.regulars_met_order.append("mongsil")
 	guests.open = false
 	shop.end_day()
 	shop.start_next_day()
 	await get_tree().process_frame
 	check_eq(closed.size(), 1, "하루를 닫음 (day_closed)")
-	check(is_instance_valid(shop._ending), "18일차 정산 뒤 엔딩")
+	var thanks: Node = shop._ending
+	check(thanks is FpThanks, "18일차 정산 뒤 감사의 날")
 	check_eq(shop.day, 18, "엔딩 중엔 날 그대로")
 	check(shop.ending_seen, "엔딩 봄")
-	check_eq(shop.group_photo, shop.regulars_met_order, "단체 사진 = 만난 단골")
+	check_eq(shop.group_photo, FpThanks.group_order(shop.regulars_met_order), "단체 사진 = 만난 단골 (대표 단골 앞줄)")
+	check_eq(shop.group_photo[0], "mongsil", "몽실이 앞줄")
 	check_eq(V4Save.read().next_day, 19, "엔딩 뒤 이어하면 19일차")
 	check(V4Save.read().ending_seen, "엔딩 본 것 저장")
-	var ending: Control = shop._ending
-	check(ending.find_child("GroupPhoto", true, false) != null, "단체 사진 무대")
-	ending.finish_now()
-	check_eq(ending.step, 4, "별·크레딧·버튼까지")
-	check_eq(ending.got_stars(), FpDays.stars(shop.album, shop.tool_level, 0).filter(func(r: Dictionary) -> bool: return r.got).size(), "별 수")
+	# 저녁: 걷기·클릭 잠금, 불빛 주황
+	check_eq(thanks.phase, "evening", "저녁부터")
+	check(not shop.input_enabled and not shop.player.is_physics_processing(), "걷기·도구 잠금")
+	var sun: DirectionalLight3D = shop.get_children().filter(func(n: Node) -> bool: return n is DirectionalLight3D)[0]
+	check(sun.light_color.r > sun.light_color.b + 0.3, "저녁 불빛 (주황)")
+	# 클릭으로 넘기면 단골이 차례로 들어와 한마디
+	thanks.skip()
+	await get_tree().create_timer(0.2).timeout
+	check_eq(thanks.phase, "visitors", "단골들이 들어옴")
+	check_eq(thanks.visitors.slice(-2), ["dubu", "mongsil"], "신뢰 높은 두부 → 마지막은 대표 단골 몽실 (콩이는 앞)")
+	check(thanks.get_node_or_null("Visitor_" + thanks.visitors[0]) != null, "주인과 단골이 한 쌍으로")
+	# 두부 (단짝) 차례까지 넘기며 기다림
+	var line: Label3D = null
+	for i in 400:
+		await get_tree().process_frame
+		var dubu := thanks.get_node_or_null("Visitor_dubu")
+		line = dubu.find_child("Line", true, false) as Label3D if dubu != null else null
+		if line != null:
+			break
+		if i % 20 == 19:
+			thanks.skip()
+	check(line != null and line.text.contains(FpThanks.COMMON_LINES[3]), "단짝 단골 주인 한마디")
+	check(thanks.get_children().any(func(n: Node) -> bool: return n.has_meta("belly")), "단짝은 내려와 배를 보여 줌")
+	# 끝까지 넘기기 → 그때와 지금 → 단체 사진 → 별 → 버튼
+	thanks.finish_now()
+	for i in 20:
+		await get_tree().process_frame
+	var ending: Control = thanks.ending
+	check(ending != null and ending.find_child("GroupPhoto", true, false) != null, "단체 사진 무대")
+	check_eq(ending.step, 4, "별·고마워요·버튼까지")
+	check_eq(ending.got_stars(), FpDays.stars(shop.album, shop.tool_level).filter(func(r: Dictionary) -> bool: return r.got).size(), "별 수")
+	check(ending.find_child("*", true, false) != null and str(ending.CREDITS[0]).contains("Thanks for playing"), "고마워요 한 줄")
 	(ending.find_child("Continue", true, false) as Button).pressed.emit()
 	await get_tree().process_frame
-	check(not is_instance_valid(ending), "[계속 영업하기] → 엔딩 닫힘")
+	await get_tree().process_frame
+	check(not is_instance_valid(thanks), "[계속 영업하기] → 엔딩 닫힘")
 	check_eq(shop.day, 19, "19일차 자유 영업")
+	check(shop.input_enabled and shop.player.is_physics_processing(), "걷기 다시")
+	check(sun.light_color.r - sun.light_color.b < 0.3, "낮 불빛으로 되돌림")
 	check_eq(closed.size(), 1, "엔딩 뒤 다음 날에 하루를 두 번 닫지 않음")
-	check(shop.outside.get_node_or_null("Festival") == null and not guests.festival, "축제는 그날만")
 	# 사진첩 마지막 쪽 = 단체 사진
 	shop.open_album()
 	await get_tree().process_frame

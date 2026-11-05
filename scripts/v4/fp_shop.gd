@@ -27,6 +27,7 @@ const FpRegulars := preload("res://scripts/v4/fp_regulars.gd")
 const FpAlbum := preload("res://scripts/v4/fp_album.gd")
 const FpDays := preload("res://scripts/v4/fp_days.gd")
 const FpEnding := preload("res://scripts/v4/fp_ending.gd")
+const FpThanks := preload("res://scripts/v4/fp_thanks.gd")
 const FpTrust := preload("res://scripts/v4/fp_trust.gd")
 const ALBUM_BOOK := "res://assets/models/album/album_book.glb"
 ## 가게 물건: 이름, 상자 크기 (도구 단계 올리기는 "tool:<도구>")
@@ -177,7 +178,8 @@ var group_photo: Array = []
 ## 오늘 정산 가게에서 산 것 [{id, price}] (하루 결과 기록)
 var bought_today: Array = []
 var _day_closed := false
-var _ending: Control
+## 엔딩 (감사의 날 FpThanks) 이 진행 중이면 그 노드
+var _ending: Node
 ## 단골 신뢰 (GDD_V4 '단골 신뢰'): 목욕통 단골의 신뢰 단계 (0 낯가림 ~ 3 단짝, 단골 아니면 0)·도구 버릇 ("" / shower / dryer / towel)
 var trust_tier := 0
 var quirk := ""
@@ -1278,8 +1280,6 @@ func give_back() -> void:
 		best_animal = animal
 	if face == 3:
 		_final_sparkle(dog.model.to_global(dog._body_center()), false)
-	# 축제 날 팁 ×1.5
-	tip = roundi(tip * FpDays.tip_mult(day))
 	if no_shampoo:
 		fee += Tuning.data.v4_no_shampoo_price - base
 		tip = 0
@@ -1631,7 +1631,7 @@ func start_next_day() -> void:
 	if not _day_closed:
 		_close_day()
 	# 18일차 정산 뒤 = 엔딩 (한 번만). [계속 영업하기] 로 19일차 자유 영업
-	if FpDays.is_festival(day) and not ending_seen:
+	if FpDays.is_last_day(day) and not ending_seen:
 		play_ending()
 		return
 	if is_instance_valid(_settle):
@@ -1656,13 +1656,9 @@ func start_next_day() -> void:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
-## 날마다 바뀌는 가게 (18일 흐름): 대기 의자 수, 축제 (손님·마당 장식), 우편함 초대장
+## 날마다 바뀌는 가게 (18일 흐름): 대기 의자 수
 func _apply_day() -> void:
 	guests.set_seats(FpDays.seat_count(day))
-	var festival := FpDays.is_festival(day)
-	guests.festival = festival and quick_dogs == 0
-	outside.set_festival(festival)
-	outside.set_invite(FpDays.invite_open(day), festival)
 
 
 ## 하루 결과 (정산 뒤, 산 것까지): 기록·테스트용 한 덩어리
@@ -1685,28 +1681,30 @@ func _close_day() -> void:
 	day_closed.emit(day_summary())
 
 
-## 엔딩 (18일차 정산 뒤): 만난 단골 단체 사진 → 사진첩 마지막 쪽, 별 3개, 크레딧, [계속 영업하기] / [메뉴로]
+## 엔딩 '감사의 날' (18일차 정산 뒤, fp_thanks.gd): 저녁 → 단골들이 고마움을 전하러 옴 → 그때와 지금 → 단체 사진 (사진첩 마지막 쪽) →
+## 별 3개 → 고마워요 → [계속 영업하기] (19일차 자유 영업) / [메뉴로]. 엔딩은 한 번만 (저장 ending_seen)
 func play_ending() -> void:
 	if is_instance_valid(_ending):
 		return
 	ending_seen = true
-	group_photo = regulars_met_order.duplicate()
+	group_photo = FpThanks.group_order(regulars_met_order)
 	save_game(day + 1)
 	if is_instance_valid(_settle):
 		_settle.queue_free()
 	_settle = null
-	_ending = FpEnding.new()
-	_ending.name = "Ending"
-	_hud.get_parent().add_child(_ending)
-	_ending.play(group_photo, FpDays.stars(album, tool_level, FpDecor.coziness(decor.placed)), sfx)
-	_ending.continue_requested.connect(func() -> void:
-		_ending.queue_free()
+	_clear_tub()
+	var thanks := FpThanks.new()
+	thanks.name = "Thanks"
+	_ending = thanks
+	add_child(thanks)
+	thanks.finished.connect(func(go_on: bool) -> void:
 		_ending = null
-		start_next_day())
-	_ending.menu_requested.connect(func() -> void:
-		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
-		get_tree().change_scene_to_file(MENU_SCENE))
-	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		if go_on:
+			start_next_day()
+		else:
+			Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+			get_tree().change_scene_to_file(MENU_SCENE))
+	thanks.play(self)
 
 
 func _show_settle() -> void:
@@ -2573,7 +2571,7 @@ func _draw_hud() -> void:
 	if quick_dogs > 0:
 		_text(font, Vector2(size.x - 20, 40), "빠른 확인 · 강아지 %d / %d" % [guests.served, quick_dogs], 26, false, true)
 	else:
-		var day_name := "%d일차%s" % [day, " · 축제" if FpDays.is_festival(day) else (" · 자유 영업" if FpDays.is_free_play(day) else "")]
+		var day_name := "%d일차%s" % [day, " · 자유 영업" if FpDays.is_free_play(day) else ""]
 		_text(font, Vector2(size.x - 20, 40), ("%s · 아침 준비" % day_name) if morning else "%s · %s%s" % [day_name, clock_text(), "" if guests.open else " · 영업 끝"], 26, false, true)
 	_text(font, Vector2(size.x - 20, 74), "돈 %d" % money, 26, false, true)
 	_text(font, Vector2(size.x - 20, 104), "기다리는 손님 %d · 씻긴 %d · 떠난 %d" % [guests.guests.size(), guests.served, guests.left_count], 18, false, true)

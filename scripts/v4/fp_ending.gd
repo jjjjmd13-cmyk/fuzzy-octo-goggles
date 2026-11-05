@@ -1,7 +1,7 @@
 extends Control
-## V4 엔딩 장면 (GDD_V4 '마지막 날 — 반짝 목욕 축제', 정산 뒤 1분 안):
-##   1. 마당에 그동안 씻긴 단골들이 주인과 함께 모임 (만난 단골만) → 2. "찰칵" 단체 사진 (사진첩 마지막 쪽) →
-##   3. 별 3개 (모두 '모은 것', 실패 없음) → 4. 짧은 크레딧 → [계속 영업하기] / [메뉴로].
+## V4 엔딩 마지막 화면 (GDD_V4 '마지막 날 — 감사의 날' 4·5, 앞 장면은 fp_thanks.gd):
+##   "찰칵" 단체 사진 (만난 단골 전부, 대표 단골 앞줄, 사진첩 마지막 쪽) → 별 3개 (모두 '모은 것', 실패 없음) →
+##   "플레이해 주셔서 고마워요!" 한 줄 → [계속 영업하기] / [메뉴로].
 ## 단체 사진은 사진첩처럼 PNG 가 아니라 작은 3D 무대(SubViewport)로 다시 그림 (make_group_stage, 사진첩도 씀).
 ## 그림: assets/ui/album/ending_*.png 가 오면 배경 (없으면 단색).
 
@@ -50,7 +50,7 @@ func play(ids: Array, star_rows: Array, sfx: Node = null) -> void:
 	_box.alignment = BoxContainer.ALIGNMENT_CENTER
 	_box.add_theme_constant_override("separation", 14)
 	center.add_child(_box)
-	_title = _label("반짝 목욕 축제 끝! 그동안 씻긴 단골들이 모였어요", 32)
+	_title = _label("감사의 날 · 그동안 씻긴 단골들이 모였어요", 32)
 	_box.add_child(_title)
 	var stage := make_group_stage(group, Vector2(900, 340), true)
 	stage.name = "GroupPhoto"
