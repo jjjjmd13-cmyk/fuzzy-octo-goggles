@@ -39,7 +39,7 @@
 - 액세서리 수치 TUNING_V4 7-1 (12개, 30/60/120), `ART_SLOTS.md` 4-5, 요청문 `docs/art/ORDER_V4_ACCESSORY.md` (GLB 13) — #120 병합
 - 18일 전체 플레이 점검표 `docs/design/PLAYTEST_V4_18DAYS.md` (매일 확인 12개, 날마다 표, 경제 곡선 기대값·빨간불, 끝 질문 5개) — #121 병합
 - 출시 준비 0.2: 짧은·긴 설명·특징·스크린샷·트레일러를 '정이 드는 단골' 먼저로 (한/영), 번역 범위에 신뢰·버릇·액세서리 (약 410줄). 빠른 점검 도구 이슈 #122 (개발) — #124 병합
-- 엔딩 크레딧 확정 (LAUNCH_PREP 5장, 한/영, 박준우·Claude·ChatGPT·CC0·OFL·MIT), 가위 = 4일차 정산 가게 → 5일차부터 미용 요청 (개발 #125 방식, GDD 표 고침), 축제 GLB 3개 `ART_SLOTS.md` 4-6 + `docs/art/ORDER_V4_FESTIVAL.md` — #126 병합
+- 엔딩 크레딧 확정 (LAUNCH_PREP 5장, 한/영, 만든 사람·Claude·ChatGPT·CC0·OFL·MIT), 가위 = 4일차 정산 가게 → 5일차부터 미용 요청 (개발 #125 방식, GDD 표 고침), 축제 GLB 3개 `ART_SLOTS.md` 4-6 + `docs/art/ORDER_V4_FESTIVAL.md` — #126 병합
 - 18일 경제 곡선 헤드리스 시뮬 1회 `docs/design/playtest/2026-11-05-v4-econ-18days.md` (F6·F8, 도구만 / 섞어서 두 가지): 빨간불 없음 (도구만 사는 극단만 18일 끝 4,705), 섞어서는 18일차에 310 남음 → TUNING 그대로. 액세서리·신뢰가 들어오면 다시
 - 글꼴 `docs/design/FONT.md` 그대로
 
