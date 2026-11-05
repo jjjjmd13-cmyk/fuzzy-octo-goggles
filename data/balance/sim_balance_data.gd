@@ -265,6 +265,29 @@ extends Resource
 @export var v4_decor_points := PackedInt32Array([1, 2, 3])
 @export var v4_decor_patience_per_point := 0.01
 @export var v4_decor_patience_max := 0.3
+## 고양이·동물 성격 (TUNING_V4 4장): 싫어함 수 → 얼굴 [😐 부터, 😣 부터], 같은 규칙 사이 (s), 규칙마다 최대
+@export var v4_dislike_mood_at := PackedInt32Array([1, 3])
+@export var v4_dislike_cooldown := 2.0
+@export var v4_dislike_max_per_rule := 2
+## 고양이: 오는 날, 비율, 요금, 몸 크기(임시 고양이는 모형이 이미 작아 쓰지 않음), 빗질 뭉치, 젖어 있는 시간 한도 (s), 머리 물 싫어함 최대
+@export var v4_cat_from_day := 3
+@export var v4_cat_chance := 0.3
+@export var v4_cat_price := 55
+@export var v4_cat_scale := 0.8
+@export var v4_cat_tangles := 8
+@export var v4_cat_wet_limit := 40.0
+@export var v4_cat_head_water_max := 1
+## 동물 성격: id, 열리는 날, 비율, 새로 열린 날 꼭 나오는 손님 순서
+@export var v4_trait_ids: Array[String] = ["ticklish", "timid", "dandy"]
+@export var v4_trait_from_day := PackedInt32Array([2, 5, 7])
+@export var v4_trait_chance := 0.4
+@export var v4_new_guest_slot := 2
+## 간지럼쟁이 (s, m), 겁쟁이 얼굴 반경 (m), 멋쟁이 지워 주는 싫어함·미용 요청 배수
+@export var v4_ticklish_time := 0.6
+@export var v4_ticklish_radius := 0.15
+@export var v4_timid_face_radius := 0.12
+@export var v4_dandy_forgive := 1
+@export var v4_dandy_trim_mult := 1.5
 ## 가게 밖·택배 (TUNING_V4 3-4): 아침 시작 뒤 트럭이 와서 떠나기까지 (s), 상자를 들고 걷는 속도 [작은, 중간, 큰]
 @export var v4_truck_seconds := 4.0
 @export var v4_box_carry_speed := PackedFloat32Array([1.0, 0.9, 0.75])
