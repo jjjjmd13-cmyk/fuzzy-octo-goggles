@@ -79,7 +79,7 @@ func run_test() -> void:
 	shop.guests.quick_animals = [{"regular": "dubu"}]
 	shop.guests.spawn("forever")
 	var tag := shop.guests.guests[-1].owner.get_node_or_null("NameTag") as Label3D
-	check(tag != null and tag.text == "두부 ×2", "주인 머리 위 이름표 (%s)" % (tag.text if tag != null else "없음"))
+	check(tag != null and tag.text.begins_with("두부 ×2"), "주인 머리 위 이름표 (%s, 신뢰 하트는 test_v4_trust)" % (tag.text if tag != null else "없음"))
 	shop.next_guest()
 	shop.like("x")
 	shop.like("y")

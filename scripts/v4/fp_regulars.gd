@@ -74,20 +74,41 @@ static func pick(day: int, nth: int, met: Array, new_today: int, busy: Array, rn
 			var fits := open.filter(func(r: Dictionary) -> bool: return _matches(r, opening))
 			var fits_new := fits.filter(func(r: Dictionary) -> bool: return not met.has(r.id))
 			if not fits_new.is_empty():
+				# 대표 단골 (몽실·나비) 이 그날 열리는 단골이면 꼭 그 아이
+				var star_new := fits_new.filter(func(r: Dictionary) -> bool: return r.get("star", false))
+				if not star_new.is_empty():
+					return star_new[0].id
 				return fits_new[rng.randi() % fits_new.size()].id
 			if not fits.is_empty():
 				return fits[rng.randi() % fits.size()].id
-	# 처음 보는 단골: 하루 몫이 남았고 2·4번째 손님일 때
+	# 처음 보는 단골: 하루 몫이 남았고 2·4번째 손님일 때 (대표 단골이 열렸으면 그 아이부터)
 	if new_today < new_quota(day) and not unmet.is_empty() and (nth == slot or nth == slot * 2 or day <= 1):
+		var stars := unmet.filter(func(r: Dictionary) -> bool: return r.get("star", false))
+		if not stars.is_empty():
+			return stars[0].id
 		return unmet[rng.randi() % unmet.size()].id
 	var seen := open.filter(func(r: Dictionary) -> bool: return met.has(r.id))
 	if not seen.is_empty():
-		return seen[rng.randi() % seen.size()].id
+		return _weighted(seen, rng).id
 	if not unmet.is_empty():
 		return unmet[rng.randi() % unmet.size()].id
 	# 모두 바쁨: 아무나 (같은 단골이 겹칠 수 있음)
 	var any := all().filter(func(r: Dictionary) -> bool: return is_open(r, day))
 	return any[rng.randi() % any.size()].id if not any.is_empty() else "kongi"
+
+
+## 다시 오는 단골 뽑기: 대표 단골은 v4_star_regular_weight 배 무게
+static func _weighted(pool: Array, rng: RandomNumberGenerator) -> Dictionary:
+	var weight: float = Tuning.data.v4_star_regular_weight
+	var total := 0.0
+	for r in pool:
+		total += weight if r.get("star", false) else 1.0
+	var pick := rng.randf() * total
+	for r in pool:
+		pick -= weight if r.get("star", false) else 1.0
+		if pick < 0.0:
+			return r
+	return pool[-1]
 
 
 ## 그날 새로 열리는 것: "cat" 또는 성격 id ("" = 없음). 고양이가 먼저

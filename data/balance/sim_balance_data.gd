@@ -331,6 +331,24 @@ extends Resource
 @export var v4_festival_tip_mult := 1.5
 @export var v4_festival_invite_day := 12
 @export var v4_ending_stars := PackedInt32Array([12, 3, 20])
+## 단골 신뢰 (TUNING_V4 7장): 점수 → 단계 [익숙함, 친함, 단짝 부터], 방문마다, 돌려줄 때 기분 [😣, 😐, 😊, 🤩], 처음 좋아하는 곳 찾음,
+## 싫어함 사이 (s) [낯가림, 익숙함부터], 친함부터 쉬워지는 성격 값, 단짝 규칙마다 싫어함 최대, 대표 단골 뽑힐 무게
+@export var v4_trust_at := PackedInt32Array([2, 6, 12])
+@export var v4_trust_visit := 1
+@export var v4_trust_mood := PackedInt32Array([-1, 0, 1, 2])
+@export var v4_trust_fav_first := 1
+@export var v4_trust_cooldown := PackedFloat32Array([2.0, 3.0])
+@export var v4_trust_ticklish_time := 0.9
+@export var v4_trust_timid_radius := 0.08
+@export var v4_trust_cat_wet_limit := 55.0
+@export var v4_trust_best_max := 1
+@export var v4_star_regular_weight := 2.0
+## 도구 버릇: 샤워 무서움 (친함부터 처음 이 시간만 조심, s), 드라이 예민 (켠 뒤 '가까이' 안으로 이보다 빨리 오면 싫어함 [낯가림·익숙함, 친함] s, '가까이' m),
+## 수건 무는 손님 (톡 한 번에 물 확률 [낯가림·익숙함, 친함])
+@export var v4_quirk_shower_safe := 2.0
+@export var v4_quirk_dryer_approach := PackedFloat32Array([1.0, 0.5])
+@export var v4_quirk_dryer_near := 0.3
+@export var v4_quirk_towel_bite_chance := PackedFloat32Array([0.25, 0.1])
 
 ## 기분 0~1 → 얼굴 단계 0(😣) / 1(😐) / 2(😊)
 func mood_face(mood: float) -> int:

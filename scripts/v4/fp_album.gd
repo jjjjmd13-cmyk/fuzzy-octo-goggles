@@ -10,6 +10,7 @@ signal closed
 const FpRegulars := preload("res://scripts/v4/fp_regulars.gd")
 const FpAnimals := preload("res://scripts/v4/fp_animals.gd")
 const FpEnding := preload("res://scripts/v4/fp_ending.gd")
+const FpTrust := preload("res://scripts/v4/fp_trust.gd")
 const UI_DIR := "res://assets/ui/album/%s.png"
 const FRAMES := ["photo_frame_grey", "photo_frame_white", "photo_frame_pink", "photo_frame_gold"]
 const FRAME_COLORS := [Color(0.7, 0.7, 0.72), Color(1, 1, 1), Color(1.0, 0.7, 0.82), Color(0.95, 0.8, 0.4)]
@@ -259,7 +260,13 @@ func show_card(id: String) -> void:
 	_card.add_child(box)
 	var trait_name: String = FpAnimals.TRAITS[regular.trait].name if FpAnimals.TRAITS.has(regular.trait) else "성격 없음"
 	var fav: String = FpAnimals.FAV_NAMES.get(regular.fav, "") if entry.get("fav_found", false) else "?"
-	for line in [regular.name, "%s · %s · 털 %s" % ["고양이" if regular.animal == "cat" else "강아지", trait_name, regular.color], "좋아하는 곳: %s" % fav, "온 횟수: %d" % int(entry.get("visits", 0)), "가장 좋은 기분: %s" % MOOD_NAMES[clampi(int(entry.get("best_mood", 0)), 0, 3)]]:
+	var tier := clampi(int(entry.get("trust", 0)), 0, 3)
+	var lines := [regular.name, "%s · %s · 털 %s" % ["고양이" if regular.animal == "cat" else "강아지", trait_name, regular.color], "신뢰: %s %s" % [FpTrust.NAMES[tier], FpTrust.HEARTS[tier]], "좋아하는 곳: %s" % fav, "온 횟수: %d" % int(entry.get("visits", 0)), "가장 좋은 기분: %s" % MOOD_NAMES[clampi(int(entry.get("best_mood", 0)), 0, 3)]]
+	# 도구 버릇은 한 번이라도 씻겨 본 뒤에 보임
+	var quirk: String = regular.get("quirk", "")
+	if FpTrust.QUIRKS.has(quirk) and int(entry.get("visits", 0)) > 0:
+		lines.insert(3, "버릇: %s" % FpTrust.QUIRKS[quirk].name)
+	for line in lines:
 		var label := Label.new()
 		label.text = line
 		label.add_theme_font_size_override("font_size", 22 if line == regular.name else 18)
@@ -273,9 +280,40 @@ func show_card(id: String) -> void:
 		picture.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		picture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		box.add_child(picture)
+	# 첫 방문 사진 ↔ 최근 사진 (관계 기록)
+	var first: Dictionary = entry.get("first", {})
+	var recent: Dictionary = entry.get("recent", {})
+	if not first.is_empty() and not recent.is_empty():
+		var pair := HBoxContainer.new()
+		pair.name = "FirstRecent"
+		pair.add_theme_constant_override("separation", 12)
+		box.add_child(pair)
+		for item in [["첫 방문 %d일차" % int(first.day), first], ["최근 %d일차" % int(recent.day), recent]]:
+			var column := VBoxContainer.new()
+			pair.add_child(column)
+			var photo := _photo(regular, {"best_mood": item[1].mood, "wall": item[1].wall}, Vector2(120, 120))
+			photo.custom_minimum_size = Vector2(120, 120)
+			column.add_child(photo)
+			var caption := Label.new()
+			caption.text = item[0]
+			caption.add_theme_font_size_override("font_size", 14)
+			caption.add_theme_color_override("font_color", BROWN)
+			column.add_child(caption)
+	# '처음 ~한 날' 스티커
+	var moments: Array = entry.get("moments", [])
+	if not moments.is_empty():
+		var list := Label.new()
+		list.name = "Moments"
+		var rows: Array = []
+		for moment in moments:
+			rows.append("· %d일차 %s" % [int(moment.day), FpTrust.MOMENTS.get(moment.id, moment.id)])
+		list.text = "\n".join(rows)
+		list.add_theme_font_size_override("font_size", 15)
+		list.add_theme_color_override("font_color", BROWN)
+		box.add_child(list)
 	var ok := _button(box, "닫기")
 	ok.pressed.connect(func() -> void: _card.queue_free())
-	_card.position = (get_viewport_rect().size - Vector2(360, 360)) / 2.0
+	_card.position = ((get_viewport_rect().size - _card.get_combined_minimum_size()) / 2.0).max(Vector2.ZERO)
 
 
 func _texture(name_id: String) -> Texture2D:
