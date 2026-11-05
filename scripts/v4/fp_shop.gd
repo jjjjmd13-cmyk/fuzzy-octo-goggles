@@ -1252,6 +1252,8 @@ func _start_quick_stage() -> void:
 ## 목욕통 비우기 (주인이 데려갔거나 아직 아무도 안 맡김)
 func _clear_tub() -> void:
 	has_dog = false
+	acc_on = ""
+	_acc_liked = false
 	dog.visible = false
 	dog.clear_foam()
 	_stop_effects()

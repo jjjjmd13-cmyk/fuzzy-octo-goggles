@@ -248,13 +248,13 @@ V3 `proto_cat_*`·`proto_trait_*`·`proto_ticklish_*` 를 출발점으로, V4 �
 
 GDD_V4 '액세서리' 절 (#119). 범주 4 × 3개 = 12개. 그래픽: `docs/art/ART_SLOTS.md` 4-5, 요청문 `docs/art/ORDER_V4_ACCESSORY.md`.
 
-| 키 (제안) | 값 | 단위 | 시제품 | 설명 |
+| 키 | 값 | 단위 | 시제품 | 설명 |
 |---|---|---|---|---|
-| `v4_acc_categories` | ["ribbon", "hat", "scarf", "pin"] | 범주 | | 리본·모자·스카프·꽃핀 |
-| `v4_acc_items` | {"ribbon": ["ribbon_pink", "ribbon_polka", "ribbon_gold"], "hat": ["hat_party", "hat_beret", "hat_crown"], "scarf": ["scarf_mint", "scarf_bandana", "scarf_cape"], "pin": ["pin_daisy", "pin_star", "pin_rainbow"]} | — | | 범주마다 ★1·★2·★3 순서 |
-| `v4_acc_price` | [30, 60, 120] | 돈 | | ★1·★2·★3 값 (모든 범주 같게 시작) |
-| `v4_acc_start` | ["ribbon_pink"] | — | | 처음 가진 것 (공짜) |
-| `v4_acc_like_bonus` | 1 | 점 | | 단골이 좋아하는 범주를 씌우면 좋아함 +1 (기분 상한 +3 안) |
+| `v4_acc_categories` | ["ribbon", "hat", "scarf", "pin"] | 범주 | ✅ | 리본·모자·스카프·꽃핀 |
+| `v4_acc_items` | {"ribbon": ["ribbon_pink", "ribbon_polka", "ribbon_gold"], "hat": ["hat_party", "hat_beret", "hat_crown"], "scarf": ["scarf_mint", "scarf_bandana", "scarf_cape"], "pin": ["pin_daisy", "pin_star", "pin_rainbow"]} | — | ✅ (사전, 표 대조 밖) | 범주마다 ★1·★2·★3 순서 |
+| `v4_acc_price` | [30, 60, 120] | 돈 | ✅ | ★1·★2·★3 값 (모든 범주 같게 시작) |
+| `v4_acc_start` | ["ribbon_pink"] | — | ✅ | 처음 가진 것 (공짜) |
+| `v4_acc_like_bonus` | 1 | 점 | ✅ | 단골이 좋아하는 범주를 씌우면 좋아함 +1 (기분 상한 +3 안) |
 
 - 어림: 11개 사면 30×3 + 60×4 + 120×4 = **810** (분홍 리본 빼고) — 꾸미기 ★3 한 개 값보다 조금 많은 정도. 하루 수입의 10~30% 로 '오늘 하나 살까' 정도.
 - 좋아함 +1 은 팁 한 단계 (예: 😊 15 → 🤩 25) 가 될 수 있음 → 한 마리 +10, 좋아하는 범주를 아는 단골에게만 → 하루 +20~30.
@@ -299,3 +299,4 @@ GDD_V4 '액세서리' 절 (#119). 범주 4 × 3개 = 12개. 그래픽: `docs/art
 | 2026-11-05 | `v4_festival_tip_mult`, `v4_festival_invite_day` | ✅ → 없앰 예정 | 사람 대표 결정: 18일차 축제 뺌, 새 엔딩 결정 대기. 크레딧 화면도 뺌 |
 | 2026-11-05 | 7장 모두 | 제안 → ✅ (값 그대로) | 개발팀 단골 신뢰 (4단계·도구 버릇 3가지·대표 단골 3마리·사진첩 관계 기록). 버릇 단골 9마리는 `data/v4/regulars.json` `quirk` (몽실·솜이·라떼 샤워 / 나비·치즈·하루 드라이 / 짱구·쿠키·왕눈 수건, 개발팀이 고름), 익숙함 꼬리 힌트 넓이는 1.5배 (개발 임시값) |
 | 2026-11-05 | `v4_festival_tip_mult`, `v4_festival_invite_day` 지움, `v4_ending_stars` [12, 3, 20] → [12, 3, 6] ✅, `v4_thanks_*` 4개 제안 → ✅ | | 개발팀 감사의 날 엔딩 (축제 코드 지움, ⭐3 = 단짝 단골 6마리, 사람 대표 결정) |
+| 2026-11-05 | 7-1 모두 | 제안 → ✅ (값 그대로) | 개발팀 액세서리 (바구니·씌우기·좋아하는 범주·사진·가게 탭). `v4_acc_items` 는 사전이라 `test_balance` 표 대조 밖 (리소스 값은 표와 같음). 단골마다 좋아하는 범주는 `data/v4/regulars.json` `acc` (개발팀이 고르게 나눔) |
