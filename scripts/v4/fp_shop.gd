@@ -150,8 +150,17 @@ var _sniff_left := 3.0
 ## 목욕통의 동물 ("dog" / "cat") 과 동물 성격 ("" / ticklish / timid / dandy, GDD_V4 '고양이·동물 성격')
 var animal := "dog"
 var animal_trait := ""
-## 기분 점수: 싫어함 −1 (바닥 v4_mood_floor 쪽으로, '기분·반응' 에서 좋아함 +1 이 더해짐). 얼굴은 싫어함 수로
+## 기분 점수 (GDD_V4 '기분·반응'): 좋아함 +1 (각각 한 번, 최대 +3) · 싫어함 −1 (바닥 v4_mood_floor). 얼굴 4단계는 점수로
 var mood_score := 0
+var _likes := {}
+## 좋아하는 곳 (턱 밑·귀 뒤·등·엉덩이 중 하나), 거기 머문 시간, 목욕대에 올린 시각
+var fav_spot := ""
+var _fav_time := 0.0
+var _tub_start := 0.0
+## 오늘 가장 기뻐한 손님 (정산): 얼굴, 동물
+var best_face := -1
+var best_animal := ""
+var _heart: Label3D
 ## 규칙마다 싫어함 수·마지막 시각 (같은 규칙 v4_dislike_cooldown 초에 한 번, 손님마다 최대)
 var _rule_count := {}
 var _rule_last := {}
@@ -669,6 +678,10 @@ func _set_animal(kind: String, trait_id: String) -> void:
 	animal_trait = trait_id
 	dog.model_scene = FpAnimals.scene_of(animal)
 	mood_score = 0
+	_likes.clear()
+	fav_spot = Tuning.data.v4_fav_spots[_rng.randi() % Tuning.data.v4_fav_spots.size()]
+	_fav_time = 0.0
+	_tub_start = _t
 	_rule_count.clear()
 	_rule_last.clear()
 	_wet_started = false
@@ -705,11 +718,61 @@ func dislike(rule: String, max_count: int = -1, reaction := "") -> bool:
 	if _rule_count.get(rule, 0) >= max_count:
 		return false
 	_rule_count[rule] = _rule_count.get(rule, 0) + 1
-	mood_score = maxi(mood_score - 1, -4)
+	mood_score = maxi(mood_score - 1, Tuning.data.v4_mood_floor)
 	dog.react("set_mood", 0)
 	sfx.play("huff")
 	_show_anger()
 	return true
+
+
+## 좋아함 +1 (규칙마다 한 번, 점수 최대 +3): ♥ 뿅 + 꼬리 붕붕
+func like(rule: String) -> bool:
+	if _likes.has(rule):
+		return false
+	_likes[rule] = true
+	mood_score = mini(mood_score + 1, 3)
+	dog.react("set_mood", 2)
+	dog.react("wiggle_legs")
+	sfx.play("ding")
+	_show_heart()
+	return true
+
+
+## 지금 얼굴 (0 😣 · 1 😐 · 2 😊 · 3 🤩)
+func face() -> int:
+	return FpAnimals.face_of(mood_score)
+
+
+func _show_heart() -> void:
+	if _heart == null:
+		_heart = Label3D.new()
+		_heart.name = "Heart"
+		_heart.text = "♥"
+		_heart.font_size = 72
+		_heart.outline_size = 12
+		_heart.modulate = Color(1.0, 0.45, 0.6)
+		_heart.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		_heart.no_depth_test = true
+		add_child(_heart)
+	_heart.global_position = dog.model.to_global(dog._body_center()) + Vector3(0.12, 0.6, 0)
+	_heart.visible = true
+	_heart.set_meta("left", 0.8)
+
+
+## 거품·빗질 때 좋아하는 곳: 0.5초 머물면 좋아함, 가까울수록 꼬리가 빨리 (따뜻해요 놀이). 가까운 정도 0~1 을 돌려줌
+func _check_fav(tool_id: String, local: Vector3, delta: float) -> float:
+	if fav_spot.is_empty() or not (tool_id == "shampoo" or tool_id == "brush"):
+		return 0.0
+	var face_center: Vector3 = dog.model.get("face_center") if dog.model.get("face_center") != null else Vector3(0, 0.5, 0.25)
+	var spot := FpAnimals.fav_point(fav_spot, dog._body_center(), face_center)
+	var distance := local.distance_to(spot)
+	if distance <= Tuning.data.v4_fav_radius:
+		_fav_time += delta
+		if _fav_time >= Tuning.data.v4_fav_time and like("fav"):
+			_show_hint("♥ %s 를 좋아해요!" % FpAnimals.FAV_NAMES.get(fav_spot, ""), 1.5)
+	else:
+		_fav_time = 0.0
+	return clampf(1.0 - distance / Tuning.data.v4_fav_hint_radius, 0.0, 1.0)
 
 
 func _show_anger() -> void:
@@ -839,6 +902,11 @@ func interact_guest(owner: Node3D) -> void:
 	if not _taken.is_empty():
 		_set_animal(_taken.get("animal", "dog"), _taken.get("trait", ""))
 		new_dog()
+		if quick_feature == "mood":
+			# 빠른 확인 [기분·반응]: 좋아하는 곳을 알려 줌 (진짜 게임은 글자 없이 꼬리로만)
+			_show_hint("이번 손님이 좋아하는 곳: %s (거품·빗질 때 0.5초) · 30초 안에 다 씻으면 🤩" % FpAnimals.FAV_NAMES.get(fav_spot, ""), 8.0)
+		elif day == 1 and guests.served == 0 and _card_left <= 0.0 and quick_dogs == 0:
+			_show_hint("강아지가 좋아하는 곳을 찾아 보세요 ♥ (거품·빗질 때, 가까우면 꼬리가 빨라져요)", 5.0)
 		# 샴푸가 없으면 거품 단계를 건너뛰고 씻김 (막지 않음, 요금이 거의 없음 — 사람 대표 결정)
 		no_shampoo = shampoo_left < 0.01
 		if no_shampoo:
@@ -850,13 +918,18 @@ func interact_guest(owner: Node3D) -> void:
 func give_back() -> void:
 	var base: int = Tuning.data.v4_cat_price if animal == "cat" else Tuning.data.v4_price_wash
 	var fee: int = base
-	# 기분: 싫어함 수 → 얼굴 (0 😊 · 1~2 😐 · 3+ 😣), 성격 없는 강아지는 늘 😊
-	var face := FpAnimals.face_of(dislikes())
-	var tip: int = Tuning.data.v4_tip_mood[face] + fast_tip(_taken.get("kind", "normal"), guests.elapsed - _taken.get("arrived", guests.elapsed))
+	# 기분 점수 → 얼굴 4단계 (😣 0 · 😐 5 · 😊 15 · 🤩 25 팁), 요금은 기분과 상관없이
+	var face := face()
+	var tip: int = Tuning.data.v4_tip_mood4[face] + fast_tip(_taken.get("kind", "normal"), guests.elapsed - _taken.get("arrived", guests.elapsed))
 	if not trim_request.is_empty():
 		fee += Tuning.data.v4_price_trim
 		tip += trim_tip(trim.match_score())
-	var say := "+%d"
+	var say: String = "+%d · " + FpAnimals.FACE_SAY[face]
+	if face > best_face:
+		best_face = face
+		best_animal = animal
+	if face == 3:
+		_final_sparkle(dog.model.to_global(dog._body_center()), false)
 	if no_shampoo:
 		fee += Tuning.data.v4_no_shampoo_price - base
 		tip = 0
@@ -865,11 +938,11 @@ func give_back() -> void:
 	fees += fee
 	tips += tip
 	money += fee + tip
-	guests.return_current(say % (fee + tip), face)
+	guests.return_current(say % (fee + tip), mini(face, 2))
 	sfx.play("coin")
 	_clear_tub()
 	_taken = {}
-	_show_hint("요금 %d + 팁 %d" % [fee, tip], 2.5)
+	_show_hint("%s 요금 %d + 팁 %d" % [FpAnimals.FACE_ICON[face], fee, tip], 2.5)
 
 
 ## 빠른 서비스 팁: 손님이 들어온 뒤 돌려받기까지 걸린 시간(s)으로. 급한 손님은 배수
@@ -1209,6 +1282,8 @@ func start_next_day() -> void:
 	fees = 0
 	tips = 0
 	guests.day = day
+	best_face = -1
+	best_animal = ""
 	guests.start_day()
 	_clear_tub()
 	_start_morning()
@@ -1236,6 +1311,8 @@ func _supply_lines() -> Array:
 	lines.append("%s남은 샴푸  %s마리분" % [mark, _amount(shampoo_left)])
 	if brush_life() > 0:
 		lines.append("빗 닳음  %d / %d마리%s" % [brush_used, brush_life(), " (느려졌어요)" if brush_wear_mult() < 1.0 else ""])
+	if best_face >= 0:
+		lines.append("오늘 가장 기뻐한 손님  %s %s" % [FpAnimals.FACE_ICON[best_face], "고양이" if best_animal == "cat" else "강아지"])
 	var coming := parcels.filter(func(box: Dictionary) -> bool: return not box.get("arrived", true)).size()
 	if coming > 0:
 		lines.append("내일 아침 도착 📦 %d개" % coming)
@@ -1318,12 +1395,17 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 	var wet_here := dog.mask.value_at("wet", dir)
 	if not _hand_tracked:
 		_track_hand(point)
+	var fav_near := 0.0
 	if has_dog:
 		_check_animal_rules(held, point, delta)
+		fav_near = _check_fav(held, dog.to_model(point), delta)
 	var radius := brush_radius(point) * size_mult(held) * (FINAL_RADIUS if is_final(held) else 1.0)
 	var speed := speed_mult(held)
 	var stage := ""
-	var mood := 2
+	# 씻는 동안 표정은 지금 기분 점수대로, 좋아하는 곳에 가까우면 꼬리가 빨리 (기분 좋은 표정)
+	var mood := FpAnimals.model_mood(face())
+	if fav_near > 0.5:
+		mood = 2
 	match held:
 		"shower":
 			stage = "wet"
@@ -1479,7 +1561,13 @@ func _check_done() -> void:
 	if stage_index >= STAGES.size() and not done:
 		done = true
 		_stop_effects()
-		dog.react("set_mood", 2)
+		if has_dog:
+			if _t - _tub_start <= Tuning.data.v4_mood_fast:
+				like("fast")
+			# 성격 맞춤: 성격 손님을 싫어함 0 으로 끝냄 (멋쟁이는 빗질 +1 로 이미 셈)
+			if animal_trait != "" and animal_trait != "dandy" and _rule_count.is_empty():
+				like("trait_clean")
+		dog.react("set_mood", FpAnimals.model_mood(face()))
 		dog.react("jump")
 		sfx.play("clap")
 		_show_hint("주인을 클릭해서 돌려줘요", 999.0)
@@ -1524,8 +1612,8 @@ func _finish_stage(stage: Dictionary) -> void:
 			if dislike("cat_wet", 1, "shake"):
 				_show_hint("냥… 너무 오래 젖어 있었어요 (%d초 넘음)" % int(Tuning.data.v4_cat_wet_limit), 2.5)
 	if stage.id == "brush" and animal_trait == "dandy":
-		# 멋쟁이: 빗질을 끝까지 → 싫어함 하나 지움 + 뽐내기
-		mood_score = mini(mood_score + Tuning.data.v4_dandy_forgive, 0) if mood_score < 0 else mood_score
+		# 멋쟁이: 빗질을 끝까지 → +1 (싫어함 하나를 지우는 셈) + 뽐내기. 성격 맞춤 +1 과 겹치지 않음
+		like("dandy")
 		dog.react("jump")
 		_banner = "반짝! 멋쟁이가 뽐내요"
 	if stage.id == "dry":
@@ -1600,6 +1688,12 @@ func _process(delta: float) -> void:
 	_update_day(delta)
 	_update_sniff(delta)
 	_card_left = maxf(_card_left - delta, 0.0)
+	if has_dog and not done and _t - _tub_start > Tuning.data.v4_mood_slow:
+		dislike("slow", 1)
+	if _heart != null and _heart.visible:
+		var heart_left: float = _heart.get_meta("left", 0.0) - delta
+		_heart.set_meta("left", heart_left)
+		_heart.visible = heart_left > 0.0
 	if _anger != null and _anger.visible:
 		var left: float = _anger.get_meta("left", 0.0) - delta
 		_anger.set_meta("left", left)
@@ -1638,8 +1732,8 @@ func _process(delta: float) -> void:
 	else:
 		_track_hand(null)
 		_stop_effects()
-		if not done:
-			dog.react("set_mood", 1)
+		if not done and has_dog:
+			dog.react("set_mood", mini(FpAnimals.model_mood(face()), 1))
 		if dog.model.has_method("watch"): dog.model.watch(null, false)
 	_hud.queue_redraw()
 
