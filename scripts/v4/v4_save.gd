@@ -24,6 +24,8 @@ static func fresh() -> Dictionary:
 		"money": 0,
 		"tool_level": {"shower": 0, "shampoo": 0, "towel": 0, "dryer": 0, "brush": 0},
 		"owns_scissors": false,
+		# 택배 수레 (시험용)
+		"owns_cart": false,
 		# 남은 샴푸 (마리분). 거품 도구 단계가 높으면 0.75·0.5 마리분씩 써서 소수
 		"shampoo_left": float(Tuning.data.v4_shampoo_start),
 		# 지금 빗으로 빗질한 마리 수 (새 빗살을 끼우면 0)
@@ -64,6 +66,7 @@ static func normalize(raw: Dictionary) -> Dictionary:
 		for tool_id in data.tool_level:
 			data.tool_level[tool_id] = clampi(int(levels.get(tool_id, 0)), 0, Tuning.data.v4_tool_tiers - 1)
 	data.owns_scissors = bool(raw.get("owns_scissors", false))
+	data.owns_cart = bool(raw.get("owns_cart", false))
 	data.shampoo_left = maxf(0.0, float(raw.get("shampoo_left", data.shampoo_left)))
 	data.brush_used = maxi(0, int(raw.get("brush_used", 0)))
 	var decor: Variant = raw.get("decor", {})
