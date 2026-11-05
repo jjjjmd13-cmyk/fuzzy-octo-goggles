@@ -1,6 +1,6 @@
 # 출시 준비 (초안) — 멍냥 목욕탕 / Paws & Bubbles
 
-작성: 기획팀 · 2026-11-04 · 판 0.2 (2026-11-05: 상점 문구를 '정이 드는 단골' 중심으로 — [research/competitor-tiny-pet-salon.md](research/competitor-tiny-pet-salon.md), 신뢰·액세서리 번역 범위 추가) · 판 0.1 (초안, 대표·사람 대표 검토용) · 근거: [GDD_V4.md](GDD_V4.md)
+작성: 기획팀 · 2026-11-04 · 판 0.3 (2026-11-05: 5장 엔딩 크레딧 확정) · 판 0.2 (2026-11-05: 상점 문구를 '정이 드는 단골' 중심으로 — [research/competitor-tiny-pet-salon.md](research/competitor-tiny-pet-salon.md), 신뢰·액세서리 번역 범위 추가) · 판 0.1 (초안, 대표·사람 대표 검토용) · 근거: [GDD_V4.md](GDD_V4.md)
 
 세 가지를 다룹니다: ① 영어 번역 범위 ② 처음 하는 사람 안내 흐름 ③ 스팀 상점 페이지 문구 (한국어·영어).
 **돈이 드는 일** (스팀 등록비, 유료 번역·검수, 유료 트레일러 음악 등)은 이 문서에서 정하지 않습니다. 필요하면 대표에게 "무엇·얼마·왜·무료 대안" 으로 따로 올립니다.
@@ -192,3 +192,25 @@ Cozy · Simulation · Cute · First-Person · Animals · Relaxing · Management 
 2. 가격대 (참고: 비슷한 아늑한 시뮬 3시간 분량은 보통 저가대) — 사람 대표 결정.
 3. 영어 원어민 검수를 할지 (돈이 들 수 있음, 무료 대안: 체험판 의견).
 4. 체험판(데모) 낼지 — 낸다면 1~3일차 (고양이까지).
+
+---
+
+## 5. 엔딩 크레딧 (확정, 2026-11-05)
+
+18일차 엔딩의 '짧은 크레딧' (`scripts/v4/fp_ending.gd` `CREDITS`, 한 줄씩). **사실대로** 적음. 번역 키로 한/영.
+
+| 줄 | 한국어 | English |
+|---|---|---|
+| 1 | 멍냥 목욕탕 | Paws & Bubbles |
+| 2 | 만든 사람 — 박준우 | Created by Park Junwoo |
+| 3 | 기획 · 개발 · QA — Claude (Anthropic) | Design · Programming · QA — Claude (Anthropic) |
+| 4 | 그래픽 — ChatGPT (OpenAI) | Art — ChatGPT (OpenAI) |
+| 5 | 음악 · 효과음 — 코드로 직접 만듦 (CC0) | Music & Sound — made in code (CC0) |
+| 6 | 글꼴 — Pretendard (SIL Open Font License 1.1) | Font — Pretendard (SIL Open Font License 1.1) |
+| 7 | 엔진 — Godot Engine (MIT 라이선스) | Engine — Godot Engine (MIT License) |
+| 8 | 플레이해 주셔서 고마워요! | Thank you for playing! |
+
+- 근거: 음악 `assets/music/LICENSE.md` (코드 합성, CC0 1.0), 효과음 `tools/make_sfx.py` (코드 합성, 외부 소리 없음), 글꼴 `assets/fonts/pretendard/LICENSE.txt` (OFL 1.1), 3D·2D 그림 `docs/art/ASSET_PROVENANCE.md` (외부 에셋 없음, ChatGPT 제작).
+- 출시 빌드에 **GodotSteam** 을 넣으면 7번 다음 줄에 "스팀 연동 — GodotSteam (MIT 라이선스) / Steam integration — GodotSteam (MIT License)" 추가.
+- **라이선스 전문**: OFL·MIT 는 저작권·라이선스 문구를 함께 배포해야 함 → 크레딧 화면에는 위 한 줄만 두고, 전문은 메뉴 [설정 → 라이선스] 또는 게임 폴더의 `LICENSES.txt` 로 (개발팀이 빌드에 넣음: Godot `COPYRIGHT.txt`·MIT 전문, Pretendard `LICENSE.txt`, GodotSteam MIT 전문).
+- 새 외부 에셋이 생기면 이 표와 `ASSET_PROVENANCE.md` 에 같이 더함.
