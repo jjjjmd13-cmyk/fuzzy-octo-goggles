@@ -1,6 +1,6 @@
 # 기획팀 상태
 
-**지금 하는 일**: 액세서리 수치·그래픽 요청문 PR 검토 대기 (`planning/v4-accessory`)
+**지금 하는 일**: 18일 전체 플레이 점검표 PR 검토 대기 (`planning/v4-18days-check`)
 
 **끝낸 일**:
 - 등불 원정대 → 플레이 테스트 1 뒤 접음 (2026-10-26). 문서는 기록으로 남김
@@ -36,7 +36,8 @@
 - V4 손님 사진첩 그래픽 요청문 `docs/art/ORDER_V4_ALBUM.md` (A 파스텔, GLB 2 + PNG 11) — #112 병합
 - 출시 준비 초안 `docs/design/LAUNCH_PREP.md` (영어 번역 범위 약 350줄·번역 키 CSV, 처음 하는 사람 안내 12곳, 스팀 상점 문구 한/영·특징·태그·스크린샷·요구사항, 남은 결정 4개) — #115 병합
 - 단골 신뢰 (GDD_V4: 4단계 낯가림 → 단짝, 내려가지 않음, 도구 버릇 3가지, 대표 단골 몽실·나비·짱구, 사진첩 관계 기록), 액세서리 절 (4범주 × 3), TUNING_V4 7장, 경쟁작 비교 `docs/design/research/competitor-tiny-pet-salon.md` — #119 병합
-- 액세서리 수치 TUNING_V4 7-1 (12개, 30/60/120), `ART_SLOTS.md` 4-5, 요청문 `docs/art/ORDER_V4_ACCESSORY.md` (GLB 13)
+- 액세서리 수치 TUNING_V4 7-1 (12개, 30/60/120), `ART_SLOTS.md` 4-5, 요청문 `docs/art/ORDER_V4_ACCESSORY.md` (GLB 13) — #120 병합
+- 18일 전체 플레이 점검표 `docs/design/PLAYTEST_V4_18DAYS.md` (매일 확인 12개, 날마다 표, 경제 곡선 기대값·빨간불, 끝 질문 5개)
 - 글꼴 `docs/design/FONT.md` 그대로
 
 **막힌 것**: 없음
@@ -46,4 +47,5 @@
 - 개발팀: 꾸미기 만들 때 TUNING_V4 3-3 키(`v4_decor_*`)로, 넣을 때 ✅. 놓는 자리는 ART_SLOTS 4-2 제안 참고
 - 개발팀: 택배는 꾸미기와 같이 — TUNING_V4 3-4 키(`v4_delivery_*`, `v4_box_*`, `v4_cart_*`), 넣을 때 ✅
 - 개발팀: 고양이·동물 성격은 TUNING_V4 4장 키(`v4_cat_*`, `v4_trait_*`, `v4_dislike_*`)로, 넣을 때 ✅. 기분은 4-1 (`v4_mood_*`, `v4_fav_*`, `v4_tip_mood4`). 단골 신뢰는 7장 (`v4_trust_*`, `v4_quirk_*`)
+- QA: 18일 흐름이 들어오면 `PLAYTEST_V4_18DAYS.md` 로 점검, 결과는 `docs/qa/`. 개발팀: 빠른 확인에 [날 건너뛰기]·[돈 +1,000]·[하루 결과 기록] 부탁
 - 그래픽 받을 때: 강아지 털 UV 가 겹치지 않는지(마스크 붓질) 꼭 확인 — 개발팀이 받는 쪽에서 시험 부탁
