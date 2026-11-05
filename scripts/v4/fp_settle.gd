@@ -8,6 +8,8 @@ signal buy_requested(tool_id: String)
 ## 꾸미기: 산 것을 놓음 ("default:<범주>" = 처음 모습으로)
 signal place_requested(id: String)
 signal next_day_requested
+## 손님 사진첩 열기 (정산 판 [사진첩] 버튼)
+signal album_requested
 
 ## 지금 보이는 탭 ("tools" 도구 가게 / "decor" 꾸미기). 다시 그려도 그대로
 var tab := "tools"
@@ -123,6 +125,9 @@ func show_day_end(title: String, lines: Array, store: Array, decor := {}) -> voi
 			buy.pressed.connect(func() -> void: buy_requested.emit(id))
 		box.add_child(row)
 	_show_tab()
+	var album := _button(buttons, "사진첩")
+	album.name = "Album"
+	album.pressed.connect(func() -> void: album_requested.emit())
 	var next := _button(buttons, "다음 날")
 	next.name = "NextDay"
 	buttons.move_child(next, 0)
