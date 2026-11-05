@@ -1,5 +1,5 @@
 {
- "_note": "V4 단골 24마리 (GDD_V4 '손님 사진첩' 표). 저장에는 id 만. 크기·좋아하는 곳·목걸이 색은 개발팀이 고르게 나눔 (기획이 바꿔도 됨). color 는 털 색 이름 → scripts/v4/fp_regulars.gd 의 COLORS. quirk = 도구 버릇 (shower 샤워 무서움 · dryer 드라이 소리 예민 · towel 수건 무는 손님, 버릇마다 3마리), star = 대표 단골 (자주 옴, lines = 신뢰 단계별 주인 한마디, GDD_V4 '단골 신뢰')",
+ "_note": "V4 단골 24마리 (GDD_V4 '손님 사진첩' 표). 저장에는 id 만. 크기·좋아하는 곳·목걸이 색은 개발팀이 고르게 나눔 (기획이 바꿔도 됨). color 는 털 색 이름 → scripts/v4/fp_regulars.gd 의 COLORS. quirk = 도구 버릇 (shower 샤워 무서움 · dryer 드라이 소리 예민 · towel 수건 무는 손님, 버릇마다 3마리), star = 대표 단골 (자주 옴, lines = 신뢰 단계별 주인 한마디, GDD_V4 '단골 신뢰'). acc = 좋아하는 액세서리 범주 (ribbon·hat·scarf·pin, 개발팀이 고르게 나눔)",
  "regulars": [
   {
    "id": "kongi",
@@ -10,7 +10,8 @@
    "scale": 1.0,
    "fav": "ear_back",
    "collar": "#FF9EC4",
-   "quirk": ""
+   "quirk": "",
+   "acc": "ribbon"
   },
   {
    "id": "bori",
@@ -21,7 +22,8 @@
    "scale": 0.9,
    "fav": "chin",
    "collar": "#8FD3F4",
-   "quirk": ""
+   "quirk": "",
+   "acc": "hat"
   },
   {
    "id": "dubu",
@@ -32,7 +34,8 @@
    "scale": 1.1,
    "fav": "rump",
    "collar": "#B8E3D3",
-   "quirk": ""
+   "quirk": "",
+   "acc": "scarf"
   },
   {
    "id": "hotteok",
@@ -43,7 +46,8 @@
    "scale": 1.0,
    "fav": "back",
    "collar": "#FFD86B",
-   "quirk": ""
+   "quirk": "",
+   "acc": "pin"
   },
   {
    "id": "somi",
@@ -54,7 +58,8 @@
    "scale": 0.9,
    "fav": "ear_back",
    "collar": "#C9A7FF",
-   "quirk": "shower"
+   "quirk": "shower",
+   "acc": "ribbon"
   },
   {
    "id": "cookie",
@@ -65,7 +70,8 @@
    "scale": 1.1,
    "fav": "chin",
    "collar": "#FF8F70",
-   "quirk": "towel"
+   "quirk": "towel",
+   "acc": "hat"
   },
   {
    "id": "jjanggu",
@@ -83,7 +89,8 @@
     "짱구가 여기 오는 길을 외웠어요",
     "짱구가 문 앞에서부터 꼬리를 흔들어요",
     "짱구야 얌전히 해! …아니다, 너 여기 좋아하지?"
-   ]
+   ],
+   "acc": "scarf"
   },
   {
    "id": "nabi",
@@ -101,7 +108,8 @@
     "나비가 조금 익숙해졌나 봐요",
     "나비가 여기 오는 날은 기분이 좋아요",
     "나비가 집에서도 이 가게 얘기를 해요 (?)"
-   ]
+   ],
+   "acc": "pin"
   },
   {
    "id": "cheese",
@@ -112,7 +120,8 @@
    "scale": 1.1,
    "fav": "ear_back",
    "collar": "#B8E3D3",
-   "quirk": "dryer"
+   "quirk": "dryer",
+   "acc": "ribbon"
   },
   {
    "id": "mochi",
@@ -123,7 +132,8 @@
    "scale": 1.0,
    "fav": "chin",
    "collar": "#FFD86B",
-   "quirk": ""
+   "quirk": "",
+   "acc": "hat"
   },
   {
    "id": "gamja",
@@ -134,7 +144,8 @@
    "scale": 0.9,
    "fav": "rump",
    "collar": "#C9A7FF",
-   "quirk": ""
+   "quirk": "",
+   "acc": "scarf"
   },
   {
    "id": "kkamsun",
@@ -145,7 +156,8 @@
    "scale": 1.1,
    "fav": "back",
    "collar": "#FF8F70",
-   "quirk": ""
+   "quirk": "",
+   "acc": "pin"
   },
   {
    "id": "bamtol",
@@ -156,7 +168,8 @@
    "scale": 1.0,
    "fav": "ear_back",
    "collar": "#FF9EC4",
-   "quirk": ""
+   "quirk": "",
+   "acc": "ribbon"
   },
   {
    "id": "latte",
@@ -167,7 +180,8 @@
    "scale": 0.9,
    "fav": "chin",
    "collar": "#8FD3F4",
-   "quirk": "shower"
+   "quirk": "shower",
+   "acc": "hat"
   },
   {
    "id": "danbi",
@@ -178,7 +192,8 @@
    "scale": 1.1,
    "fav": "rump",
    "collar": "#B8E3D3",
-   "quirk": ""
+   "quirk": "",
+   "acc": "scarf"
   },
   {
    "id": "kkamang",
@@ -189,7 +204,8 @@
    "scale": 1.0,
    "fav": "back",
    "collar": "#FFD86B",
-   "quirk": ""
+   "quirk": "",
+   "acc": "pin"
   },
   {
    "id": "mango",
@@ -200,7 +216,8 @@
    "scale": 0.9,
    "fav": "ear_back",
    "collar": "#C9A7FF",
-   "quirk": ""
+   "quirk": "",
+   "acc": "ribbon"
   },
   {
    "id": "mongsil",
@@ -218,7 +235,8 @@
     "몽실이가 오늘은 덜 떨어요",
     "몽실이가 먼저 가자고 했어요!",
     "우리 몽실이가 여기만 오면 씩씩해져요"
-   ]
+   ],
+   "acc": "hat"
   },
   {
    "id": "nurung",
@@ -229,7 +247,8 @@
    "scale": 1.0,
    "fav": "rump",
    "collar": "#FF9EC4",
-   "quirk": ""
+   "quirk": "",
+   "acc": "scarf"
   },
   {
    "id": "wangnun",
@@ -240,7 +259,8 @@
    "scale": 0.9,
    "fav": "back",
    "collar": "#8FD3F4",
-   "quirk": "towel"
+   "quirk": "towel",
+   "acc": "pin"
   },
   {
    "id": "lulu",
@@ -251,7 +271,8 @@
    "scale": 1.1,
    "fav": "ear_back",
    "collar": "#B8E3D3",
-   "quirk": ""
+   "quirk": "",
+   "acc": "ribbon"
   },
   {
    "id": "byeoli",
@@ -262,7 +283,8 @@
    "scale": 1.0,
    "fav": "chin",
    "collar": "#FFD86B",
-   "quirk": ""
+   "quirk": "",
+   "acc": "hat"
   },
   {
    "id": "haru",
@@ -273,7 +295,8 @@
    "scale": 0.9,
    "fav": "rump",
    "collar": "#C9A7FF",
-   "quirk": "dryer"
+   "quirk": "dryer",
+   "acc": "scarf"
   },
   {
    "id": "kkoma",
@@ -284,7 +307,8 @@
    "scale": 1.1,
    "fav": "back",
    "collar": "#FF8F70",
-   "quirk": ""
+   "quirk": "",
+   "acc": "pin"
   }
  ]
 }

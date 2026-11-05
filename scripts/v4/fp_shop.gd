@@ -29,6 +29,9 @@ const FpDays := preload("res://scripts/v4/fp_days.gd")
 const FpEnding := preload("res://scripts/v4/fp_ending.gd")
 const FpThanks := preload("res://scripts/v4/fp_thanks.gd")
 const FpTrust := preload("res://scripts/v4/fp_trust.gd")
+const FpAccessory := preload("res://scripts/v4/fp_accessory.gd")
+## 액세서리 바구니 자리 (목욕통 오른쪽 옆 바닥 위 작은 받침)
+const BASKET_POS := Vector3(0.95, 0.45, -2.3)
 const ALBUM_BOOK := "res://assets/models/album/album_book.glb"
 ## 가게 물건: 이름, 상자 크기 (도구 단계 올리기는 "tool:<도구>")
 const SUPPLIES := {
@@ -191,6 +194,13 @@ var _dryer_inside := false
 var towel_bitten := false
 ## 이번 목욕에서 버릇을 넘었나 (돌려줄 때 사진첩 '처음 ~한 날')
 var _quirk_overcome := false
+## 액세서리 (GDD_V4 '액세서리'): 가진 것 (저장), 지금 동물이 쓴 것, 좋아하는 범주였나
+var acc_owned: Array = []
+var acc_on := ""
+var _acc_liked := false
+var _acc_basket: StaticBody3D
+var _acc_menu: Control
+var hovered_basket := false
 var _towel_flips := 0
 var _towel_dir := 0.0
 var _card_title := "새 손님!"
@@ -332,6 +342,10 @@ func _ready() -> void:
 		owns_scissors = true
 	_set_pickup_available("scissors", owns_scissors)
 	shampoo_left = float(Tuning.data.v4_shampoo_start)
+	acc_owned = Array(Tuning.data.v4_acc_start).duplicate()
+	if quick_feature == "accessory":
+		acc_owned = FpAccessory.all_items()
+	_place_acc_basket()
 	if quick_feature == "save":
 		_quick_save_round_trip()
 	elif V4Save.continue_requested and quick_dogs == 0:
@@ -353,6 +367,8 @@ func _ready() -> void:
 		_quick_album()
 	elif quick_feature == "trust":
 		_quick_trust()
+	elif quick_feature == "accessory":
+		guests.quick_animals = [{"regular": "kongi"}, {"regular": "nabi"}]
 	if quick_feature == "animals":
 		# 빠른 확인 [고양이·성격]: 고양이 → 간지럼쟁이 → 겁쟁이 → 멋쟁이 고양이
 		guests.quick_animals = [{"animal": "cat", "trait": ""}, {"animal": "dog", "trait": "ticklish"}, {"animal": "dog", "trait": "timid"}, {"animal": "cat", "trait": "dandy"}]
@@ -657,6 +673,7 @@ func save_state(next_day: int) -> Dictionary:
 		"brush_used": brush_used,
 		"decor": decor.duplicate(true),
 		"parcels": parcels.duplicate(true),
+		"acc_owned": acc_owned.duplicate(),
 		"ending_seen": ending_seen,
 		"group_photo": group_photo.duplicate(),
 	}
@@ -682,6 +699,7 @@ func apply_state(data: Dictionary) -> void:
 		_place_cart(Vector3(2.7, 0, 1.4))
 	_set_pickup_available("scissors", owns_scissors)
 	guests.trim_chance = Tuning.data.v4_trim_request_ratio if owns_scissors else 0.0
+	acc_owned = data.get("acc_owned", Array(Tuning.data.v4_acc_start)).duplicate()
 	ending_seen = data.get("ending_seen", false)
 	group_photo = data.get("group_photo", []).duplicate()
 	shampoo_left = data.shampoo_left
@@ -866,6 +884,7 @@ func take_photo(mood: int) -> void:
 	var fav_first: bool = _likes.has("fav") and not entry.fav_found
 	entry.fav_found = entry.fav_found or _likes.has("fav")
 	var info := FpTrust.photo_info(day, mood, trim_request, decor.placed.get("wall", ""), decor.placed.get("floor", ""))
+	info["acc"] = acc_on
 	var better := mood > int(entry.best_mood)
 	if better:
 		entry.best_mood = mood
@@ -873,6 +892,7 @@ func take_photo(mood: int) -> void:
 		entry.trim = trim_request
 		entry.wall = info.wall
 		entry.floor = info.floor
+		entry["acc"] = acc_on
 	if is_new:
 		entry.first = info
 		entry.first_day = day
@@ -887,6 +907,9 @@ func take_photo(mood: int) -> void:
 		FpTrust.add_moment(entry, "fav", day)
 	if not trim_request.is_empty():
 		FpTrust.add_moment(entry, "trim", day)
+	if _acc_liked:
+		entry["acc_found"] = true
+		FpTrust.add_moment(entry, "acc_like", day)
 	if _quirk_overcome and not quirk.is_empty():
 		FpTrust.add_moment(entry, "quirk_" + quirk, day)
 	# 신뢰: 점수는 줄 수 있어도 단계는 안 내려감
@@ -1186,12 +1209,25 @@ func new_dog() -> void:
 	dog.model.add_child(trim)
 	trim.snipped.connect(_on_snipped)
 	trim_request = _taken.get("trim", "") if quick_feature != "trim" else "bear"
+	acc_on = ""
+	_acc_liked = false
 	_show_hint("%s를 씻겨 주세요: 샤워기 → 샴푸 → 샤워기로 헹구기 → 수건 → 드라이기 → 빗" % ("고양이" if animal == "cat" else "강아지"), 4.0)
 	_start_quick_stage()
 
 
 ## 빠른 확인: 그 기능의 단계부터 바로 시작 (앞 단계는 이미 끝난 강아지)
 func _start_quick_stage() -> void:
+	if quick_feature == "accessory":
+		# 빠른 확인 [액세서리]: 다 씻은 동물로 바로
+		for channel in ["wet", "scrub", "rinse", "towel", "dry"]:
+			if dog.mask.CHANNELS.has(channel):
+				dog.mask.fill(channel, 1.0)
+		dog.clear_foam()
+		dog.fluff = 1.0
+		stage_index = STAGES.size()
+		done = true
+		_show_hint("다 씻었어요! 목욕통 오른쪽 옆 바구니를 클릭해 액세서리를 씌워 봐요", 6.0)
+		return
 	var start: String = {"foam": "scrub", "towel": "towel", "dryer": "dry", "brush": "brush", "trim": "trim"}.get(quick_feature, "")
 	if start.is_empty():
 		return
@@ -1216,6 +1252,8 @@ func _start_quick_stage() -> void:
 ## 목욕통 비우기 (주인이 데려갔거나 아직 아무도 안 맡김)
 func _clear_tub() -> void:
 	has_dog = false
+	acc_on = ""
+	_acc_liked = false
 	dog.visible = false
 	dog.clear_foam()
 	_stop_effects()
@@ -1275,6 +1313,8 @@ func give_back() -> void:
 	var star_lines: Array = FpRegulars.get_regular(regular).get("lines", []) if not regular.is_empty() else []
 	if face >= 1 and star_lines.size() > trust_tier:
 		say = "+%d · " + str(star_lines[trust_tier]).replace("%", "%%")
+	if _acc_liked:
+		say = "+%d · 어머, 귀여워!"
 	if face > best_face:
 		best_face = face
 		best_animal = animal
@@ -1410,6 +1450,8 @@ func tool_name(tool_id: String) -> String:
 
 ## 다음 단계 값 (더 없으면 -1). 주문해 둔(아직 안 연) 상자 단계까지 친 다음 단계. 가게 물건(샴푸·새 빗살)도
 func next_price(tool_id: String) -> int:
+	if not FpAccessory.category_of(tool_id).is_empty():
+		return -1 if acc_owned.has(tool_id) or _ordered("acc:" + tool_id) > 0 else FpAccessory.price_of(tool_id)
 	if not FpDecor.category_of(tool_id).is_empty():
 		return -1 if decor.owned.has(tool_id) or _ordered("decor:" + tool_id) > 0 else FpDecor.price_of(tool_id)
 	match tool_id:
@@ -1440,12 +1482,16 @@ func _ordered(item: String) -> int:
 
 ## 가게 줄 id → 상자 속 물건 id (꾸미기 = "decor:<id>")
 static func item_of(store_id: String) -> String:
+	if not FpAccessory.category_of(store_id).is_empty():
+		return "acc:" + store_id
 	if not FpDecor.category_of(store_id).is_empty():
 		return "decor:" + store_id
 	return store_id if store_id in ["scissors", "cart"] or SUPPLIES.has(store_id) else "tool:" + store_id
 
 
 func item_name(item: String) -> String:
+	if item.begins_with("acc:"):
+		return FpAccessory.name_of(item.trim_prefix("acc:"))
 	if item.begins_with("decor:"):
 		return FpDecor.name_of(item.trim_prefix("decor:"))
 	if item.begins_with("tool:"):
@@ -1484,6 +1530,8 @@ func order(store_id: String) -> bool:
 	elif item.begins_with("decor:"):
 		kind = "decor"
 		size = FpDecor.box_size_of(store_id)
+	elif item.begins_with("acc:"):
+		kind = "acc"
 	elif SUPPLIES.has(item):
 		kind = "shampoo" if item.begins_with("shampoo") else "brush_refill"
 		size = SUPPLIES[item].size
@@ -1494,6 +1542,11 @@ func order(store_id: String) -> bool:
 
 ## 상자 속 물건을 제자리에 (도구 단계 하나 올림·가위·샴푸 채움·새 빗살)
 func apply_item(item: String) -> void:
+	if item.begins_with("acc:"):
+		var acc_id := item.trim_prefix("acc:")
+		if not acc_owned.has(acc_id):
+			acc_owned.append(acc_id)
+		return
 	if item.begins_with("decor:"):
 		var id := item.trim_prefix("decor:")
 		if not decor.owned.has(id):
@@ -1560,6 +1613,137 @@ func decor_rows() -> Dictionary:
 			items.append({"id": id, "name": FpDecor.CATEGORIES[category].items[i][1], "stars": i + 1, "price": FpDecor.price_of(id), "state": state, "can_buy": money >= FpDecor.price_of(id)})
 		rows.append({"category": category, "name": FpDecor.CATEGORIES[category].name, "default_placed": not decor.placed.has(category), "items": items})
 	return {"title": "아늑함 ★%d — 손님이 %d%% 더 기다려 줘요 (산 것은 내일 아침 택배, 산 것끼리는 공짜로 바꿔 끼움)" % [stars, roundi((FpDecor.patience_mult(decor.placed) - 1.0) * 100.0)], "rows": rows}
+
+
+## 정산 판 [액세서리] 탭: 범주마다 ★1·★2·★3 (state: buy / owned / coming)
+func acc_rows() -> Array:
+	var rows := []
+	for category in FpAccessory.categories():
+		var items := []
+		for id in FpAccessory.items_of(category):
+			var state := "buy"
+			if acc_owned.has(id):
+				state = "owned"
+			elif _ordered("acc:" + id) > 0:
+				state = "coming"
+			items.append({"id": id, "name": FpAccessory.name_of(id), "stars": FpAccessory.stars_of(id), "price": FpAccessory.price_of(id), "state": state, "can_buy": money >= FpAccessory.price_of(id)})
+		rows.append({"category": category, "name": FpAccessory.CATEGORIES[category].name, "items": items})
+	return rows
+
+
+## 액세서리 씌우기 (다 씻은 뒤, 돌려주기 전). id "" = 벗기기. 단골이 좋아하는 범주면 좋아함 +1 (기분 상한 안) + 뽐내기
+func wear_acc(id: String) -> bool:
+	if not has_dog or not done:
+		return false
+	if not id.is_empty() and not acc_owned.has(id):
+		return false
+	acc_on = id
+	FpAccessory.wear(dog.model, id, animal == "cat")
+	if id.is_empty():
+		return true
+	sfx.play("press")
+	var fav_acc: String = FpRegulars.get_regular(regular).get("acc", "") if not regular.is_empty() else ""
+	if not fav_acc.is_empty() and FpAccessory.category_of(id) == fav_acc:
+		_acc_liked = true
+		for i in Tuning.data.v4_acc_like_bonus:
+			like("acc" if i == 0 else "acc_%d" % i)
+		dog.react("jump")
+		_show_hint("어머, 귀여워! %s 를 좋아해요 ♥" % FpAccessory.CATEGORIES[fav_acc].name, 2.0)
+	else:
+		_acc_liked = false
+		dog.react("wiggle_legs")
+		_show_hint("%s 좋아요!" % FpAccessory.name_of(id), 1.5)
+	return true
+
+
+## 액세서리 바구니 (acc_basket.glb, 없으면 임시 바구니): 목욕통 오른쪽 옆
+func _place_acc_basket() -> void:
+	_acc_basket = StaticBody3D.new()
+	_acc_basket.name = "AccBasket"
+	_acc_basket.collision_layer = 1 << (PICK_LAYER - 1)
+	_acc_basket.collision_mask = 0
+	_acc_basket.set_meta("acc_basket", true)
+	var shape := CollisionShape3D.new()
+	var box := BoxShape3D.new()
+	box.size = Vector3(0.4, 0.3, 0.3)
+	shape.shape = box
+	shape.position.y = 0.0
+	_acc_basket.add_child(shape)
+	var view: Node3D = null
+	if ResourceLoader.exists(FpAccessory.MODEL_DIR % "acc_basket"):
+		view = (load(FpAccessory.MODEL_DIR % "acc_basket") as PackedScene).instantiate() as Node3D
+	else:
+		view = Node3D.new()
+		var mesh := BoxMesh.new()
+		mesh.size = Vector3(0.35, 0.15, 0.25)
+		var basket := MeshInstance3D.new()
+		basket.mesh = mesh
+		var material := StandardMaterial3D.new()
+		material.albedo_color = Color(0.85, 0.68, 0.45)
+		basket.material_override = material
+		view.add_child(basket)
+		for i in 3:
+			var ball := FpAccessory.make_view(["ribbon_pink", "hat_party", "pin_daisy"][i])
+			ball.position = Vector3(-0.1 + 0.1 * i, 0.08, 0)
+			view.add_child(ball)
+		# 받침 다리
+		var leg_mesh := BoxMesh.new()
+		leg_mesh.size = Vector3(0.3, 0.38, 0.2)
+		var leg := MeshInstance3D.new()
+		leg.mesh = leg_mesh
+		leg.position.y = -0.27
+		var leg_material := StandardMaterial3D.new()
+		leg_material.albedo_color = Color(0.95, 0.92, 0.85)
+		leg.material_override = leg_material
+		view.add_child(leg)
+	view.name = "View"
+	_acc_basket.add_child(view)
+	_acc_basket.position = BASKET_POS
+	add_child(_acc_basket)
+
+
+## 바구니 클릭: 다 씻은 동물이 있으면 가진 액세서리가 둥글게 펼쳐짐
+func open_acc_menu() -> void:
+	if not has_dog or not done:
+		_show_hint("다 씻은 뒤에 액세서리를 하나 씌워 줄 수 있어요", 1.5)
+		return
+	if is_instance_valid(_acc_menu):
+		return
+	_acc_menu = Control.new()
+	_acc_menu.name = "AccMenu"
+	_acc_menu.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	_hud.get_parent().add_child(_acc_menu)
+	var center := _hud.get_viewport_rect().size / 2.0
+	var count := acc_owned.size()
+	var radius := 120.0 + 10.0 * count
+	for i in count:
+		var id: String = acc_owned[i]
+		var button := Button.new()
+		button.name = "Acc_" + id
+		button.text = "%s\n%s" % [FpAccessory.CATEGORIES[FpAccessory.category_of(id)].name, FpAccessory.name_of(id)]
+		button.custom_minimum_size = Vector2(120, 56)
+		button.add_theme_font_size_override("font_size", 16)
+		var angle := -PI / 2.0 + TAU * i / maxf(count, 1)
+		button.position = center + Vector2(cos(angle), sin(angle)) * radius - Vector2(60, 28)
+		button.pressed.connect(func() -> void: _choose_acc(id))
+		_acc_menu.add_child(button)
+	var none := Button.new()
+	none.name = "Acc_none"
+	none.text = "안 씌우기" if acc_on.is_empty() else "벗기기"
+	none.custom_minimum_size = Vector2(120, 56)
+	none.position = center - Vector2(60, 28)
+	none.pressed.connect(func() -> void: _choose_acc(""))
+	_acc_menu.add_child(none)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+
+
+func _choose_acc(id: String) -> void:
+	wear_acc(id)
+	if is_instance_valid(_acc_menu):
+		_acc_menu.queue_free()
+	_acc_menu = null
+	if input_enabled and not day_over:
+		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 
 ## 빗 수명 (마리, 0 = 안 닳음)
@@ -1712,7 +1896,7 @@ func _show_settle() -> void:
 		"받은 손님  %d · 떠난 손님  %d" % [guests.served, guests.left_count],
 		"요금  %d + 팁  %d = 오늘  %d" % [fees, tips, fees + tips],
 		"가진 돈  %d" % money,
-	] + _supply_lines(), store_rows(), decor_rows())
+	] + _supply_lines(), store_rows(), decor_rows(), acc_rows())
 
 
 ## 정산 판: 남은 샴푸 (적으면 ⚠, 없으면 ⛔), 빗 닳음, 내일 아침 올 택배
@@ -2197,6 +2381,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			push_cart(true)
 		elif hovered_book:
 			open_album()
+		elif hovered_basket:
+			open_acc_menu()
 		elif not hovered_box.is_empty():
 			carry_box(hovered_box)
 		elif not hovered.is_empty():
@@ -2237,6 +2423,7 @@ func _update_aim() -> void:
 	hovered_box = {}
 	hovered_cart = false
 	hovered_book = false
+	hovered_basket = false
 	aim_point = null
 	var ray: Array[Vector3] = player.aim_ray(REACH)
 	var query := PhysicsRayQueryParameters3D.create(ray[0], ray[1], (1 << (PICK_LAYER - 1)) | DOG_LAYER)
@@ -2264,6 +2451,9 @@ func _update_aim() -> void:
 		return
 	if collider != null and collider.has_meta("album_book"):
 		hovered_book = true
+		return
+	if collider != null and collider.has_meta("acc_basket"):
+		hovered_basket = true
 		return
 	# 가위·빗: 가운데 점 둘레의 다발·뭉치를 바로 겨눔 (몸 겉면 판정이 다른 부위에 먼저 닿거나
 	# 강아지가 고개를 돌려도 바라보는 다발이 잘리게, 사람 대표 플레이 버그)
@@ -2529,6 +2719,8 @@ func _draw_hud() -> void:
 			under = "수레 (Q 놓기)"
 	elif hovered_cart:
 		under = "클릭: 수레 밀기"
+	elif hovered_basket:
+		under = "클릭: 액세서리 바구니 (다 씻은 뒤 하나 씌우기, 가진 것 %d개)" % acc_owned.size()
 	elif hovered_book:
 		under = "클릭: 손님 사진첩 (만난 단골 %d / %d)" % [album.size(), FpRegulars.all().size()]
 	elif not hovered_box.is_empty():

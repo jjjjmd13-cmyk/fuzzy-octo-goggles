@@ -66,7 +66,8 @@ func show_lines(title: String, lines: Array, again: bool, line_size := 28) -> vo
 ## 사면 buy_requested → 부른 쪽이 다시 이 함수로 새로 그림
 ## decor = {"title": 아늑함 한 줄, "rows": 범주마다 {category, name, default_placed, items: [{id, name, stars, price, state, can_buy}]}}
 ## (비면 꾸미기 탭 없음). state: "buy" 사기 / "owned" 산 것 (놓기) / "placed" 놓임 / "coming" 택배로 오는 중
-func show_day_end(title: String, lines: Array, store: Array, decor := {}) -> void:
+## acc = [{category, name, items: [{id, name, stars, price, state (buy / owned / coming), can_buy}]}] (비면 액세서리 탭 없음)
+func show_day_end(title: String, lines: Array, store: Array, decor := {}, acc: Array = []) -> void:
 	for child in get_children():
 		remove_child(child)
 		child.queue_free()
@@ -81,8 +82,8 @@ func show_day_end(title: String, lines: Array, store: Array, decor := {}) -> voi
 	tabs.add_theme_constant_override("separation", 12)
 	outer.add_child(tabs)
 	outer.move_child(tabs, buttons.get_index())
-	for pair in [["tools", "도구 가게"], ["decor", "꾸미기"]]:
-		if pair[0] == "decor" and decor.is_empty():
+	for pair in [["tools", "도구 가게"], ["decor", "꾸미기"], ["acc", "액세서리"]]:
+		if pair[0] == "decor" and decor.is_empty() or pair[0] == "acc" and acc.is_empty():
 			continue
 		var tab_button := _button(tabs, pair[1])
 		tab_button.name = "Tab_" + pair[0]
@@ -105,6 +106,10 @@ func show_day_end(title: String, lines: Array, store: Array, decor := {}) -> voi
 		var decor_box := _decor_box(decor)
 		outer.add_child(decor_box)
 		outer.move_child(decor_box, buttons.get_index())
+	if not acc.is_empty():
+		var acc_box := _acc_box(acc)
+		outer.add_child(acc_box)
+		outer.move_child(acc_box, buttons.get_index())
 	for item in store:
 		var row := HBoxContainer.new()
 		row.name = "Store_" + item.id
@@ -136,9 +141,9 @@ func show_day_end(title: String, lines: Array, store: Array, decor := {}) -> voi
 
 
 func _show_tab() -> void:
-	if not find_child("DecorBox", true, false):
+	if tab == "decor" and not find_child("DecorBox", true, false) or tab == "acc" and not find_child("AccBox", true, false):
 		tab = "tools"
-	for pair in [["tools", "ToolsBox"], ["decor", "DecorBox"]]:
+	for pair in [["tools", "ToolsBox"], ["decor", "DecorBox"], ["acc", "AccBox"]]:
 		var section := find_child(pair[1], true, false) as Control
 		if section != null:
 			section.visible = tab == pair[0]
@@ -192,6 +197,41 @@ func _decor_box(decor: Dictionary) -> VBoxContainer:
 			else:
 				button.pressed.connect(func() -> void: place_requested.emit(id))
 		grid.add_child(row)
+	return box
+
+
+## 액세서리 탭: 범주마다 한 줄 ★1·★2·★3 (산 것은 내일 아침 작은 택배, 씌우기는 목욕통 옆 바구니)
+func _acc_box(rows: Array) -> VBoxContainer:
+	var box := VBoxContainer.new()
+	box.name = "AccBox"
+	box.add_theme_constant_override("separation", 6)
+	_label(box, "씻긴 뒤 목욕통 옆 바구니에서 하나 씌워요 (단골이 좋아하는 범주면 기분 +1)", 20)
+	for row_data in rows:
+		var row := HBoxContainer.new()
+		row.name = "Acc_" + row_data.category
+		row.alignment = BoxContainer.ALIGNMENT_CENTER
+		row.add_theme_constant_override("separation", 8)
+		var label := Label.new()
+		label.text = row_data.name
+		label.custom_minimum_size = Vector2(80, 0)
+		label.add_theme_font_size_override("font_size", 18)
+		label.add_theme_color_override("font_color", Color(0.3, 0.22, 0.15))
+		row.add_child(label)
+		for item in row_data.items:
+			var text := "%s %s" % ["★".repeat(item.stars), item.name]
+			match item.state:
+				"buy":
+					text += " %d" % item.price
+				"owned":
+					text = "✔ " + text
+				"coming":
+					text += " (내일)"
+			var button := _small_button(row, text)
+			button.name = item.id
+			button.disabled = item.state != "buy" or not item.can_buy
+			var id: String = item.id
+			button.pressed.connect(func() -> void: buy_requested.emit(id))
+		box.add_child(row)
 	return box
 
 

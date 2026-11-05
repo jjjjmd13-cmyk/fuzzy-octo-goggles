@@ -352,6 +352,12 @@ extends Resource
 @export var v4_quirk_dryer_approach := PackedFloat32Array([1.0, 0.5])
 @export var v4_quirk_dryer_near := 0.3
 @export var v4_quirk_towel_bite_chance := PackedFloat32Array([0.25, 0.1])
+## 액세서리 (TUNING_V4 7-1): 범주, 범주마다 ★1·★2·★3 물건, 값 [★1, ★2, ★3], 처음 가진 것, 좋아하는 범주를 씌우면 좋아함
+@export var v4_acc_categories: Array[String] = ["ribbon", "hat", "scarf", "pin"]
+@export var v4_acc_items := {"ribbon": ["ribbon_pink", "ribbon_polka", "ribbon_gold"], "hat": ["hat_party", "hat_beret", "hat_crown"], "scarf": ["scarf_mint", "scarf_bandana", "scarf_cape"], "pin": ["pin_daisy", "pin_star", "pin_rainbow"]}
+@export var v4_acc_price := PackedInt32Array([30, 60, 120])
+@export var v4_acc_start: Array[String] = ["ribbon_pink"]
+@export var v4_acc_like_bonus := 1
 
 ## 기분 0~1 → 얼굴 단계 0(😣) / 1(😐) / 2(😊)
 func mood_face(mood: float) -> int:
