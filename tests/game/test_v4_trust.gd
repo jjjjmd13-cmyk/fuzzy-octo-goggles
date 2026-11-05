@@ -32,6 +32,8 @@ func run_test() -> void:
 		if not str(r.get("quirk", "")).is_empty():
 			quirks[r.quirk] = quirks.get(r.quirk, 0) + 1
 	check_eq(quirks, {"shower": 3, "dryer": 3, "towel": 3}, "도구 버릇 9마리 (버릇마다 3)")
+	for id in Tuning.data.v4_first_day_regulars:
+		check(str(FpRegulars.get_regular(id).get("quirk", "")).is_empty(), "1일차 단골 %s 은 버릇 없음" % id)
 	for id in ["mongsil", "nabi", "jjanggu"]:
 		var r := FpRegulars.get_regular(id)
 		check(r.get("star", false) and r.get("lines", []).size() == 4, "%s 대표 단골, 주인 한마디 4줄" % r.name)
