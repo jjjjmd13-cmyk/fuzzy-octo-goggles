@@ -29,6 +29,7 @@ const V4_SCENE := "res://scenes/v4/fp_shop.tscn"
 const QUICK_SCENE := "res://scenes/dev/quick_check.tscn"
 const QUICK_SCRIPT := "res://scripts/dev/quick_check.gd"
 const LICENSES := "res://LICENSES.txt"
+const Settings := preload("res://scripts/core/settings.gd")
 
 var continue_button: Button
 
@@ -83,6 +84,30 @@ func _ready() -> void:
 	quit_button.get_parent().add_child(license_button)
 	quit_button.get_parent().move_child(license_button, quit_button.get_index())
 	license_button.pressed.connect(show_licenses)
+	# 처음 하는 사람 안내 (V4, LAUNCH_PREP 2장): 켜기·끄기, 다시 보기 (V4 저장의 본 안내를 지움)
+	Settings.ensure_loaded()
+	var guide_row := HBoxContainer.new()
+	guide_row.name = "GuideRow"
+	guide_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	guide_row.add_theme_constant_override("separation", 8)
+	quit_button.get_parent().add_child(guide_row)
+	quit_button.get_parent().move_child(guide_row, license_button.get_index())
+	var guide_toggle := Button.new()
+	guide_toggle.name = "GuideToggle"
+	guide_toggle.custom_minimum_size = Vector2(0, 36)
+	guide_toggle.text = "안내 끄기" if Settings.guide_enabled else "안내 켜기"
+	guide_toggle.pressed.connect(func() -> void:
+		Settings.set_guide_enabled(not Settings.guide_enabled)
+		guide_toggle.text = "안내 끄기" if Settings.guide_enabled else "안내 켜기")
+	guide_row.add_child(guide_toggle)
+	var guide_replay := Button.new()
+	guide_replay.name = "GuideReplay"
+	guide_replay.custom_minimum_size = Vector2(0, 36)
+	guide_replay.text = "안내 다시 보기"
+	guide_replay.pressed.connect(func() -> void:
+		replay_guide()
+		guide_replay.text = "안내 다시 보기 ✔")
+	guide_row.add_child(guide_replay)
 	port_edit.text = str(Net.DEFAULT_PORT)
 
 	# 1인용 결정 (사람 대표, 2026-10-28): 친구와 하기·개발용 IP 접속 줄은 메뉴에서만 숨긴다.
@@ -98,6 +123,15 @@ func _ready() -> void:
 	message_label.text = Net.last_end_reason
 	(continue_button if continue_button.visible else solo_button).grab_focus()
 	_autostart()
+
+
+## [안내 다시 보기]: V4 저장의 본 안내를 지우고 안내를 켬 (다음에 할 때 처음처럼)
+func replay_guide() -> void:
+	Settings.set_guide_enabled(true)
+	var saved := V4Save.read()
+	if not saved.is_empty():
+		saved.guide_seen = []
+		V4Save.write(saved)
 
 
 ## 라이선스 전문 창 (res://LICENSES.txt, tools/make_licenses.gd 가 만듦). 닫기로 메뉴
