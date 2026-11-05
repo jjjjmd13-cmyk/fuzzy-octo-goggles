@@ -9,6 +9,8 @@ extends Node3D
 
 signal guest_left(kind: String)
 signal guest_arrived
+## 대기 강아지가 택배 상자 냄새를 맡음 (테스트·확인용)
+signal sniffed(owner: Node3D)
 
 const OWNER_SCENE := preload("res://scenes/art/sim/owner_model.tscn")
 const CHAIR_SCENE := preload("res://scenes/art/sim/chair_model.tscn")
@@ -250,6 +252,40 @@ func _process(delta: float) -> void:
 		elif item.t > 0.9 + item.get("leave_time", 6.0) + 0.3:
 			(item.owner as Node3D).queue_free()
 			_leaving.erase(item)
+
+
+## 대기 손님 강아지가 안 연 택배 상자 쪽으로 고개를 돌리고 킁킁 (참을성에는 영향 없음, GDD_V4 재미 포인트)
+func sniff(index: int, target: Vector3) -> void:
+	if index < 0 or index >= guests.size():
+		return
+	var owner: Node3D = guests[index].owner
+	var held := owner.get_node_or_null("HeldDog") as Node3D
+	if held == null or held.has_meta("sniffing"):
+		return
+	held.set_meta("sniffing", true)
+	var dog := held.get_child(0) as Node3D
+	var flat := target - held.global_position
+	var turn := atan2(flat.x, flat.z) - owner.global_rotation.y
+	var label := Label3D.new()
+	label.name = "Sniff"
+	label.text = "킁킁"
+	label.font = FONT
+	label.font_size = 40
+	label.outline_size = 10
+	label.pixel_size = 0.004
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.position = Vector3(0, 0.7, 0)
+	held.add_child(label)
+	var tween := create_tween()
+	tween.tween_property(dog, "rotation:y", turn, 0.3)
+	tween.tween_interval(1.4)
+	tween.tween_property(dog, "rotation:y", 0.0, 0.3)
+	tween.tween_callback(func() -> void:
+		if is_instance_valid(label):
+			label.queue_free()
+		if is_instance_valid(held):
+			held.remove_meta("sniffing"))
+	sniffed.emit(owner)
 
 
 ## 일어나 반응(1 끄덕 / 2 박수)하고 문으로
