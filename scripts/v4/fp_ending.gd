@@ -12,7 +12,8 @@ const FpRegulars := preload("res://scripts/v4/fp_regulars.gd")
 const FpAnimals := preload("res://scripts/v4/fp_animals.gd")
 const OWNER_SCENE := preload("res://scenes/art/sim/owner_model.tscn")
 const BROWN := Color(0.3, 0.22, 0.15)
-const CREDITS := ["멍냥 목욕탕", "기획 · 개발 · QA — 멍냥 스튜디오", "그림 — 멍냥 스튜디오 그림팀", "글꼴 — Pretendard (OFL)", "플레이해 주셔서 고마워요!"]
+## 엔딩 끝 한 줄 (사람 대표 결정: 만든 사람 목록 크레딧은 없음). 라이선스 전문은 메뉴 [라이선스] (LICENSES.txt)
+const CREDITS := ["플레이해 주셔서 고마워요! / Thanks for playing!"]
 ## 한 줄에 서는 단골 수 (단체 사진)
 const ROW := 8
 
@@ -51,13 +52,13 @@ func play(ids: Array, star_rows: Array, sfx: Node = null) -> void:
 	center.add_child(_box)
 	_title = _label("반짝 목욕 축제 끝! 그동안 씻긴 단골들이 모였어요", 32)
 	_box.add_child(_title)
-	var stage := make_group_stage(group, Vector2(900, 420), true)
+	var stage := make_group_stage(group, Vector2(900, 340), true)
 	stage.name = "GroupPhoto"
 	_box.add_child(stage)
 	_stars_label = _label("", 30)
 	_stars_label.visible = false
 	_box.add_child(_stars_label)
-	_credits = _label("\n".join(CREDITS), 20)
+	_credits = _label("\n".join(CREDITS), 24)
 	_credits.visible = false
 	_box.add_child(_credits)
 	_buttons = HBoxContainer.new()

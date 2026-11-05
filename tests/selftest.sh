@@ -93,6 +93,48 @@ filter_case "뒤에 다른 오류가 이어짐 (남김)" "4.4.1.stable.official"
   "	reimport: step 40: tub.glb" "	import: step 104: Saving..." "$BUG_ERR" "$BUG_AT" "ERROR: Cannot save scene."
 
 echo
+echo "#### 임포트를 끝낸 뒤 Godot 가 종료하다 죽으면 (종료 코드 134) 한 번만 다시 임포트"
+# 가짜 Godot: --import 일 때만 FAKE_IMPORT 에 적힌 차례(쉼표)대로 흉내 내고, 나머지는 진짜 Godot 를 부른다.
+FAKE="$WORK/fake_godot.sh"
+cat >"$FAKE" <<'FAKE_EOF'
+#!/usr/bin/env bash
+for a in "$@"; do [ "$a" = --import ] && imp=1; done
+if [ -n "${imp:-}" ]; then
+  n=$(( $(cat "$FAKE_COUNT" 2>/dev/null || echo 0) + 1 ))
+  echo "$n" >"$FAKE_COUNT"
+  case "$(echo "$FAKE_IMPORT" | cut -d, -f"$n")" in
+    exitcrash)
+      printf 'reimport: end\nloading_editor_layout: begin: Loading editor steps: 5\n\tloading_editor_layout: step 0: Loading editor layout...\nloading_editor_layout: end\ndouble free or corruption (!prev)\n'
+      exit 134 ;;
+    midcrash)
+      printf 'reimport: begin: (Re)Importing Assets steps: 5\n\treimport: step 1: tub.glb\ndouble free or corruption (!prev)\n'
+      exit 134 ;;
+  esac
+fi
+exec "$REAL_GODOT" "$@"
+FAKE_EOF
+chmod +x "$FAKE"
+REAL_GODOT="${GODOT:-godot}"
+# 이름, 임포트 차례, 통과해야 하나(1/0), 임포트 횟수
+crash_case() {
+  local count="$WORK/fake_count.$1"
+  out="$(GODOT="$FAKE" REAL_GODOT="$REAL_GODOT" FAKE_IMPORT="$2" FAKE_COUNT="$count" \
+    QA_LOG_DIR="$WORK/crash-logs.$1" "$HERE/run_tests.sh" "$WORK/pass" 2>&1)"
+  local code=$? imports
+  imports="$(cat "$count")"
+  if { [ "$3" -eq 1 ] && [ "$code" -ne 0 ]; } || { [ "$3" -eq 0 ] && [ "$code" -eq 0 ]; } || [ "$imports" -ne "$4" ]; then
+    sed 's/::error::/[출력] /; s/::warning::/[출력] /' <<<"$out"
+    echo "::error::자체 검사 실패: 종료 크래시 [$1] 종료 코드 $code, 임포트 $imports번 (기대: 통과=$3, 임포트 $4번)"
+    exit 1
+  fi
+  echo "   $1: 통과 (임포트 $imports번)"
+}
+crash_case "한 번 죽고 다시 하면 통과" "exitcrash,ok" 1 2
+crash_case "두 번 다 죽으면 실패" "exitcrash,exitcrash" 0 2
+crash_case "임포트 도중에 죽으면 바로 실패" "midcrash" 0 1
+[ -f "$WORK/crash-logs.한 번 죽고 다시 하면 통과/import.crash.log" ] || { echo "::error::자체 검사 실패: 첫 임포트 로그(import.crash.log)가 남지 않음"; exit 1; }
+
+echo
 echo "#### project.godot 없는 폴더는 건너뜀"
 mkdir -p "$WORK/empty"
 "$HERE/run_tests.sh" "$WORK/empty" | grep -q "프로젝트 없음" || { echo "::error::건너뛰기 실패"; exit 1; }
