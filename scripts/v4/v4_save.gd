@@ -43,6 +43,8 @@ static func fresh() -> Dictionary:
 		# 안 연 택배 상자. 하나 = {"item": 물건 id, "kind": tool|decor|shampoo|brush_refill, "size": small|medium|large,
 		# "arrived": 매트에 도착했나 (false = 어제 주문, 다음 아침 트럭으로 옴)}
 		"parcels": [],
+		# 액세서리 (GDD_V4 '액세서리'): 가진 것 id
+		"acc_owned": Array(Tuning.data.v4_acc_start).duplicate(),
 		# 18일 흐름: 엔딩을 봤나 (한 번만), 엔딩 단체 사진에 선 단골 id (사진첩 마지막 쪽)
 		"ending_seen": false,
 		"group_photo": [],
@@ -91,7 +93,7 @@ static func normalize(raw: Dictionary) -> Dictionary:
 				row["first_day"] = int(entry.get("first_day", day))
 				for key in ["first", "recent"]:
 					var photo: Variant = entry.get(key, {})
-					row[key] = {"day": int(photo.get("day", day)), "mood": clampi(int(photo.get("mood", 2)), 0, 3), "trim": str(photo.get("trim", "")), "wall": str(photo.get("wall", "")), "floor": str(photo.get("floor", ""))} if photo is Dictionary and not (photo as Dictionary).is_empty() else {}
+					row[key] = {"day": int(photo.get("day", day)), "mood": clampi(int(photo.get("mood", 2)), 0, 3), "trim": str(photo.get("trim", "")), "wall": str(photo.get("wall", "")), "floor": str(photo.get("floor", "")), "acc": str(photo.get("acc", ""))} if photo is Dictionary and not (photo as Dictionary).is_empty() else {}
 				var moments: Array = []
 				var raw_moments: Variant = entry.get("moments", [])
 				if raw_moments is Array:
@@ -105,6 +107,9 @@ static func normalize(raw: Dictionary) -> Dictionary:
 					for mood in raw_moods:
 						moods.append(clampi(int(mood), 0, 3))
 				row["moods"] = moods
+				# 액세서리: 가장 좋은 사진에 쓴 것, 좋아하는 범주를 찾았나
+				row["acc"] = str(entry.get("acc", ""))
+				row["acc_found"] = bool(entry.get("acc_found", false))
 				data.album[str(id)] = row
 	for key in ["album_rewards_taken", "regulars_met_order"]:
 		var items: Variant = raw.get(key, [])
@@ -132,6 +137,11 @@ static func normalize(raw: Dictionary) -> Dictionary:
 		for box in parcels:
 			if box is Dictionary and box.has("item"):
 				data.parcels.append({"item": str(box.item), "kind": str(box.get("kind", "tool")), "size": str(box.get("size", "small")), "arrived": bool(box.get("arrived", true))})
+	var acc: Variant = raw.get("acc_owned", null)
+	if acc is Array:
+		data.acc_owned = []
+		for id in acc:
+			data.acc_owned.append(str(id))
 	data.ending_seen = bool(raw.get("ending_seen", false))
 	var group: Variant = raw.get("group_photo", [])
 	if group is Array:

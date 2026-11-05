@@ -11,6 +11,7 @@ const FpRegulars := preload("res://scripts/v4/fp_regulars.gd")
 const FpAnimals := preload("res://scripts/v4/fp_animals.gd")
 const FpEnding := preload("res://scripts/v4/fp_ending.gd")
 const FpTrust := preload("res://scripts/v4/fp_trust.gd")
+const FpAccessory := preload("res://scripts/v4/fp_accessory.gd")
 const UI_DIR := "res://assets/ui/album/%s.png"
 const FRAMES := ["photo_frame_grey", "photo_frame_white", "photo_frame_pink", "photo_frame_gold"]
 const FRAME_COLORS := [Color(0.7, 0.7, 0.72), Color(1, 1, 1), Color(1.0, 0.7, 0.82), Color(0.95, 0.8, 0.4)]
@@ -193,6 +194,8 @@ func _photo(regular: Dictionary, entry: Dictionary, size_px: Vector2) -> SubView
 	# 칸이 화면에 붙을 때 모형이 준비되므로 그때 털 색·표정을 입힘
 	model.ready.connect(func() -> void:
 		FpRegulars.dress(model, regular)
+		if not str(entry.get("acc", "")).is_empty():
+			FpAccessory.wear(model, entry.acc, regular.animal == "cat")
 		if model.has_method("set_mood"):
 			model.set_mood(FpAnimals.model_mood(int(entry.best_mood))), CONNECT_ONE_SHOT)
 	viewport.add_child(model)
@@ -263,6 +266,8 @@ func show_card(id: String) -> void:
 	var tier := clampi(int(entry.get("trust", 0)), 0, 3)
 	var lines := [regular.name, "%s · %s · 털 %s" % ["고양이" if regular.animal == "cat" else "강아지", trait_name, regular.color], "신뢰: %s %s" % [FpTrust.NAMES[tier], FpTrust.HEARTS[tier]], "좋아하는 곳: %s" % fav, "온 횟수: %d" % int(entry.get("visits", 0)), "가장 좋은 기분: %s" % MOOD_NAMES[clampi(int(entry.get("best_mood", 0)), 0, 3)]]
 	# 도구 버릇은 한 번이라도 씻겨 본 뒤에 보임
+	var fav_acc: String = regular.get("acc", "")
+	lines.insert(4, "좋아하는 액세서리: %s" % (FpAccessory.CATEGORIES[fav_acc].name if entry.get("acc_found", false) and FpAccessory.CATEGORIES.has(fav_acc) else "?"))
 	var quirk: String = regular.get("quirk", "")
 	if FpTrust.QUIRKS.has(quirk) and int(entry.get("visits", 0)) > 0:
 		lines.insert(3, "버릇: %s" % FpTrust.QUIRKS[quirk].name)
@@ -291,7 +296,7 @@ func show_card(id: String) -> void:
 		for item in [["첫 방문 %d일차" % int(first.day), first], ["최근 %d일차" % int(recent.day), recent]]:
 			var column := VBoxContainer.new()
 			pair.add_child(column)
-			var photo := _photo(regular, {"best_mood": item[1].mood, "wall": item[1].wall}, Vector2(120, 120))
+			var photo := _photo(regular, {"best_mood": item[1].mood, "wall": item[1].wall, "acc": item[1].get("acc", "")}, Vector2(120, 120))
 			photo.custom_minimum_size = Vector2(120, 120)
 			column.add_child(photo)
 			var caption := Label.new()

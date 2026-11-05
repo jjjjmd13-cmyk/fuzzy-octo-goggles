@@ -24,6 +24,7 @@ const MOMENTS := {
 	"quirk_shower": "처음으로 무서워하지 않고 적신 날",
 	"quirk_dryer": "처음으로 드라이를 끝까지 편하게 한 날",
 	"quirk_towel": "처음으로 수건 놀이를 한 날",
+	"acc_like": "처음 액세서리를 좋아한 날",
 }
 ## 방문 기분 기록은 최근 이만큼만 (저장이 끝없이 커지지 않게)
 const MOOD_LOG_MAX := 60
