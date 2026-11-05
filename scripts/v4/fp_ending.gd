@@ -12,18 +12,8 @@ const FpRegulars := preload("res://scripts/v4/fp_regulars.gd")
 const FpAnimals := preload("res://scripts/v4/fp_animals.gd")
 const OWNER_SCENE := preload("res://scenes/art/sim/owner_model.tscn")
 const BROWN := Color(0.3, 0.22, 0.15)
-## 짧은 크레딧 (기획 LAUNCH_PREP 5장 확정, 사실대로). "만든 사람" 이름은 사람 대표가 정하는 중.
-## GodotSteam 을 빌드에 넣으면 엔진 줄 다음에 "스팀 연동 — GodotSteam (MIT 라이선스)". 전문은 메뉴 [라이선스] (LICENSES.txt)
-const CREDITS := [
-	"멍냥 목욕탕",
-	"만든 사람 — (이름 정하는 중)",
-	"기획 · 개발 · QA — Claude (Anthropic)",
-	"그래픽 — ChatGPT (OpenAI)",
-	"음악 · 효과음 — 코드로 직접 만듦 (CC0)",
-	"글꼴 — Pretendard (SIL Open Font License 1.1)",
-	"엔진 — Godot Engine (MIT 라이선스)",
-	"플레이해 주셔서 고마워요!",
-]
+## 엔딩 끝 한 줄 (사람 대표 결정: 만든 사람 목록 크레딧은 없음). 라이선스 전문은 메뉴 [라이선스] (LICENSES.txt)
+const CREDITS := ["플레이해 주셔서 고마워요! / Thanks for playing!"]
 ## 한 줄에 서는 단골 수 (단체 사진)
 const ROW := 8
 
@@ -68,7 +58,7 @@ func play(ids: Array, star_rows: Array, sfx: Node = null) -> void:
 	_stars_label = _label("", 30)
 	_stars_label.visible = false
 	_box.add_child(_stars_label)
-	_credits = _label("\n".join(CREDITS), 17)
+	_credits = _label("\n".join(CREDITS), 24)
 	_credits.visible = false
 	_box.add_child(_credits)
 	_buttons = HBoxContainer.new()

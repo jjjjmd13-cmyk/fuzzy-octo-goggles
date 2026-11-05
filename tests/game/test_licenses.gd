@@ -1,5 +1,5 @@
 extends "res://tests/qa_test.gd"
-## 엔딩 크레딧·라이선스 (기획 LAUNCH_PREP 5장): 크레딧은 확정 글 그대로, OFL·MIT 전문은 LICENSES.txt 로 빌드에 넣고 메뉴 [라이선스] 로 봄.
+## 라이선스 (사람 대표 결정): 만든 사람 목록 크레딧은 없고 엔딩 끝 고마워요 한 줄, OFL·MIT 전문은 LICENSES.txt 로 빌드에 넣고 메뉴 [라이선스] 로 봄.
 
 const MENU_SCENE := preload("res://scenes/menu/main_menu.tscn")
 const FpEnding := preload("res://scripts/v4/fp_ending.gd")
@@ -9,11 +9,8 @@ func run_test() -> void:
 	time_limit_sec = 60.0
 	get_tree().root.size = Vector2i(1280, 800)
 
-	# 크레딧 (만든 사람 이름은 정하는 중)
-	check_eq(FpEnding.CREDITS.size(), 8, "크레딧 8줄")
-	for part in ["Claude (Anthropic)", "ChatGPT (OpenAI)", "CC0", "SIL Open Font License 1.1", "Godot Engine (MIT"]:
-		check(FpEnding.CREDITS.any(func(line: String) -> bool: return line.contains(part)), "크레딧에 %s" % part)
-	check(not FpEnding.CREDITS.any(func(line: String) -> bool: return line.contains("박준우")), "실명은 넣지 않음 (사람 대표 결정)")
+	# 엔딩 끝: 고마워요 한 줄만 (만든 사람 목록 없음)
+	check_eq(FpEnding.CREDITS, ["플레이해 주셔서 고마워요! / Thanks for playing!"], "엔딩 끝 한 줄")
 
 	# LICENSES.txt: Pretendard OFL 전문 · Godot MIT 전문 · 서드파티
 	var text := FileAccess.get_file_as_string("res://LICENSES.txt")
