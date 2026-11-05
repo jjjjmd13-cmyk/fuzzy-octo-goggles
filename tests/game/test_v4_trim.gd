@@ -49,9 +49,16 @@ func run_test() -> void:
 	var keep: PackedVector3Array = shop.trim.world_positions(false)
 	check(wanted.size() >= 2 and keep.size() >= 4, "자를 곳 %d · 남길 곳 %d 다발" % [wanted.size(), keep.size()])
 	shop.pick("scissors")
-	for pos in wanted:
-		for k in 15:
+	# 사람처럼: 지금 보이는 분홍 다발 하나를 겨눠 잘릴 때까지만 (강아지가 움직여도 지금 자리, 잘린 뒤 옆 다발을 더 자르지 않게)
+	for n in wanted.size():
+		var left: int = shop.trim.wanted_left()
+		if left == 0:
+			break
+		var pos: Vector3 = shop.trim.world_positions(true)[0]
+		for k in 30:
 			shop.use_tool_at(pos, 1.0 / 30.0)
+			if shop.trim.wanted_left() < left:
+				break
 	check(shop.done, "자를 곳을 다 자르면 끝")
 	check_eq(shop.trim.match_score(), 1.0, "남길 곳을 안 자르면 똑같음")
 	var before: int = shop.money
