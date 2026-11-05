@@ -28,7 +28,9 @@ static func fresh() -> Dictionary:
 		"owns_cart": false,
 		# 한 번이라도 나온 고양이·동물 성격 (처음이면 안내 카드)
 		"seen_animals": [],
-		# 손님 사진첩: 단골 id → {visits, best_mood 0~3, day, trim, wall, floor, fav_found}, 받은 보상 자리, 만난 순서
+		# 손님 사진첩: 단골 id → {visits, best_mood 0~3, day, trim, wall, floor, fav_found,
+		#   trust 0~3, trust_pts, first_day, first {day, mood, trim, wall, floor}, recent {…}, moments [{id, day}], moods [방문마다 0~3]},
+		# 받은 보상 자리, 만난 순서
 		"album": {},
 		"album_rewards_taken": [],
 		"regulars_met_order": [],
@@ -81,7 +83,29 @@ static func normalize(raw: Dictionary) -> Dictionary:
 		for id in album:
 			var entry: Variant = album[id]
 			if entry is Dictionary:
-				data.album[str(id)] = {"visits": int(entry.get("visits", 1)), "best_mood": clampi(int(entry.get("best_mood", 2)), 0, 3), "day": int(entry.get("day", 1)), "trim": str(entry.get("trim", "")), "wall": str(entry.get("wall", "")), "floor": str(entry.get("floor", "")), "fav_found": bool(entry.get("fav_found", false))}
+				var day := int(entry.get("day", 1))
+				var row := {"visits": int(entry.get("visits", 1)), "best_mood": clampi(int(entry.get("best_mood", 2)), 0, 3), "day": day, "trim": str(entry.get("trim", "")), "wall": str(entry.get("wall", "")), "floor": str(entry.get("floor", "")), "fav_found": bool(entry.get("fav_found", false))}
+				# 단골 신뢰 (GDD_V4 '단골 신뢰'): 단계·점수·첫 방문 날·첫/최근 사진·'처음 ~한 날'·방문마다 기분
+				row["trust"] = clampi(int(entry.get("trust", 0)), 0, 3)
+				row["trust_pts"] = int(entry.get("trust_pts", 0))
+				row["first_day"] = int(entry.get("first_day", day))
+				for key in ["first", "recent"]:
+					var photo: Variant = entry.get(key, {})
+					row[key] = {"day": int(photo.get("day", day)), "mood": clampi(int(photo.get("mood", 2)), 0, 3), "trim": str(photo.get("trim", "")), "wall": str(photo.get("wall", "")), "floor": str(photo.get("floor", ""))} if photo is Dictionary and not (photo as Dictionary).is_empty() else {}
+				var moments: Array = []
+				var raw_moments: Variant = entry.get("moments", [])
+				if raw_moments is Array:
+					for moment in raw_moments:
+						if moment is Dictionary and moment.has("id"):
+							moments.append({"id": str(moment.id), "day": int(moment.get("day", day))})
+				row["moments"] = moments
+				var moods: Array = []
+				var raw_moods: Variant = entry.get("moods", [])
+				if raw_moods is Array:
+					for mood in raw_moods:
+						moods.append(clampi(int(mood), 0, 3))
+				row["moods"] = moods
+				data.album[str(id)] = row
 	for key in ["album_rewards_taken", "regulars_met_order"]:
 		var items: Variant = raw.get(key, [])
 		if items is Array:

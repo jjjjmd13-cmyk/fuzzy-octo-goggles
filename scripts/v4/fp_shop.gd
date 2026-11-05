@@ -27,6 +27,7 @@ const FpRegulars := preload("res://scripts/v4/fp_regulars.gd")
 const FpAlbum := preload("res://scripts/v4/fp_album.gd")
 const FpDays := preload("res://scripts/v4/fp_days.gd")
 const FpEnding := preload("res://scripts/v4/fp_ending.gd")
+const FpTrust := preload("res://scripts/v4/fp_trust.gd")
 const ALBUM_BOOK := "res://assets/models/album/album_book.glb"
 ## 가게 물건: 이름, 상자 크기 (도구 단계 올리기는 "tool:<도구>")
 const SUPPLIES := {
@@ -177,6 +178,19 @@ var group_photo: Array = []
 var bought_today: Array = []
 var _day_closed := false
 var _ending: Control
+## 단골 신뢰 (GDD_V4 '단골 신뢰'): 목욕통 단골의 신뢰 단계 (0 낯가림 ~ 3 단짝, 단골 아니면 0)·도구 버릇 ("" / shower / dryer / towel)
+var trust_tier := 0
+var quirk := ""
+## 버릇 상태: 샤워 무서움 (발부터 적셨나·샤워 시간), 드라이 (켜고 누른 시간·'가까이' 안에 있었나), 수건 (물었나·흔든 횟수)
+var _quirk_feet := false
+var _shower_time := 0.0
+var _dryer_hold := 0.0
+var _dryer_inside := false
+var towel_bitten := false
+## 이번 목욕에서 버릇을 넘었나 (돌려줄 때 사진첩 '처음 ~한 날')
+var _quirk_overcome := false
+var _towel_flips := 0
+var _towel_dir := 0.0
 var _card_title := "새 손님!"
 var _album_view: Control
 var _album_book: StaticBody3D
@@ -335,6 +349,8 @@ func _ready() -> void:
 	# 빠른 확인은 바로 영업 (단, [아침·가게 밖]·[택배] 는 아침부터)
 	if quick_feature == "album":
 		_quick_album()
+	elif quick_feature == "trust":
+		_quick_trust()
 	if quick_feature == "animals":
 		# 빠른 확인 [고양이·성격]: 고양이 → 간지럼쟁이 → 겁쟁이 → 멋쟁이 고양이
 		guests.quick_animals = [{"animal": "cat", "trait": ""}, {"animal": "dog", "trait": "ticklish"}, {"animal": "dog", "trait": "timid"}, {"animal": "cat", "trait": "dandy"}]
@@ -575,6 +591,20 @@ func shake_box(dx: float) -> void:
 		_show_hint("달그락… %s 같아요" % item_name(carried.item), 2.0)
 
 
+## 수건을 문 손님: 마우스를 좌우로 세 번 흔들면 놓음
+func shake_towel(dx: float) -> void:
+	if not towel_bitten or absf(dx) < 3.0:
+		return
+	var dir := signf(dx)
+	if dir != _towel_dir:
+		_towel_dir = dir
+		_towel_flips += 1
+	if _towel_flips >= 3:
+		towel_bitten = false
+		_towel_flips = 0
+		_show_hint("놓았어요! 다시 톡톡", 1.2)
+
+
 ## 가게 안에 안 연 상자가 있으면 (들고 들어왔거나 수레에) 대기 강아지가 가끔 냄새를 맡음
 func _update_sniff(delta: float) -> void:
 	_sniff_left -= delta
@@ -703,6 +733,30 @@ func _quick_album() -> void:
 	_apply_decor()
 
 
+## 빠른 확인 [단골 신뢰]: 대표 단골 3마리 — 몽실 낯가림 (겁쟁이 + 샤워 무서움) → 나비 친함 (고양이 + 드라이 예민) → 짱구 단짝 (수건 놀이·배 보여 줌)
+func _quick_trust() -> void:
+	var at: PackedInt32Array = Tuning.data.v4_trust_at
+	var setup := [["mongsil", 0], ["nabi", 2], ["jjanggu", 3]]
+	guests.quick_animals = []
+	for item in setup:
+		var id: String = item[0]
+		var tier: int = item[1]
+		if tier > 0:
+			var entry := FpTrust.empty_entry(1)
+			entry.visits = tier * 2
+			entry.best_mood = 2
+			entry.trust = tier
+			entry.trust_pts = at[tier - 1]
+			entry.first = FpTrust.photo_info(1, 1, "", "", "")
+			entry.recent = FpTrust.photo_info(3, 2, "", "", "")
+			FpTrust.add_moment(entry, "first", 1)
+			for t in range(1, tier + 1):
+				FpTrust.add_moment(entry, "trust_%d" % t, 1 + t)
+			album[id] = entry
+			regulars_met_order.append(id)
+		guests.quick_animals.append({"regular": id})
+
+
 ## 빠른 확인 [택배]: 어제 주문한 상자 3개 (샤워기 2단계·샴푸 1병·가위)가 아침 트럭으로 옴, 샴푸는 2마리분 남음
 func _quick_parcels() -> void:
 	money = 500
@@ -748,6 +802,15 @@ func _set_animal(kind: String, trait_id: String) -> void:
 	_wet_checked = false
 	_tickle_at = null
 	_tickle_time = 0.0
+	trust_tier = 0
+	quirk = ""
+	_quirk_feet = false
+	_shower_time = 0.0
+	_dryer_hold = 0.0
+	_dryer_inside = false
+	towel_bitten = false
+	_towel_flips = 0
+	_quirk_overcome = false
 	var news: Array = []
 	if animal == "cat" and not seen_animals.has("cat"):
 		news.append(FpAnimals.CAT_INTRO % int(Tuning.data.v4_cat_price))
@@ -770,9 +833,11 @@ func dislikes() -> int:
 func dislike(rule: String, max_count: int = -1, reaction := "") -> bool:
 	if max_count < 0:
 		max_count = Tuning.data.v4_dislike_max_per_rule
+	# 신뢰: 익숙함부터 싫어함 사이가 길고, 단짝은 규칙마다 1번까지
+	max_count = FpTrust.max_per_rule(trust_tier, max_count)
 	if not reaction.is_empty():
 		dog.react(reaction)
-	if _t - _rule_last.get(rule, -999.0) < Tuning.data.v4_dislike_cooldown:
+	if _t - _rule_last.get(rule, -999.0) < FpTrust.cooldown(trust_tier):
 		return false
 	_rule_last[rule] = _t
 	if _rule_count.get(rule, 0) >= max_count:
@@ -790,29 +855,82 @@ func take_photo(mood: int) -> void:
 	if regular.is_empty():
 		return
 	var is_new := not album.has(regular)
-	var entry: Dictionary = album.get(regular, {"visits": 0, "best_mood": -1, "day": day, "trim": "", "wall": "", "floor": "", "fav_found": false})
+	var entry: Dictionary = album.get(regular, FpTrust.empty_entry(day))
+	# 빠진 키 채움 (신뢰가 들어오기 전 저장)
+	for key in FpTrust.empty_entry(day):
+		if not entry.has(key):
+			entry[key] = FpTrust.empty_entry(int(entry.get("day", day)))[key]
 	entry.visits = int(entry.visits) + 1
+	var fav_first: bool = _likes.has("fav") and not entry.fav_found
 	entry.fav_found = entry.fav_found or _likes.has("fav")
+	var info := FpTrust.photo_info(day, mood, trim_request, decor.placed.get("wall", ""), decor.placed.get("floor", ""))
 	var better := mood > int(entry.best_mood)
 	if better:
 		entry.best_mood = mood
 		entry.day = day
 		entry.trim = trim_request
-		entry.wall = decor.placed.get("wall", "")
-		entry.floor = decor.placed.get("floor", "")
+		entry.wall = info.wall
+		entry.floor = info.floor
+	if is_new:
+		entry.first = info
+		entry.first_day = day
+		FpTrust.add_moment(entry, "first", day)
+	entry.recent = info
+	entry.moods.append(mood)
+	if entry.moods.size() > FpTrust.MOOD_LOG_MAX:
+		entry.moods = entry.moods.slice(-FpTrust.MOOD_LOG_MAX)
+	if mood == 3:
+		FpTrust.add_moment(entry, "mood_3", day)
+	if fav_first:
+		FpTrust.add_moment(entry, "fav", day)
+	if not trim_request.is_empty():
+		FpTrust.add_moment(entry, "trim", day)
+	if _quirk_overcome and not quirk.is_empty():
+		FpTrust.add_moment(entry, "quirk_" + quirk, day)
+	# 신뢰: 점수는 줄 수 있어도 단계는 안 내려감
+	entry.trust_pts = int(entry.trust_pts) + FpTrust.visit_points(mood, fav_first)
+	var old_tier := int(entry.trust)
+	entry.trust = maxi(old_tier, FpTrust.tier_of(int(entry.trust_pts)))
+	for tier in range(old_tier + 1, int(entry.trust) + 1):
+		FpTrust.add_moment(entry, "trust_%d" % tier, day)
 	album[regular] = entry
 	if is_new:
 		regulars_met_order.append(regular)
 	sfx.play("press")
 	_flash = 0.35
 	var name: String = FpRegulars.get_regular(regular).get("name", "")
-	if is_new:
+	if int(entry.trust) > old_tier:
+		_banner = "♥ %s 가 더 친해졌어요! (%s)" % [name, FpTrust.NAMES[int(entry.trust)]]
+		_banner_left = 2.5
+		sfx.play("tada")
+		_heart_burst()
+	elif is_new:
 		_banner = "찰칵! %s 의 첫 사진 (만난 단골 %d / %d)" % [name, album.size(), FpRegulars.all().size()]
 		_banner_left = 2.0
 	elif better:
 		_banner = "찰칵! %s 새 사진!" % name
 		_banner_left = 1.5
 	_check_album_rewards()
+
+
+## 신뢰 단계가 오를 때 하트가 터짐 (주인 쪽, 분홍 하트 여러 개)
+func _heart_burst() -> void:
+	var at: Vector3 = guests.current.global_position + Vector3(0, 1.3, 0) if guests.current != null else dog.global_position + Vector3(0, 0.6, 0)
+	for i in 6:
+		var heart := Label3D.new()
+		heart.text = "♥"
+		heart.font_size = 64
+		heart.outline_size = 10
+		heart.modulate = Color(1.0, 0.45, 0.6)
+		heart.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+		heart.no_depth_test = true
+		add_child(heart)
+		heart.global_position = at
+		var angle := TAU * i / 6.0
+		var tween := heart.create_tween()
+		tween.tween_property(heart, "global_position", at + Vector3(cos(angle) * 0.4, 0.3 + 0.2 * sin(angle), sin(angle) * 0.4), 0.8)
+		tween.parallel().tween_property(heart, "modulate:a", 0.0, 0.8)
+		tween.tween_callback(heart.queue_free)
 
 
 ## 만난 단골 수 보상 (5·10·15·20 마리 = 50·100·150·200 돈, 바로), 24마리 = 사진 게시판
@@ -941,7 +1059,7 @@ func _check_fav(tool_id: String, local: Vector3, delta: float) -> float:
 			_show_hint("♥ %s 를 좋아해요!" % FpAnimals.FAV_NAMES.get(fav_spot, ""), 1.5)
 	else:
 		_fav_time = 0.0
-	return clampf(1.0 - distance / Tuning.data.v4_fav_hint_radius, 0.0, 1.0)
+	return clampf(1.0 - distance / FpTrust.fav_hint_radius(trust_tier), 0.0, 1.0)
 
 
 func _show_anger() -> void:
@@ -970,14 +1088,57 @@ func _check_animal_rules(tool_id: String, point: Vector3, delta: float) -> void:
 			_wet_since = _t
 		# 머리 (목 위) 에 물: 한 손님에 v4_cat_head_water_max 번, 그 뒤엔 "냥!" 만
 		if local.y >= face.y - 0.1:
-			if dislike("cat_head", Tuning.data.v4_cat_head_water_max, "shake"):
+			if not FpTrust.cat_head_counts(trust_tier):
+				# 친함부터: 머리에 물은 반응만 (싫어함 아님)
+				dog.react("shake")
+			elif dislike("cat_head", Tuning.data.v4_cat_head_water_max, "shake"):
 				_show_hint("냥! (머리에 물은 싫어요)", 1.5)
 	if animal_trait == "timid" and (tool_id == "shower" or tool_id == "dryer"):
-		if local.distance_to(face) <= Tuning.data.v4_timid_face_radius:
+		if local.distance_to(face) <= FpTrust.timid_radius(trust_tier):
 			if dislike("timid_face", -1, "flap_cheeks"):
 				_show_hint("부르르… (얼굴은 무서워요)", 1.5)
 	if animal_trait == "ticklish" and (tool_id == "shampoo" or tool_id == "towel"):
 		_tickle(point, local, delta)
+	# 단짝: 배를 보여 줌 → 배 문지르기 = 좋아함 +1 (한 번)
+	if trust_tier >= 3 and (tool_id == "shampoo" or tool_id == "brush") and local.y < dog._body_center().y - 0.04:
+		if like("belly"):
+			_show_hint("배를 보여 줘요! 쓱쓱 ♥", 1.5)
+	if quirk == "shower" and tool_id == "shower":
+		_shower_quirk(local, delta)
+	elif quirk == "dryer" and tool_id == "dryer":
+		_dryer_quirk(point, delta)
+
+
+## 샤워 무서움: 낯가림·익숙함 = 발부터 적셔야 함 (발 → 몸 순서면 괜찮음), 친함 = 처음 v4_quirk_shower_safe 초만 조심, 단짝 = 물줄기를 톡톡 놀이
+func _shower_quirk(local: Vector3, delta: float) -> void:
+	_shower_time += delta
+	if trust_tier >= 3:
+		if like("quirk_play"):
+			_show_hint("앞발로 물줄기를 톡톡! ♥", 1.5)
+		return
+	var feet := local.y < dog._body_center().y - 0.12
+	if feet:
+		_quirk_feet = true
+	if feet or _quirk_feet and trust_tier < 2:
+		return
+	if trust_tier >= 2 and _shower_time > Tuning.data.v4_quirk_shower_safe:
+		return
+	if dislike("shower_fear", -1, "shake"):
+		_show_hint("무서워요… 발부터 살살 적셔 주세요", 1.8)
+
+
+## 드라이 소리 예민: 켠 채 v4_quirk_dryer_near 안으로 너무 빨리 들어오면 싫어함, 단짝 = 바람에 눈 감고 골골 (좋아함, 한 번)
+func _dryer_quirk(point: Vector3, delta: float) -> void:
+	_dryer_hold += delta
+	var near: bool = player.camera.global_position.distance_to(point) < Tuning.data.v4_quirk_dryer_near
+	if trust_tier >= 3:
+		if like("quirk_play"):
+			_show_hint("바람에 눈을 감고 골골… ♥", 1.5)
+		return
+	if near and not _dryer_inside and _dryer_hold < FpTrust.dryer_approach(trust_tier):
+		if dislike("dryer_noise", -1, "flap_cheeks"):
+			_show_hint("귀가 납작… 멀리서 켜고 천천히 다가가요", 1.8)
+	_dryer_inside = near
 
 
 ## 간지럼쟁이: 몸 아래쪽 (배·발) 한 곳에 v4_ticklish_time 초 넘게 머물면 싫어함
@@ -991,8 +1152,13 @@ func _tickle(point: Vector3, local: Vector3, delta: float) -> void:
 		_tickle_at = point
 		_tickle_time = 0.0
 	_tickle_time += delta
-	if _tickle_time > Tuning.data.v4_ticklish_time:
+	if _tickle_time > FpTrust.ticklish_time(trust_tier):
 		_tickle_time = 0.0
+		if trust_tier >= 3:
+			# 단짝 간지럼쟁이: 킥킥 웃으며 좋아함
+			if like("belly"):
+				_show_hint("킥킥! 간지러워도 좋아요 ♥", 1.5)
+			return
 		if dislike("tickle", -1, "wiggle_legs"):
 			_show_hint("킥킥! (배·발은 짧게)", 1.5)
 
@@ -1078,6 +1244,8 @@ func interact_guest(owner: Node3D) -> void:
 			# 단골의 좋아하는 곳은 늘 같은 곳 (두 번째 방문부터 기억해서 찾는 재미)
 			fav_spot = info.fav
 			guests.current.set_meta("regular", regular)
+			trust_tier = int(album.get(regular, {}).get("trust", 0))
+			quirk = info.get("quirk", "")
 		if quick_feature == "mood":
 			# 빠른 확인 [기분·반응]: 좋아하는 곳을 알려 줌 (진짜 게임은 글자 없이 꼬리로만)
 			_show_hint("이번 손님이 좋아하는 곳: %s (거품·빗질 때 0.5초) · 30초 안에 다 씻으면 🤩" % FpAnimals.FAV_NAMES.get(fav_spot, ""), 8.0)
@@ -1101,6 +1269,10 @@ func give_back() -> void:
 		fee += Tuning.data.v4_price_trim
 		tip += trim_tip(trim.match_score())
 	var say: String = "+%d · " + FpAnimals.FACE_SAY[face]
+	# 대표 단골: 주인 한마디가 신뢰 단계마다 (기분이 나쁘면 보통 한마디)
+	var star_lines: Array = FpRegulars.get_regular(regular).get("lines", []) if not regular.is_empty() else []
+	if face >= 1 and star_lines.size() > trust_tier:
+		say = "+%d · " + str(star_lines[trust_tier]).replace("%", "%%")
 	if face > best_face:
 		best_face = face
 		best_animal = animal
@@ -1505,7 +1677,7 @@ func day_summary() -> Dictionary:
 	for id in album:
 		if int(album[id].get("best_mood", -1)) == 3:
 			gold += 1
-	return {"day": day, "served": guests.served, "left": guests.left_count, "price_sum": fees, "tip_sum": tips, "upkeep": upkeep, "bought": bought, "money_after": money, "regulars_met": album.size(), "gold_photos": gold}
+	return {"day": day, "served": guests.served, "left": guests.left_count, "price_sum": fees, "tip_sum": tips, "upkeep": upkeep, "bought": bought, "money_after": money, "regulars_met": album.size(), "trust_levels": "/".join(FpTrust.tier_counts(album).map(func(n: int) -> String: return str(n))), "gold_photos": gold}
 
 
 func _close_day() -> void:
@@ -1763,6 +1935,22 @@ func tap_at(point: Vector3) -> void:
 	if stage_index < STAGES.size() and STAGES[stage_index].id != "towel":
 		_show_hint("헹굼까지 끝난 뒤에 수건으로 톡톡 닦아요", 1.5)
 		return
+	if quirk == "towel":
+		# 수건 무는 손님: 물고 있으면 톡이 안 됨 (마우스를 좌우로 살살 흔들면 놓음, 벌점 없음). 단짝은 줄다리기 놀이
+		if trust_tier >= 3:
+			if like("quirk_play"):
+				_quirk_overcome = true
+				dog.react("wiggle_legs")
+				_show_hint("수건 줄다리기 놀이! 꼬리 붕붕 ♥", 1.5)
+		elif towel_bitten:
+			_show_hint("수건을 물었어요! 마우스를 좌우로 살살 흔들어요", 1.5)
+			return
+		elif _rng.randf() < FpTrust.towel_bite_chance(trust_tier):
+			towel_bitten = true
+			_towel_flips = 0
+			dog.react("shake")
+			_show_hint("앙! 수건을 물었어요 (마우스를 좌우로 살살)", 1.8)
+			return
 	if animal_trait == "ticklish":
 		# 톡 한 번 = 한 곳에 0.3초 머문 셈
 		_tickle(point, dog.to_model(point), 0.3)
@@ -1853,14 +2041,20 @@ func _finish_stage(stage: Dictionary) -> void:
 		brush_used += 1
 	if stage.id == "towel" and animal == "cat" and not _wet_checked:
 		_wet_checked = true
-		if _wet_started and _t - _wet_since > Tuning.data.v4_cat_wet_limit:
+		var wet_limit := FpTrust.cat_wet_limit(trust_tier)
+		if _wet_started and _t - _wet_since > wet_limit:
 			if dislike("cat_wet", 1, "shake"):
-				_show_hint("냥… 너무 오래 젖어 있었어요 (%d초 넘음)" % int(Tuning.data.v4_cat_wet_limit), 2.5)
+				_show_hint("냥… 너무 오래 젖어 있었어요 (%d초 넘음)" % int(wet_limit), 2.5)
 	if stage.id == "brush" and animal_trait == "dandy":
 		# 멋쟁이: 빗질을 끝까지 → +1 (싫어함 하나를 지우는 셈) + 뽐내기. 성격 맞춤 +1 과 겹치지 않음
 		like("dandy")
 		dog.react("jump")
 		_banner = "반짝! 멋쟁이가 뽐내요"
+	# 버릇을 넘음: 그 단계를 싫어함 없이 끝냄 → 사진첩 '처음 ~한 날' (돌려줄 때 기록)
+	if quirk == "shower" and stage.id == "wet" and _rule_count.get("shower_fear", 0) == 0:
+		_quirk_overcome = true
+	if quirk == "dryer" and stage.id == "dry" and _rule_count.get("dryer_noise", 0) == 0:
+		_quirk_overcome = true
 	if stage.id == "dry":
 		_spawn_tangles()
 	elif stage.id == "brush" and not trim_request.is_empty():
@@ -1978,6 +2172,8 @@ func _process(delta: float) -> void:
 	else:
 		_track_hand(null)
 		_stop_effects()
+		_dryer_hold = 0.0
+		_dryer_inside = false
 		if not done and has_dog:
 			dog.react("set_mood", mini(FpAnimals.model_mood(face()), 1))
 		if dog.model.has_method("watch"): dog.model.watch(null, false)
@@ -2015,6 +2211,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			tap_at(aim_point)
 	elif event is InputEventMouseMotion and not carried.is_empty():
 		shake_box((event as InputEventMouseMotion).relative.x)
+	elif event is InputEventMouseMotion and towel_bitten:
+		shake_towel((event as InputEventMouseMotion).relative.x)
 	elif event is InputEventKey and event.pressed and not event.echo:
 		match event.physical_keycode:
 			KEY_Q:
@@ -2390,14 +2588,27 @@ func _draw_hud() -> void:
 ## 미용 요청 카드: 모양 이름 + 한 줄 + 강아지 옆모습 (자를 곳은 분홍, 남길 곳은 털색). 임시 그림
 ## 목욕대 위 고양이·성격 칸의 한 줄 (테스트도 읽음)
 func _draw_animal_line() -> String:
-	return FpAnimals.line_of(animal, animal_trait) if has_dog else ""
+	return animal_line() if has_dog else ""
+
+
+## 목욕대 위 한 줄: 고양이·성격 + 신뢰 단계 + 도구 버릇
+func animal_line() -> String:
+	var parts: Array = []
+	var line := FpAnimals.line_of(animal, animal_trait)
+	if not line.is_empty():
+		parts.append(line)
+	if not regular.is_empty():
+		parts.append("%s %s" % [FpTrust.NAMES[trust_tier], FpTrust.HEARTS[trust_tier]])
+	if FpTrust.QUIRKS.has(quirk) and trust_tier < 3:
+		parts.append(FpTrust.QUIRKS[quirk].line)
+	return " · ".join(parts).strip_edges()
 
 
 ## 목욕대 위 고양이·성격 칸 (진행 막대 오른쪽): 색 점 + 한 줄 + 싫어한 횟수 점
 func _draw_animal_box(font: Font) -> void:
 	if not has_dog:
 		return
-	var line := FpAnimals.line_of(animal, animal_trait)
+	var line := animal_line()
 	if line.is_empty():
 		return
 	var at := Vector2(420, 26)

@@ -18,6 +18,7 @@ const DOG_SCENE := preload("res://scenes/art/sim/dog_model.tscn")
 const FpAnimals := preload("res://scripts/v4/fp_animals.gd")
 const FpRegulars := preload("res://scripts/v4/fp_regulars.gd")
 const FpDays := preload("res://scripts/v4/fp_days.gd")
+const FpTrust := preload("res://scripts/v4/fp_trust.gd")
 ## 축제 날 주인 모자 (없으면 임시 고깔)
 const HAT_MODEL := "res://assets/models/outside/festival_hat.glb"
 const FONT := preload("res://assets/fonts/pretendard/Pretendard-Bold.otf")
@@ -171,6 +172,7 @@ func spawn(kind := "", walk_in := false) -> void:
 	if not regular_id.is_empty():
 		FpRegulars.dress(held, FpRegulars.get_regular(regular_id))
 		_add_name_tag(owner, regular_id, is_new)
+		_greet(held, int(album.get(regular_id, {}).get("trust", 0)))
 	owner.holding = true
 	if festival:
 		_add_hat(owner)
@@ -335,7 +337,8 @@ func _add_name_tag(owner: Node3D, regular_id: String, is_new: bool) -> void:
 	var label := Label3D.new()
 	label.name = "NameTag"
 	var visits: int = album.get(regular_id, {}).get("visits", 0)
-	label.text = "%s · 처음" % regular.name if is_new else "%s ×%d" % [regular.name, visits + 1]
+	var hearts: String = FpTrust.HEARTS[clampi(int(album.get(regular_id, {}).get("trust", 0)), 0, 3)]
+	label.text = "%s · 처음" % regular.name if is_new else ("%s ×%d %s" % [regular.name, visits + 1, hearts]).strip_edges()
 	label.font = FONT
 	label.font_size = 36
 	label.outline_size = 10
@@ -369,6 +372,22 @@ func _add_hat(owner: Node3D) -> void:
 	else:
 		owner.add_child(hat)
 		hat.position = Vector3(0, owner.height, 0)
+
+
+## 신뢰 단계별 인사 (임시 몸짓, 그림·애니메이션이 오면 바꿈): 낯가림 = 주인 쪽으로 돌아 고개만 빼꼼,
+## 친함 = 몸을 앞으로 쭉, 단짝 = 품에서 깡충깡충
+func _greet(held: Node3D, tier: int) -> void:
+	held.set_meta("trust", tier)
+	match tier:
+		0:
+			held.rotation.y = PI * 0.8
+		2:
+			held.position.z = 0.08
+		3:
+			var tween := held.create_tween().set_loops()
+			tween.tween_property(held, "position:y", 0.06, 0.18).set_ease(Tween.EASE_OUT)
+			tween.tween_property(held, "position:y", 0.0, 0.18).set_ease(Tween.EASE_IN)
+			tween.tween_interval(0.6)
 
 
 ## 대기 손님 강아지가 안 연 택배 상자 쪽으로 고개를 돌리고 킁킁 (참을성에는 영향 없음, GDD_V4 재미 포인트)

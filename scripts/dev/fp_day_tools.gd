@@ -5,7 +5,7 @@ extends CanvasLayer
 ##   F5  날 건너뛰기: 지금 날을 끝내고 다음 날 아침으로 (그날 손님은 받지 않은 것으로). 정산·자동 저장은 평소처럼
 ##   F6  날 건너뛰기 (모두 받음): 그날 올 손님(480초 ÷ 간격)을 모두 😊 로 받은 것으로 치고 넘어감 (요금·팁·사진첩·샴푸·빗)
 ##   F7  돈 +1,000
-##   F8  하루 결과 기록 켜기·끄기: 하루를 닫을 때마다 user://v4_day_log.csv 에 한 줄
+##   F8  하루 결과 기록 켜기·끄기: 하루를 닫을 때마다 user://v4_day_log.csv 에 한 줄 (모두 받음은 좋아하는 곳·버릇 없이 😊 방문으로 신뢰도 오름)
 ## 정산 판에서 F5·F6 = [다음 날] 과 같음 (산 것까지 기록됨).
 
 const FpDays := preload("res://scripts/v4/fp_days.gd")
@@ -105,6 +105,10 @@ func _clear_floor() -> void:
 	shop._clear_tub()
 	shop._taken = {}
 	shop.regular = ""
+	shop.quirk = ""
+	shop.trim_request = ""
+	shop._quirk_overcome = false
+	shop._likes.clear()
 
 
 ## 그날 올 손님 수만큼 😊 로 받은 것으로: 요금 + 팁 (기분 😊 + 보통 손님 2분 안 빠른 팁, 축제 배수), 사진첩, 샴푸·빗
@@ -138,7 +142,7 @@ func simulate_served() -> int:
 	return count
 
 
-## 하루 결과 한 줄 (열은 COLUMNS, bought 는 ; 로 이음, trust_levels 는 단골 신뢰가 들어오면 채움)
+## 하루 결과 한 줄 (열은 COLUMNS, bought 는 ; 로 이음, trust_levels = 낯가림/익숙함/친함/단짝 단골 수)
 static func csv_line(summary: Dictionary) -> String:
 	var bought: Array = summary.get("bought", [])
 	var cells := [summary.day, summary.served, summary.left, summary.price_sum, summary.tip_sum, summary.upkeep, ";".join(bought), summary.money_after, summary.regulars_met, summary.get("trust_levels", "-"), summary.gold_photos]
