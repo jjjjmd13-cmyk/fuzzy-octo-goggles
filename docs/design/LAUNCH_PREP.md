@@ -202,7 +202,7 @@ Cozy · Simulation · Cute · First-Person · Animals · Relaxing · Management 
 | 줄 | 한국어 | English |
 |---|---|---|
 | 1 | 멍냥 목욕탕 | Paws & Bubbles |
-| 2 | 만든 사람 — 박준우 | Created by Park Junwoo |
+| 2 | 만든 사람 — (이름 정하는 중) | Created by — (name to be decided) |
 | 3 | 기획 · 개발 · QA — Claude (Anthropic) | Design · Programming · QA — Claude (Anthropic) |
 | 4 | 그래픽 — ChatGPT (OpenAI) | Art — ChatGPT (OpenAI) |
 | 5 | 음악 · 효과음 — 코드로 직접 만듦 (CC0) | Music & Sound — made in code (CC0) |
