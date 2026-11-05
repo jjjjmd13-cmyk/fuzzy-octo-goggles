@@ -1,7 +1,7 @@
 extends Control
-## V4 엔딩 장면 (GDD_V4 '마지막 날 — 반짝 목욕 축제', 정산 뒤 1분 안):
-##   1. 마당에 그동안 씻긴 단골들이 주인과 함께 모임 (만난 단골만) → 2. "찰칵" 단체 사진 (사진첩 마지막 쪽) →
-##   3. 별 3개 (모두 '모은 것', 실패 없음) → 4. 짧은 크레딧 → [계속 영업하기] / [메뉴로].
+## V4 엔딩 마지막 화면 (GDD_V4 '마지막 날 — 감사의 날' 4·5, 앞 장면은 fp_thanks.gd):
+##   "찰칵" 단체 사진 (만난 단골 전부, 대표 단골 앞줄, 사진첩 마지막 쪽) → 별 3개 (모두 '모은 것', 실패 없음) →
+##   "플레이해 주셔서 고마워요!" 한 줄 → [계속 영업하기] / [메뉴로].
 ## 단체 사진은 사진첩처럼 PNG 가 아니라 작은 3D 무대(SubViewport)로 다시 그림 (make_group_stage, 사진첩도 씀).
 ## 그림: assets/ui/album/ending_*.png 가 오면 배경 (없으면 단색).
 
@@ -12,7 +12,8 @@ const FpRegulars := preload("res://scripts/v4/fp_regulars.gd")
 const FpAnimals := preload("res://scripts/v4/fp_animals.gd")
 const OWNER_SCENE := preload("res://scenes/art/sim/owner_model.tscn")
 const BROWN := Color(0.3, 0.22, 0.15)
-const CREDITS := ["멍냥 목욕탕", "기획 · 개발 · QA — 멍냥 스튜디오", "그림 — 멍냥 스튜디오 그림팀", "글꼴 — Pretendard (OFL)", "플레이해 주셔서 고마워요!"]
+## 엔딩 끝 한 줄 (사람 대표 결정: 만든 사람 목록 크레딧은 없음). 라이선스 전문은 메뉴 [라이선스] (LICENSES.txt)
+const CREDITS := ["플레이해 주셔서 고마워요! / Thanks for playing!"]
 ## 한 줄에 서는 단골 수 (단체 사진)
 const ROW := 8
 
@@ -49,15 +50,15 @@ func play(ids: Array, star_rows: Array, sfx: Node = null) -> void:
 	_box.alignment = BoxContainer.ALIGNMENT_CENTER
 	_box.add_theme_constant_override("separation", 14)
 	center.add_child(_box)
-	_title = _label("반짝 목욕 축제 끝! 그동안 씻긴 단골들이 모였어요", 32)
+	_title = _label("감사의 날 · 그동안 씻긴 단골들이 모였어요", 32)
 	_box.add_child(_title)
-	var stage := make_group_stage(group, Vector2(900, 420), true)
+	var stage := make_group_stage(group, Vector2(900, 340), true)
 	stage.name = "GroupPhoto"
 	_box.add_child(stage)
 	_stars_label = _label("", 30)
 	_stars_label.visible = false
 	_box.add_child(_stars_label)
-	_credits = _label("\n".join(CREDITS), 20)
+	_credits = _label("\n".join(CREDITS), 24)
 	_credits.visible = false
 	_box.add_child(_credits)
 	_buttons = HBoxContainer.new()

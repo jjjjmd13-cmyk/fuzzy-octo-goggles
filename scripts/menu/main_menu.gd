@@ -28,6 +28,7 @@ const V4_SCENE := "res://scenes/v4/fp_shop.tscn"
 ## 빠른 확인 (개발용). 스팀 출시 빌드에는 dev 폴더가 빠져서 이 씬이 없고, 그러면 버튼도 안 만든다
 const QUICK_SCENE := "res://scenes/dev/quick_check.tscn"
 const QUICK_SCRIPT := "res://scripts/dev/quick_check.gd"
+const LICENSES := "res://LICENSES.txt"
 
 var continue_button: Button
 
@@ -74,6 +75,14 @@ func _ready() -> void:
 	host_button.pressed.connect(func() -> void: Net.host_enet(_port()))
 	join_button.pressed.connect(func() -> void: Net.join_enet(address_edit.text.strip_edges(), _port()))
 	quit_button.pressed.connect(get_tree().quit)
+	# 라이선스 전문 (OFL·MIT 는 함께 배포해야 함, 기획 LAUNCH_PREP 5장): 끝내기 바로 위
+	var license_button := Button.new()
+	license_button.name = "LicenseButton"
+	license_button.text = "라이선스"
+	license_button.custom_minimum_size = Vector2(0, 40)
+	quit_button.get_parent().add_child(license_button)
+	quit_button.get_parent().move_child(license_button, quit_button.get_index())
+	license_button.pressed.connect(show_licenses)
 	port_edit.text = str(Net.DEFAULT_PORT)
 
 	# 1인용 결정 (사람 대표, 2026-10-28): 친구와 하기·개발용 IP 접속 줄은 메뉴에서만 숨긴다.
@@ -89,6 +98,42 @@ func _ready() -> void:
 	message_label.text = Net.last_end_reason
 	(continue_button if continue_button.visible else solo_button).grab_focus()
 	_autostart()
+
+
+## 라이선스 전문 창 (res://LICENSES.txt, tools/make_licenses.gd 가 만듦). 닫기로 메뉴
+func show_licenses() -> void:
+	if has_node("Licenses"):
+		return
+	var layer := CanvasLayer.new()
+	layer.name = "Licenses"
+	layer.layer = 10
+	add_child(layer)
+	var shade := ColorRect.new()
+	shade.color = Color(0, 0, 0, 0.6)
+	shade.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	layer.add_child(shade)
+	var panel := PanelContainer.new()
+	panel.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	panel.offset_left = 60
+	panel.offset_top = 40
+	panel.offset_right = -60
+	panel.offset_bottom = -40
+	layer.add_child(panel)
+	var box := VBoxContainer.new()
+	panel.add_child(box)
+	var text := TextEdit.new()
+	text.name = "Text"
+	text.editable = false
+	text.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	text.text = FileAccess.get_file_as_string(LICENSES) if FileAccess.file_exists(LICENSES) else "LICENSES.txt 가 없어요"
+	box.add_child(text)
+	var close := Button.new()
+	close.name = "Close"
+	close.text = "닫기"
+	close.custom_minimum_size = Vector2(0, 44)
+	close.pressed.connect(layer.queue_free)
+	box.add_child(close)
+	close.grab_focus()
 
 
 ## 빠른 확인 줄: 기능마다 버튼 하나 (강아지 1~2마리로 그 기능이 바로 나옴). dev 씬이 없으면 아무것도 안 만듦

@@ -113,7 +113,7 @@ func show_page(index: int) -> void:
 		stage.name = "GroupPhoto"
 		_grid.add_child(stage)
 		var caption := Label.new()
-		caption.text = "반짝 목욕 축제 · 단체 사진 (%d마리)" % group_photo.size()
+		caption.text = "감사의 날 · 단체 사진 (%d마리)" % group_photo.size()
 		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		caption.add_theme_color_override("font_color", BROWN)
 		_grid.add_child(caption)
@@ -167,6 +167,11 @@ func _slot(regular: Dictionary) -> Control:
 
 ## 작은 3D 무대: 그 단골 모형 (털 색·크기), 기분 표정, 그때 벽지 색 배경
 func _photo(regular: Dictionary, entry: Dictionary, size_px: Vector2) -> SubViewportContainer:
+	return make_photo(regular, entry, size_px)
+
+
+## 사진 한 장 (사진첩 칸·카드·감사의 날 '그때와 지금'): entry 의 best_mood · wall · acc 로
+static func make_photo(regular: Dictionary, entry: Dictionary, size_px: Vector2) -> SubViewportContainer:
 	var container := SubViewportContainer.new()
 	container.name = "Photo"
 	container.stretch = true

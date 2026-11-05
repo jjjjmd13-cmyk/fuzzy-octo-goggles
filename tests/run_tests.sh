@@ -31,13 +31,41 @@ fi
 LOG_DIR="${QA_LOG_DIR:-$(mktemp -d)}"
 mkdir -p "$LOG_DIR"
 
+# 임포트 한 번: import.log 에 남기고 종료 코드를 code 에 둔다.
+run_import() {
+  timeout "$IMPORT_TIMEOUT" "$GODOT" --headless --path "$PROJECT" --import >"$LOG_DIR/import.log" 2>&1
+  code=$?
+  # Godot 4.4.1 upstream #108994: saving GLTF succeeds, only its headless editor thumbnail fails.
+  # Retain raw output and ignore only that exact, version-guarded two-line block.
+  if [ -f "$PROJECT/tools/filter_godot_441_import.py" ] && grep -Fq 'servers/rendering/dummy/storage/texture_storage.h:107' "$LOG_DIR/import.log"; then
+    python3 "$PROJECT/tools/filter_godot_441_import.py" "$LOG_DIR/import.log" "$("$GODOT" --version)"
+  fi
+}
+
+# Godot 4.4.1 이 임포트를 다 끝낸 뒤 에디터를 닫다가 죽는 경우인가 (종료 코드 134, glibc "double free").
+# 네 가지가 모두 맞을 때만: 종료 코드 134 / "loading_editor_layout: end" 가 있음 /
+# 그 뒤에는 glibc 메모리 오류 줄(과 timeout 의 코어 덤프 알림)만 있음 / 오류 줄이 없음.
+crashed_after_import() {
+  [ "$code" -eq 134 ] || return 1
+  grep -qx 'loading_editor_layout: end' "$LOG_DIR/import.log" || return 1
+  ! grep -Eq "$ERROR_PATTERN" "$LOG_DIR/import.log" || return 1
+  awk '
+    $0 == "loading_editor_layout: end" { tail = 1; seen = 0; bad = 0; next }
+    tail && /^(double free or corruption|free\(\): |malloc\(\): |corrupted |munmap_chunk\(\))/ { seen = 1; next }
+    tail && ($0 ~ /^timeout: the monitored command dumped core$/ || $0 ~ /^[[:space:]]*$/) { next }
+    tail { bad = 1 }
+    END { exit !(tail && seen && !bad) }
+  ' "$LOG_DIR/import.log"
+}
+
 echo "== 임포트: $PROJECT"
-timeout "$IMPORT_TIMEOUT" "$GODOT" --headless --path "$PROJECT" --import >"$LOG_DIR/import.log" 2>&1
-code=$?
-# Godot 4.4.1 upstream #108994: saving GLTF succeeds, only its headless editor thumbnail fails.
-# Retain raw output and ignore only that exact, version-guarded two-line block.
-if [ "$code" -eq 0 ] && [ -f "$PROJECT/tools/filter_godot_441_import.py" ] && grep -Fq 'servers/rendering/dummy/storage/texture_storage.h:107' "$LOG_DIR/import.log"; then
-  python3 "$PROJECT/tools/filter_godot_441_import.py" "$LOG_DIR/import.log" "$("$GODOT" --version)"
+run_import
+if crashed_after_import; then
+  # 가져온 결과는 이미 저장됐다. 한 번만 다시 임포트해서 정말 끝났는지 확인한다 (테스트는 그대로 다 돈다).
+  cat "$LOG_DIR/import.log"
+  mv "$LOG_DIR/import.log" "$LOG_DIR/import.crash.log"
+  echo "::warning::Godot 가 임포트를 끝낸 뒤 종료하다 죽음 (종료 코드 134) → 임포트 한 번 더 (첫 로그: import.crash.log)"
+  run_import
 fi
 cat "$LOG_DIR/import.log"
 if [ "$code" -ne 0 ]; then

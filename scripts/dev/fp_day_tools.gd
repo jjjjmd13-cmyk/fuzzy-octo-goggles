@@ -117,15 +117,12 @@ func simulate_served() -> int:
 	var guests: Node3D = shop.guests
 	var face := 2
 	for i in count:
-		var prefer: Array = []
-		if FpDays.is_festival(shop.day):
-			prefer = shop.album.keys().filter(func(key: String) -> bool: return int(shop.album[key].get("best_mood", -1)) < 3)
-		var id := FpRegulars.pick(shop.day, i + 1, shop.album.keys(), guests.new_today, [], _rng, prefer)
+		var id := FpRegulars.pick(shop.day, i + 1, shop.album.keys(), guests.new_today, [], _rng)
 		var regular := FpRegulars.get_regular(id)
 		if not shop.album.has(id):
 			guests.new_today += 1
 		var fee: int = Tuning.data.v4_cat_price if regular.get("animal", "dog") == "cat" else Tuning.data.v4_price_wash
-		var tip := roundi((Tuning.data.v4_tip_mood4[face] + shop.fast_tip("normal", 90.0)) * FpDays.tip_mult(shop.day))
+		var tip: int = Tuning.data.v4_tip_mood4[face] + shop.fast_tip("normal", 90.0)
 		if shop.shampoo_left < 0.01:
 			fee = Tuning.data.v4_no_shampoo_price
 			tip = 0

@@ -320,7 +320,7 @@ extends Resource
 @export var v4_cart_slots := 3
 @export var v4_cart_speed := 0.85
 @export var v4_box_sniff_chance := 0.3
-## 18일 전체 흐름 (TUNING_V4 6장): 날마다 손님 간격 (s, 1~18일차), 축제·엔딩 날, 자유 영업 간격, 열리는 날, 축제 팁 배수,
+## 18일 전체 흐름 (TUNING_V4 6장): 날마다 손님 간격 (s, 1~18일차), 마지막 날 (감사의 날 엔딩), 자유 영업 간격, 열리는 날,
 ## 엔딩 별 기준 [금색 사진 수, 5단계 도구 수, 아늑함 ★]
 @export var v4_guest_every_by_day := PackedFloat32Array([60, 55, 50, 45, 45, 45, 42, 42, 42, 40, 40, 40, 38, 38, 38, 36, 36, 36])
 @export var v4_last_day := 18
@@ -328,9 +328,12 @@ extends Resource
 @export var v4_hurry_from_day := 2
 @export var v4_scissors_from_day := 4
 @export var v4_extra_seat_day := 9
-@export var v4_festival_tip_mult := 1.5
-@export var v4_festival_invite_day := 12
-@export var v4_ending_stars := PackedInt32Array([12, 3, 20])
+@export var v4_ending_stars := PackedInt32Array([12, 3, 6])
+## 감사의 날 엔딩 (TUNING_V4 6장): 들어와 한마디 하는 단골 최대, 한 쌍이 말하는 시간 (s), '그때와 지금' 사진 쌍 수, 한 쌍 보여 주는 시간 (s)
+@export var v4_thanks_visitors_max := 12
+@export var v4_thanks_line_seconds := 2.5
+@export var v4_thanks_photo_pairs := 5
+@export var v4_thanks_photo_seconds := 2.0
 ## 단골 신뢰 (TUNING_V4 7장): 점수 → 단계 [익숙함, 친함, 단짝 부터], 방문마다, 돌려줄 때 기분 [😣, 😐, 😊, 🤩], 처음 좋아하는 곳 찾음,
 ## 싫어함 사이 (s) [낯가림, 익숙함부터], 친함부터 쉬워지는 성격 값, 단짝 규칙마다 싫어함 최대, 대표 단골 뽑힐 무게
 @export var v4_trust_at := PackedInt32Array([2, 6, 12])
