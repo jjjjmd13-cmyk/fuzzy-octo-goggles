@@ -114,7 +114,7 @@
 > 물을 싫어하는 고양이, 배를 만지면 다리를 찰랑거리는 간지럼쟁이, 드라이 소리에 귀가 납작해지는 나비, 수건을 물고 놓지 않는 짱구. 손님을 알아 갈수록 씻기는 법도 달라져요. 좋아하는 곳을 찾아 주면 신나서 꼬리를 붕붕!
 >
 > **함께한 날을 기억하는 사진첩**
-> 첫 방문 사진과 오늘 사진을 나란히. '처음으로 무서워하지 않고 적신 날', '처음으로 드라이를 끝까지 편하게 한 날'… 리본·모자를 씌워 찍은 사진까지, 18일째 동네 목욕 축제에서 모두를 만나요.
+> 첫 방문 사진과 오늘 사진을 나란히. '처음으로 무서워하지 않고 적신 날', '처음으로 드라이를 끝까지 편하게 한 날'… 리본·모자를 씌워 찍은 사진까지. 18일째 저녁, 그동안 정든 단골들이 고마움을 전하러 찾아와요.
 
 **English**
 
@@ -134,7 +134,7 @@
 > Cats who don't love water, ticklish pups who kick when you scrub their tummy, a kitty whose ears flatten at the dryer, a pup who won't let go of the towel. The better you know them, the better you wash them. Find their favorite scratching spot and watch their tail go wild!
 >
 > **An album that remembers**
-> Their first visit next to today's photo. "The first bath without fear." "The first time the dryer felt nice." Dress them up in bows and hats for the picture — and on day 18, meet them all at the neighborhood Bath Festival.
+> Their first visit next to today's photo. "The first bath without fear." "The first time the dryer felt nice." Dress them up in bows and hats for the picture — and on the evening of day 18, your regulars come back just to say thank you.
 
 ### 3-4. 특징 (짧은 목록)
 
@@ -205,4 +205,4 @@ Cozy · Simulation · Cute · First-Person · Animals · Relaxing · Management 
   2. 설정 메뉴 **[라이선스]** — 위 파일 내용을 그대로 보여 줌.
 - 우리가 만든 것의 출처 기록은 그대로: 음악 `assets/music/LICENSE.md` (코드 합성, CC0 1.0), 효과음 `tools/make_sfx.py` (코드 합성), 그림 `docs/art/ASSET_PROVENANCE.md` (외부 에셋 없음). 화면에는 따로 표시하지 않음.
 - 새 외부 에셋이 생기면 `LICENSES.txt` 와 `ASSET_PROVENANCE.md` 에 같이 더함.
-- 스팀 상점 페이지 문구 (3장) 의 '18일째 동네 목욕 축제' 표현은 새 엔딩이 정해지면 고침.
+- 스팀 상점 페이지 문구 (3장) 의 엔딩 표현은 '감사의 날' 로 고침 (2026-11-05).
