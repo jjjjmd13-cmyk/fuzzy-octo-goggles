@@ -1,0 +1,101 @@
+{
+  "album_page": {
+    "size": [
+      1024,
+      1280
+    ],
+    "mode": "RGBA",
+    "source": "Built-in image_gen",
+    "alpha_preparation": "Isolated specks removed; resized with alpha; frames use 9-slice to a common transparent square"
+  },
+  "photo_frame_grey": {
+    "size": [
+      512,
+      600
+    ],
+    "mode": "RGBA",
+    "source": "Built-in image_gen",
+    "alpha_preparation": "Isolated specks removed; resized with alpha; frames use 9-slice to a common transparent square"
+  },
+  "photo_frame_white": {
+    "size": [
+      512,
+      600
+    ],
+    "mode": "RGBA",
+    "source": "Built-in image_gen",
+    "alpha_preparation": "Isolated specks removed; resized with alpha; frames use 9-slice to a common transparent square"
+  },
+  "photo_frame_pink": {
+    "size": [
+      512,
+      600
+    ],
+    "mode": "RGBA",
+    "source": "Built-in image_gen",
+    "alpha_preparation": "Isolated specks removed; resized with alpha; frames use 9-slice to a common transparent square"
+  },
+  "photo_frame_gold": {
+    "size": [
+      512,
+      600
+    ],
+    "mode": "RGBA",
+    "source": "Built-in image_gen",
+    "alpha_preparation": "Isolated specks removed; resized with alpha; frames use 9-slice to a common transparent square"
+  },
+  "photo_unknown": {
+    "size": [
+      512,
+      512
+    ],
+    "mode": "RGBA",
+    "source": "Built-in image_gen",
+    "alpha_preparation": "Isolated specks removed; resized with alpha; frames use 9-slice to a common transparent square"
+  },
+  "fav_spot_chin": {
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGBA",
+    "source": "Built-in image_gen",
+    "alpha_preparation": "Isolated specks removed; resized with alpha; frames use 9-slice to a common transparent square"
+  },
+  "fav_spot_ear_back": {
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGBA",
+    "source": "Built-in image_gen",
+    "alpha_preparation": "Isolated specks removed; resized with alpha; frames use 9-slice to a common transparent square"
+  },
+  "fav_spot_back": {
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGBA",
+    "source": "Built-in image_gen",
+    "alpha_preparation": "Isolated specks removed; resized with alpha; frames use 9-slice to a common transparent square"
+  },
+  "fav_spot_rump": {
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGBA",
+    "source": "Built-in image_gen",
+    "alpha_preparation": "Isolated specks removed; resized with alpha; frames use 9-slice to a common transparent square"
+  },
+  "new_photo_badge": {
+    "size": [
+      128,
+      128
+    ],
+    "mode": "RGBA",
+    "source": "Built-in image_gen",
+    "alpha_preparation": "Isolated specks removed; resized with alpha; frames use 9-slice to a common transparent square"
+  }
+}
