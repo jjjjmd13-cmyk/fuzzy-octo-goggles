@@ -23,6 +23,9 @@ const FpOutside := preload("res://scripts/v4/fp_outside.gd")
 const FpParcels := preload("res://scripts/v4/fp_parcels.gd")
 const FpDecor := preload("res://scripts/v4/fp_decor.gd")
 const FpAnimals := preload("res://scripts/v4/fp_animals.gd")
+const FpRegulars := preload("res://scripts/v4/fp_regulars.gd")
+const FpAlbum := preload("res://scripts/v4/fp_album.gd")
+const ALBUM_BOOK := "res://assets/models/album/album_book.glb"
 ## 가게 물건: 이름, 상자 크기 (도구 단계 올리기는 "tool:<도구>")
 const SUPPLIES := {
 	"shampoo_bottle": {"name": "샴푸 1병", "size": "small"},
@@ -157,6 +160,16 @@ var _likes := {}
 var fav_spot := ""
 var _fav_time := 0.0
 var _tub_start := 0.0
+## 손님 사진첩 (GDD_V4 '손님 사진첩', 저장됨): 단골 id → {visits, best_mood, day, trim, wall, floor, fav_found}
+var album: Dictionary = {}
+var album_rewards_taken: Array = []
+var regulars_met_order: Array = []
+## 목욕통의 단골 id ("" = 단골 아님, 테스트·빠른 확인)
+var regular := ""
+var _album_view: Control
+var _album_book: StaticBody3D
+var hovered_book := false
+var _flash := 0.0
 ## 오늘 가장 기뻐한 손님 (정산): 얼굴, 동물
 var best_face := -1
 var best_animal := ""
@@ -283,6 +296,7 @@ func _ready() -> void:
 	for wall in ["WallBack", "WallFront", "WallLeft"]:
 		decor_view.wall_meshes.append(get_node(wall).get_child(1) as MeshInstance3D)
 	decor_view.floor_meshes.append(get_node("Floor").get_child(1) as MeshInstance3D)
+	guests.album = album
 	_build_hud()
 	day_seconds = Tuning.data.v4_day_minutes * 60.0
 	# 가위는 사기 전엔 선반에 없음
@@ -306,6 +320,8 @@ func _ready() -> void:
 	# 이미 매트에 도착한 상자 (이어하기)
 	parcels_view.place(parcels.filter(func(box: Dictionary) -> bool: return box.get("arrived", true)))
 	# 빠른 확인은 바로 영업 (단, [아침·가게 밖]·[택배] 는 아침부터)
+	if quick_feature == "album":
+		_quick_album()
 	if quick_feature == "animals":
 		# 빠른 확인 [고양이·성격]: 고양이 → 간지럼쟁이 → 겁쟁이 → 멋쟁이 고양이
 		guests.quick_animals = [{"animal": "cat", "trait": ""}, {"animal": "dog", "trait": "ticklish"}, {"animal": "dog", "trait": "timid"}, {"animal": "cat", "trait": "dandy"}]
@@ -583,6 +599,9 @@ func save_state(next_day: int) -> Dictionary:
 		"owns_scissors": owns_scissors,
 		"owns_cart": owns_cart,
 		"seen_animals": seen_animals.duplicate(),
+		"album": album.duplicate(true),
+		"album_rewards_taken": album_rewards_taken.duplicate(),
+		"regulars_met_order": regulars_met_order.duplicate(),
 		"shampoo_left": shampoo_left,
 		"brush_used": brush_used,
 		"decor": decor.duplicate(true),
@@ -595,6 +614,11 @@ func apply_state(data: Dictionary) -> void:
 	day = data.next_day
 	guests.day = day
 	seen_animals = data.get("seen_animals", []).duplicate()
+	# 사진첩은 같은 Dictionary 를 손님 쪽과 나눠 씀 (새로 만들지 않고 내용만 바꿈)
+	album.clear()
+	album.merge(data.get("album", {}).duplicate(true))
+	album_rewards_taken = data.get("album_rewards_taken", []).duplicate()
+	regulars_met_order = data.get("regulars_met_order", []).duplicate()
 	money = data.money
 	for tool_id in data.tool_level:
 		if tool_level.has(tool_id) and tool_level[tool_id] != data.tool_level[tool_id]:
@@ -642,6 +666,18 @@ func _quick_decor(level: int) -> void:
 			decor.placed[category] = FpDecor.CATEGORIES[category].items[mini(level, 3) - 1][0]
 	_apply_decor()
 	_show_hint("꾸미기 %s · 아늑함 ★%d (숫자 1 처음 · 2 ★1 · 3 ★2 · 4 ★3)" % ["처음 모습" if level <= 0 else "★%d" % mini(level, 3), FpDecor.coziness(decor.placed)], 4.0)
+
+
+## 빠른 확인 [사진첩]: 단골 22마리를 만난 상태 (기분 섞임, 보상 20마리까지 받음), 남은 2마리 중 하나가 옴 → 23
+func _quick_album() -> void:
+	var table := FpRegulars.all()
+	for i in 22:
+		var id: String = table[i].id
+		album[id] = {"visits": 1 + i % 4, "best_mood": i % 4, "day": 1 + i % 10, "trim": "", "wall": "", "floor": "", "fav_found": i % 3 == 0}
+		regulars_met_order.append(id)
+	album_rewards_taken = [5, 10, 15, 20]
+	guests.quick_animals = [{"regular": table[22].id}]
+	_apply_decor()
 
 
 ## 빠른 확인 [택배]: 어제 주문한 상자 3개 (샤워기 2단계·샴푸 1병·가위)가 아침 트럭으로 옴, 샴푸는 2마리분 남음
@@ -723,6 +759,114 @@ func dislike(rule: String, max_count: int = -1, reaction := "") -> bool:
 	sfx.play("huff")
 	_show_anger()
 	return true
+
+
+## 돌려줄 때 자동 사진 (모든 기분): 단골마다 가장 좋은 한 장만, 처음이면 칸이 열림. 찰칵 + 화면 살짝 하얗게
+func take_photo(mood: int) -> void:
+	if regular.is_empty():
+		return
+	var is_new := not album.has(regular)
+	var entry: Dictionary = album.get(regular, {"visits": 0, "best_mood": -1, "day": day, "trim": "", "wall": "", "floor": "", "fav_found": false})
+	entry.visits = int(entry.visits) + 1
+	entry.fav_found = entry.fav_found or _likes.has("fav")
+	var better := mood > int(entry.best_mood)
+	if better:
+		entry.best_mood = mood
+		entry.day = day
+		entry.trim = trim_request
+		entry.wall = decor.placed.get("wall", "")
+		entry.floor = decor.placed.get("floor", "")
+	album[regular] = entry
+	if is_new:
+		regulars_met_order.append(regular)
+	sfx.play("press")
+	_flash = 0.35
+	var name: String = FpRegulars.get_regular(regular).get("name", "")
+	if is_new:
+		_banner = "찰칵! %s 의 첫 사진 (만난 단골 %d / %d)" % [name, album.size(), FpRegulars.all().size()]
+		_banner_left = 2.0
+	elif better:
+		_banner = "찰칵! %s 새 사진!" % name
+		_banner_left = 1.5
+	_check_album_rewards()
+
+
+## 만난 단골 수 보상 (5·10·15·20 마리 = 50·100·150·200 돈, 바로), 24마리 = 사진 게시판
+func _check_album_rewards() -> void:
+	var milestones: PackedInt32Array = Tuning.data.v4_album_milestones
+	for i in milestones.size():
+		if album.size() >= milestones[i] and not album_rewards_taken.has(milestones[i]):
+			album_rewards_taken.append(milestones[i])
+			var reward: int = Tuning.data.v4_album_rewards[i]
+			money += reward
+			sfx.play("coin")
+			_show_hint("단골 %d마리를 만났어요! 보상 %d" % [milestones[i], reward], 3.0)
+	var all_count := FpRegulars.all().size()
+	if album.size() >= all_count and not album_rewards_taken.has(all_count):
+		album_rewards_taken.append(all_count)
+		decor.owned.append(FpDecor.PHOTO_BOARD)
+		decor.placed["art"] = FpDecor.PHOTO_BOARD
+		_apply_decor()
+		_banner = "단골 24마리를 모두 만났어요! 사진 게시판이 벽에 걸렸어요"
+		_banner_left = 3.0
+
+
+## 사진 게시판에 붙일 사진: 금색 먼저, 그다음 분홍 (최대 v4_photo_board_slots)
+func board_photos() -> Array:
+	var photos := []
+	for mood in [3, 2]:
+		for id in regulars_met_order:
+			if int(album.get(id, {}).get("best_mood", -1)) == mood:
+				photos.append({"mood": mood, "regular": id})
+	return photos.slice(0, Tuning.data.v4_photo_board_slots)
+
+
+## 사진첩 화면 열기 (정산 판 버튼·사진첩 책)
+func open_album() -> void:
+	if is_instance_valid(_album_view):
+		return
+	_album_view = FpAlbum.new()
+	_album_view.name = "Album"
+	_hud.get_parent().add_child(_album_view)
+	_album_view.open(album)
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	_album_view.closed.connect(func() -> void:
+		if input_enabled and not day_over:
+			Input.mouse_mode = Input.MOUSE_MODE_CAPTURED)
+
+
+## 사진첩 책: 꾸미기 카운터가 있으면 그 위, 없으면 문 옆 작은 탁자 위 (album_book.glb, 없으면 분홍 상자)
+func _place_album_book() -> void:
+	if _album_book == null:
+		_album_book = StaticBody3D.new()
+		_album_book.name = "AlbumBook"
+		_album_book.collision_layer = 1 << (PICK_LAYER - 1)
+		_album_book.collision_mask = 0
+		_album_book.set_meta("album_book", true)
+		var shape := CollisionShape3D.new()
+		var box := BoxShape3D.new()
+		box.size = Vector3(0.4, 0.15, 0.34)
+		shape.shape = box
+		shape.position.y = 0.07
+		_album_book.add_child(shape)
+		var view: Node3D = (load(ALBUM_BOOK) as PackedScene).instantiate() if ResourceLoader.exists(ALBUM_BOOK) else null
+		if view == null:
+			var mesh := MeshInstance3D.new()
+			var cube := BoxMesh.new()
+			cube.size = Vector3(0.35, 0.06, 0.28)
+			mesh.mesh = cube
+			mesh.position.y = 0.03
+			var material := StandardMaterial3D.new()
+			material.albedo_color = Color(1.0, 0.62, 0.77)
+			mesh.material_override = material
+			view = mesh
+		_album_book.add_child(view)
+		add_child(_album_book)
+		_box("AlbumTable", Vector3(3.45, 0.375, 1.55), Vector3(0.45, 0.75, 0.45), Color(0.9, 0.79, 0.63))
+	var on_counter: bool = decor.placed.has("counter")
+	_album_book.position = Vector3(2.0, 0.95, 3.05) if on_counter else Vector3(3.45, 0.75, 1.55)
+	_album_book.rotation.y = PI / 2.0
+	get_node("AlbumTable").visible = not on_counter
 
 
 ## 좋아함 +1 (규칙마다 한 번, 점수 최대 +3): ♥ 뿅 + 꼬리 붕붕
@@ -902,6 +1046,13 @@ func interact_guest(owner: Node3D) -> void:
 	if not _taken.is_empty():
 		_set_animal(_taken.get("animal", "dog"), _taken.get("trait", ""))
 		new_dog()
+		regular = _taken.get("regular", "")
+		if not regular.is_empty():
+			var info := FpRegulars.get_regular(regular)
+			FpRegulars.dress(dog.model, info)
+			# 단골의 좋아하는 곳은 늘 같은 곳 (두 번째 방문부터 기억해서 찾는 재미)
+			fav_spot = info.fav
+			guests.current.set_meta("regular", regular)
 		if quick_feature == "mood":
 			# 빠른 확인 [기분·반응]: 좋아하는 곳을 알려 줌 (진짜 게임은 글자 없이 꼬리로만)
 			_show_hint("이번 손님이 좋아하는 곳: %s (거품·빗질 때 0.5초) · 30초 안에 다 씻으면 🤩" % FpAnimals.FAV_NAMES.get(fav_spot, ""), 8.0)
@@ -938,6 +1089,7 @@ func give_back() -> void:
 	fees += fee
 	tips += tip
 	money += fee + tip
+	take_photo(face)
 	guests.return_current(say % (fee + tip), mini(face, 2))
 	sfx.play("coin")
 	_clear_tub()
@@ -1009,6 +1161,7 @@ func end_day() -> void:
 		if place_decor(id):
 			save_game(day + 1)
 		_show_settle())
+	_settle.album_requested.connect(open_album)
 	_settle.next_day_requested.connect(start_next_day)
 	_show_settle()
 	sfx.play("clap")
@@ -1183,7 +1336,9 @@ func place_decor(id: String) -> bool:
 
 ## 놓인 꾸미기를 방에 보이고, 아늑함으로 대기 참을성을 늘림
 func _apply_decor() -> void:
+	decor_view.board_photos = board_photos()
 	decor_view.apply(decor.placed)
+	_place_album_book()
 	guests.patience_mult = FpDecor.patience_mult(decor.placed)
 
 
@@ -1688,6 +1843,7 @@ func _process(delta: float) -> void:
 	_update_day(delta)
 	_update_sniff(delta)
 	_card_left = maxf(_card_left - delta, 0.0)
+	_flash = maxf(_flash - delta, 0.0)
 	if has_dog and not done and _t - _tub_start > Tuning.data.v4_mood_slow:
 		dislike("slow", 1)
 	if _heart != null and _heart.visible:
@@ -1755,6 +1911,8 @@ func _unhandled_input(event: InputEvent) -> void:
 				open_cart_box()
 		elif hovered_cart:
 			push_cart(true)
+		elif hovered_book:
+			open_album()
 		elif not hovered_box.is_empty():
 			carry_box(hovered_box)
 		elif not hovered.is_empty():
@@ -1792,6 +1950,7 @@ func _update_aim() -> void:
 	hovered_sign = false
 	hovered_box = {}
 	hovered_cart = false
+	hovered_book = false
 	aim_point = null
 	var ray: Array[Vector3] = player.aim_ray(REACH)
 	var query := PhysicsRayQueryParameters3D.create(ray[0], ray[1], (1 << (PICK_LAYER - 1)) | DOG_LAYER)
@@ -1816,6 +1975,9 @@ func _update_aim() -> void:
 		return
 	if collider != null and collider.has_meta("cart"):
 		hovered_cart = true
+		return
+	if collider != null and collider.has_meta("album_book"):
+		hovered_book = true
 		return
 	# 가위·빗: 가운데 점 둘레의 다발·뭉치를 바로 겨눔 (몸 겉면 판정이 다른 부위에 먼저 닿거나
 	# 강아지가 고개를 돌려도 바라보는 다발이 잘리게, 사람 대표 플레이 버그)
@@ -2081,6 +2243,8 @@ func _draw_hud() -> void:
 			under = "수레 (Q 놓기)"
 	elif hovered_cart:
 		under = "클릭: 수레 밀기"
+	elif hovered_book:
+		under = "클릭: 손님 사진첩 (만난 단골 %d / %d)" % [album.size(), FpRegulars.all().size()]
 	elif not hovered_box.is_empty():
 		under = "클릭: 택배 상자 들기 (들고 좌우로 흔들면 달그락)"
 	elif not hovered.is_empty():
@@ -2113,6 +2277,8 @@ func _draw_hud() -> void:
 		_text(font, Vector2(250, y + 18), rows[i][0], 18, false)
 	if has_dog and p.foam > 0:
 		_text(font, Vector2(20, 30 + 5 * 34 + 18), "남은 거품 %d (샤워기로 헹구기)" % p.foam, 18, false)
+	if _flash > 0.0:
+		_hud.draw_rect(Rect2(Vector2.ZERO, size), Color(1, 1, 1, _flash * 1.6))
 	_draw_animal_box(font)
 	if _card_left > 0.0 and not _card.is_empty():
 		_draw_card(font, size)

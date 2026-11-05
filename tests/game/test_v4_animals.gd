@@ -96,10 +96,12 @@ func run_test() -> void:
 	shop.pick("shampoo")
 	var back: Vector3 = shop.dog.model.to_global(shop.dog._body_center() + Vector3(0, 0.15, -0.05))
 	for i in 30:
+		back = shop.dog.model.to_global(shop.dog._body_center() + Vector3(0, 0.15, -0.05))
 		shop.use_tool_at(back, 1.0 / 30.0)
 	check_eq(shop.dislikes(), 0, "간지럼쟁이: 등은 오래 문질러도 괜찮음")
-	var belly: Vector3 = shop.dog.model.to_global(shop.dog._body_center() + Vector3(0, -0.15, 0.08))
+	# 강아지가 몸짓하는 중에도 지금 자세의 배를 겨눔 (사람처럼, 저장한 자리가 아니라)
 	for i in 25:
+		var belly: Vector3 = shop.dog.model.to_global(shop.dog._body_center() + Vector3(0, -0.15, 0.08))
 		shop.use_tool_at(belly, 1.0 / 30.0)
 	check_eq(shop.dislikes(), 1, "간지럼쟁이: 배 한 곳에 0.6초 넘게 → 싫어함")
 	check(shop._draw_animal_line().contains("간지럼쟁이"), "왼쪽 위 칸에 성격 한 줄")
@@ -144,6 +146,8 @@ func _take(kind: String, trait_id: String) -> void:
 	shop.guests.quick_animals = [{"animal": kind, "trait": trait_id}]
 	shop.guests.spawn("forever")
 	shop.next_guest()
+	# 이 테스트는 싫어함만 셈: 좋아하는 곳(무작위)이 겨눈 곳과 겹쳐 +1 이 섞이지 않게 끔 (기분·반응은 test_v4_mood)
+	shop.fav_spot = ""
 
 
 func _face() -> Vector3:

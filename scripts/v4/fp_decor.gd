@@ -52,8 +52,18 @@ var _original := {}
 var _clock_hands: Array[Node3D] = []
 
 
+## 사진 게시판 (단골 24마리 보상, 벽 장식 자리, 팔지 않음): 모형 경로·사진 테두리
+const PHOTO_BOARD := "photo_board"
+const PHOTO_BOARD_MODEL := "res://assets/models/album/photo_board.glb"
+const FRAME_DIR := "res://assets/ui/album/%s.png"
+## 사진 게시판에 붙일 사진 [{mood, regular}] (가게가 정함, 금색 먼저 그다음 분홍)
+var board_photos: Array = []
+
+
 ## 물건 id → 범주
 static func category_of(id: String) -> String:
+	if id == PHOTO_BOARD:
+		return "art"
 	for category in CATEGORIES:
 		for item in CATEGORIES[category].items:
 			if item[0] == id:
@@ -139,8 +149,9 @@ func show_item(category: String, id: String) -> void:
 	if category == "art":
 		_clock_hands.clear()
 	var model: Node3D = null
-	if not id.is_empty() and ResourceLoader.exists(MODEL_DIR % id):
-		model = (load(MODEL_DIR % id) as PackedScene).instantiate() as Node3D
+	var path := PHOTO_BOARD_MODEL if id == PHOTO_BOARD else MODEL_DIR % id
+	if not id.is_empty() and ResourceLoader.exists(path):
+		model = (load(path) as PackedScene).instantiate() as Node3D
 	for node in defaults.get(category, []):
 		if is_instance_valid(node):
 			node.visible = model == null
@@ -176,11 +187,38 @@ func show_item(category: String, id: String) -> void:
 		else:
 			light.position.y = -0.55
 			holder.add_child(light)
+	elif category == "art" and id == PHOTO_BOARD:
+		_pin_photos(model)
 	elif category == "art":
 		for hand_name in ["Hand_H", "Hand_M"]:
 			var hand := model.find_child(hand_name, true, false) as Node3D
 			if hand != null:
 				_clock_hands.append(hand)
+
+
+## 사진 게시판 Slot_1~6 에 사진 (기분 테두리 그림, 0.2 × 0.2 m, 정면 −Z)
+func _pin_photos(board: Node3D) -> void:
+	for i in mini(board_photos.size(), Tuning.data.v4_photo_board_slots):
+		var slot := board.find_child("Slot_%d" % (i + 1), true, false) as Node3D
+		if slot == null:
+			continue
+		var quad := MeshInstance3D.new()
+		quad.name = "Photo"
+		var mesh := QuadMesh.new()
+		mesh.size = Vector2(0.2, 0.234)
+		quad.mesh = mesh
+		var material := StandardMaterial3D.new()
+		var frames := ["photo_frame_grey", "photo_frame_white", "photo_frame_pink", "photo_frame_gold"]
+		var path := FRAME_DIR % frames[clampi(int(board_photos[i].mood), 0, 3)]
+		if ResourceLoader.exists(path):
+			material.albedo_texture = load(path)
+			material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+		material.cull_mode = BaseMaterial3D.CULL_DISABLED
+		quad.material_override = material
+		# QuadMesh 정면은 +Z → 게시판 정면(−Z)으로
+		quad.rotation.y = PI
+		quad.set_meta("regular", board_photos[i].regular)
+		slot.add_child(quad)
 
 
 ## 벽지·바닥: 반복 텍스처 (1 m 마다 한 장, 월드 기준) 또는 처음 재질

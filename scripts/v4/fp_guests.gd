@@ -16,6 +16,7 @@ const OWNER_SCENE := preload("res://scenes/art/sim/owner_model.tscn")
 const CHAIR_SCENE := preload("res://scenes/art/sim/chair_model.tscn")
 const DOG_SCENE := preload("res://scenes/art/sim/dog_model.tscn")
 const FpAnimals := preload("res://scripts/v4/fp_animals.gd")
+const FpRegulars := preload("res://scripts/v4/fp_regulars.gd")
 const FONT := preload("res://assets/fonts/pretendard/Pretendard-Bold.otf")
 const KINDS: Array[String] = ["hurry", "normal", "relaxed", "forever"]
 const TRIM_NAMES := {"bear": "곰돌이컷", "lion": "사자컷", "summer": "여름컷"}
@@ -54,7 +55,11 @@ var trim_chance := 0.0
 ## 오늘이 며칠째인가 (고양이·동물 성격이 열리는 날), 오늘 들어온 손님 수
 var day := 1
 var spawned_today := 0
-## 빠른 확인: 손님마다 동물·성격을 정해 둠 ([{animal, trait}], 앞에서부터)
+## 사진첩 (가게와 같은 Dictionary): 단골 id → 기록. 열쇠가 있으면 이미 만난 단골
+var album: Dictionary = {}
+## 오늘 온 처음 보는 단골 수
+var new_today := 0
+## 빠른 확인: 손님마다 동물·성격을 정해 둠 ([{animal, trait}] 또는 [{regular}], 앞에서부터)
 var quick_animals: Array = []
 ## 꾸미기 아늑함으로 늘어난 참을성 배수 (1 = 그대로)
 var patience_mult := 1.0
@@ -91,6 +96,7 @@ func start_day() -> void:
 	served = 0
 	left_count = 0
 	spawned_today = 0
+	new_today = 0
 	elapsed = 0.0
 	open = true
 	_opening = Tuning.data.v4_first_guests.duplicate()
@@ -116,10 +122,33 @@ func spawn(kind := "", walk_in := false) -> void:
 	owner.add_child(holder)
 	# 동물·동물 성격 (고양이는 3일차부터, 성격은 2·5·7일차부터)
 	spawned_today += 1
-	var animal: Dictionary = quick_animals.pop_front() if not quick_animals.is_empty() else FpAnimals.roll(day, spawned_today, _rng)
+	# 단골 중에서 (처음 보는 단골은 하루 1~2마리), 빠른 확인·테스트는 정해 둔 동물·성격
+	var animal: Dictionary = {}
+	if not quick_animals.is_empty():
+		animal = quick_animals.pop_front()
+		if animal.has("regular"):
+			var fixed := FpRegulars.get_regular(animal.regular)
+			animal = {"animal": fixed.animal, "trait": fixed.trait, "regular": fixed.id}
+	else:
+		var busy: Array = guests.map(func(g: Dictionary) -> String: return g.get("regular", ""))
+		if current != null and current.has_meta("regular"):
+			busy.append(current.get_meta("regular"))
+		var met: Array = album.keys() + guests.filter(func(g: Dictionary) -> bool: return g.get("new", false)).map(func(g: Dictionary) -> String: return g.regular)
+		var id := FpRegulars.pick(day, spawned_today, met, new_today, busy, _rng)
+		var regular := FpRegulars.get_regular(id)
+		animal = {"animal": regular.animal, "trait": regular.trait, "regular": id}
+	var regular_id: String = animal.get("regular", "")
+	var is_new := not regular_id.is_empty() and not album.has(regular_id)
+	if is_new:
+		new_today += 1
+	if not regular_id.is_empty():
+		owner.set_meta("regular", regular_id)
 	var held := FpAnimals.scene_of(animal.animal).instantiate() as Node3D
 	held.set("auto_hit_shapes", false)
 	holder.add_child(held)
+	if not regular_id.is_empty():
+		FpRegulars.dress(held, FpRegulars.get_regular(regular_id))
+		_add_name_tag(owner, regular_id, is_new)
 	owner.holding = true
 	var icon := _make_icon(kind)
 	owner.add_child(icon)
@@ -133,7 +162,7 @@ func spawn(kind := "", walk_in := false) -> void:
 		trim = trim_shapes[_rng.randi() % trim_shapes.size()]
 		_add_trim_label(owner, trim)
 	_add_hit(owner)
-	guests.append({"kind": kind, "patience": patience_of(kind), "waited": 0.0, "owner": owner, "icon": icon, "arrived": elapsed, "trim": trim, "animal": animal.animal, "trait": animal.trait})
+	guests.append({"kind": kind, "patience": patience_of(kind), "waited": 0.0, "owner": owner, "icon": icon, "arrived": elapsed, "trim": trim, "animal": animal.animal, "trait": animal.trait, "regular": regular_id, "new": is_new})
 	guest_arrived.emit()
 	_seat_all()
 
@@ -202,7 +231,10 @@ func take(owner: Node3D) -> Dictionary:
 	var label := owner.get_node_or_null("TrimLabel")
 	if label != null:
 		label.queue_free()
-	return {"kind": guest.kind, "remaining": left, "arrived": guest.arrived, "trim": guest.trim, "animal": guest.animal, "trait": guest.trait}
+	var tag := owner.get_node_or_null("NameTag")
+	if tag != null:
+		tag.queue_free()
+	return {"kind": guest.kind, "remaining": left, "arrived": guest.arrived, "trim": guest.trim, "animal": guest.animal, "trait": guest.trait, "regular": guest.get("regular", ""), "new": guest.get("new", false)}
 
 
 ## 대기열에서 몇 번째인지 (없으면 -1)
@@ -268,6 +300,22 @@ func _process(delta: float) -> void:
 		elif item.t > 0.9 + item.get("leave_time", 6.0) + 0.3:
 			(item.owner as Node3D).queue_free()
 			_leaving.erase(item)
+
+
+## 주인 머리 위 단골 이름표: "콩이 ×3" (세 번째 방문) 또는 "콩이 · 처음"
+func _add_name_tag(owner: Node3D, regular_id: String, is_new: bool) -> void:
+	var regular := FpRegulars.get_regular(regular_id)
+	var label := Label3D.new()
+	label.name = "NameTag"
+	var visits: int = album.get(regular_id, {}).get("visits", 0)
+	label.text = "%s · 처음" % regular.name if is_new else "%s ×%d" % [regular.name, visits + 1]
+	label.font = FONT
+	label.font_size = 36
+	label.outline_size = 10
+	label.pixel_size = 0.004
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.position = Vector3(0, owner.height + 0.68, 0)
+	owner.add_child(label)
 
 
 ## 대기 손님 강아지가 안 연 택배 상자 쪽으로 고개를 돌리고 킁킁 (참을성에는 영향 없음, GDD_V4 재미 포인트)

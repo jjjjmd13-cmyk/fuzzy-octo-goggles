@@ -1,0 +1,245 @@
+{
+ "_note": "V4 단골 24마리 (GDD_V4 '손님 사진첩' 표). 저장에는 id 만. 크기·좋아하는 곳·목걸이 색은 개발팀이 고르게 나눔 (기획이 바꿔도 됨). color 는 털 색 이름 → scripts/v4/fp_regulars.gd 의 COLORS",
+ "regulars": [
+  {
+   "id": "kongi",
+   "name": "콩이",
+   "animal": "dog",
+   "color": "크림",
+   "trait": "",
+   "scale": 1.0,
+   "fav": "ear_back",
+   "collar": "#FF9EC4"
+  },
+  {
+   "id": "bori",
+   "name": "보리",
+   "animal": "dog",
+   "color": "갈색",
+   "trait": "",
+   "scale": 0.9,
+   "fav": "chin",
+   "collar": "#8FD3F4"
+  },
+  {
+   "id": "dubu",
+   "name": "두부",
+   "animal": "dog",
+   "color": "흰색",
+   "trait": "",
+   "scale": 1.1,
+   "fav": "rump",
+   "collar": "#B8E3D3"
+  },
+  {
+   "id": "hotteok",
+   "name": "호떡",
+   "animal": "dog",
+   "color": "살구",
+   "trait": "",
+   "scale": 1.0,
+   "fav": "back",
+   "collar": "#FFD86B"
+  },
+  {
+   "id": "somi",
+   "name": "솜이",
+   "animal": "dog",
+   "color": "흰색",
+   "trait": "",
+   "scale": 0.9,
+   "fav": "ear_back",
+   "collar": "#C9A7FF"
+  },
+  {
+   "id": "cookie",
+   "name": "쿠키",
+   "animal": "dog",
+   "color": "갈색",
+   "trait": "",
+   "scale": 1.1,
+   "fav": "chin",
+   "collar": "#FF8F70"
+  },
+  {
+   "id": "jjanggu",
+   "name": "짱구",
+   "animal": "dog",
+   "color": "검정",
+   "trait": "",
+   "scale": 1.0,
+   "fav": "rump",
+   "collar": "#FF9EC4"
+  },
+  {
+   "id": "nabi",
+   "name": "나비",
+   "animal": "cat",
+   "color": "회색",
+   "trait": "",
+   "scale": 0.9,
+   "fav": "back",
+   "collar": "#8FD3F4"
+  },
+  {
+   "id": "cheese",
+   "name": "치즈",
+   "animal": "cat",
+   "color": "살구",
+   "trait": "",
+   "scale": 1.1,
+   "fav": "ear_back",
+   "collar": "#B8E3D3"
+  },
+  {
+   "id": "mochi",
+   "name": "모찌",
+   "animal": "cat",
+   "color": "흰색",
+   "trait": "",
+   "scale": 1.0,
+   "fav": "chin",
+   "collar": "#FFD86B"
+  },
+  {
+   "id": "gamja",
+   "name": "감자",
+   "animal": "cat",
+   "color": "갈색",
+   "trait": "",
+   "scale": 0.9,
+   "fav": "rump",
+   "collar": "#C9A7FF"
+  },
+  {
+   "id": "kkamsun",
+   "name": "깜순",
+   "animal": "dog",
+   "color": "검정",
+   "trait": "ticklish",
+   "scale": 1.1,
+   "fav": "back",
+   "collar": "#FF8F70"
+  },
+  {
+   "id": "bamtol",
+   "name": "밤톨",
+   "animal": "dog",
+   "color": "초코",
+   "trait": "ticklish",
+   "scale": 1.0,
+   "fav": "ear_back",
+   "collar": "#FF9EC4"
+  },
+  {
+   "id": "latte",
+   "name": "라떼",
+   "animal": "dog",
+   "color": "크림",
+   "trait": "ticklish",
+   "scale": 0.9,
+   "fav": "chin",
+   "collar": "#8FD3F4"
+  },
+  {
+   "id": "danbi",
+   "name": "단비",
+   "animal": "dog",
+   "color": "회색",
+   "trait": "ticklish",
+   "scale": 1.1,
+   "fav": "rump",
+   "collar": "#B8E3D3"
+  },
+  {
+   "id": "kkamang",
+   "name": "까망",
+   "animal": "cat",
+   "color": "검정",
+   "trait": "ticklish",
+   "scale": 1.0,
+   "fav": "back",
+   "collar": "#FFD86B"
+  },
+  {
+   "id": "mango",
+   "name": "망고",
+   "animal": "cat",
+   "color": "살구",
+   "trait": "ticklish",
+   "scale": 0.9,
+   "fav": "ear_back",
+   "collar": "#C9A7FF"
+  },
+  {
+   "id": "mongsil",
+   "name": "몽실",
+   "animal": "dog",
+   "color": "회색",
+   "trait": "timid",
+   "scale": 1.1,
+   "fav": "chin",
+   "collar": "#FF8F70"
+  },
+  {
+   "id": "nurung",
+   "name": "누룽",
+   "animal": "dog",
+   "color": "살구",
+   "trait": "timid",
+   "scale": 1.0,
+   "fav": "rump",
+   "collar": "#FF9EC4"
+  },
+  {
+   "id": "wangnun",
+   "name": "왕눈",
+   "animal": "dog",
+   "color": "초코",
+   "trait": "timid",
+   "scale": 0.9,
+   "fav": "back",
+   "collar": "#8FD3F4"
+  },
+  {
+   "id": "lulu",
+   "name": "루루",
+   "animal": "cat",
+   "color": "회색",
+   "trait": "timid",
+   "scale": 1.1,
+   "fav": "ear_back",
+   "collar": "#B8E3D3"
+  },
+  {
+   "id": "byeoli",
+   "name": "별이",
+   "animal": "dog",
+   "color": "크림",
+   "trait": "dandy",
+   "scale": 1.0,
+   "fav": "chin",
+   "collar": "#FFD86B"
+  },
+  {
+   "id": "haru",
+   "name": "하루",
+   "animal": "dog",
+   "color": "흰색",
+   "trait": "dandy",
+   "scale": 0.9,
+   "fav": "rump",
+   "collar": "#C9A7FF"
+  },
+  {
+   "id": "kkoma",
+   "name": "꼬마",
+   "animal": "cat",
+   "color": "크림",
+   "trait": "dandy",
+   "scale": 1.1,
+   "fav": "back",
+   "collar": "#FF8F70"
+  }
+ ]
+}

@@ -300,6 +300,18 @@ extends Resource
 @export var v4_mood_fast := 30.0
 @export var v4_mood_slow := 120.0
 @export var v4_trait_clean_bonus := 1
+## 손님 사진첩 (TUNING_V4 5장): 단골 수, 처음 보는 단골 [2~8일차, 9일차부터], 바뀌는 날, 1일차 단골, 크기
+@export var v4_regulars_dog := 16
+@export var v4_regulars_cat := 8
+@export var v4_new_regulars_per_day := PackedInt32Array([2, 1])
+@export var v4_new_regulars_switch_day := 9
+@export var v4_first_day_regulars: Array[String] = ["kongi", "bori", "dubu", "hotteok"]
+@export var v4_regular_scales := PackedFloat32Array([0.9, 1.0, 1.1])
+## 만난 단골 수 보상 자리·돈, 한 쪽 칸 수, 사진 게시판 사진 수
+@export var v4_album_milestones := PackedInt32Array([5, 10, 15, 20])
+@export var v4_album_rewards := PackedInt32Array([50, 100, 150, 200])
+@export var v4_album_page_slots := 4
+@export var v4_photo_board_slots := 6
 ## 가게 밖·택배 (TUNING_V4 3-4): 아침 시작 뒤 트럭이 와서 떠나기까지 (s), 상자를 들고 걷는 속도 [작은, 중간, 큰]
 @export var v4_truck_seconds := 4.0
 @export var v4_box_carry_speed := PackedFloat32Array([1.0, 0.9, 0.75])

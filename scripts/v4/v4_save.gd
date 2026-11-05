@@ -28,6 +28,10 @@ static func fresh() -> Dictionary:
 		"owns_cart": false,
 		# 한 번이라도 나온 고양이·동물 성격 (처음이면 안내 카드)
 		"seen_animals": [],
+		# 손님 사진첩: 단골 id → {visits, best_mood 0~3, day, trim, wall, floor, fav_found}, 받은 보상 자리, 만난 순서
+		"album": {},
+		"album_rewards_taken": [],
+		"regulars_met_order": [],
 		# 남은 샴푸 (마리분). 거품 도구 단계가 높으면 0.75·0.5 마리분씩 써서 소수
 		"shampoo_left": float(Tuning.data.v4_shampoo_start),
 		# 지금 빗으로 빗질한 마리 수 (새 빗살을 끼우면 0)
@@ -69,6 +73,17 @@ static func normalize(raw: Dictionary) -> Dictionary:
 			data.tool_level[tool_id] = clampi(int(levels.get(tool_id, 0)), 0, Tuning.data.v4_tool_tiers - 1)
 	data.owns_scissors = bool(raw.get("owns_scissors", false))
 	data.owns_cart = bool(raw.get("owns_cart", false))
+	var album: Variant = raw.get("album", {})
+	if album is Dictionary:
+		for id in album:
+			var entry: Variant = album[id]
+			if entry is Dictionary:
+				data.album[str(id)] = {"visits": int(entry.get("visits", 1)), "best_mood": clampi(int(entry.get("best_mood", 2)), 0, 3), "day": int(entry.get("day", 1)), "trim": str(entry.get("trim", "")), "wall": str(entry.get("wall", "")), "floor": str(entry.get("floor", "")), "fav_found": bool(entry.get("fav_found", false))}
+	for key in ["album_rewards_taken", "regulars_met_order"]:
+		var items: Variant = raw.get(key, [])
+		if items is Array:
+			for item in items:
+				data[key].append(int(item) if key == "album_rewards_taken" else str(item))
 	var seen: Variant = raw.get("seen_animals", [])
 	if seen is Array:
 		for id in seen:
