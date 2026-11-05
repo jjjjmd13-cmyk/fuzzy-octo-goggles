@@ -19,8 +19,6 @@ const FpAnimals := preload("res://scripts/v4/fp_animals.gd")
 const FpRegulars := preload("res://scripts/v4/fp_regulars.gd")
 const FpDays := preload("res://scripts/v4/fp_days.gd")
 const FpTrust := preload("res://scripts/v4/fp_trust.gd")
-## 축제 날 주인 모자 (없으면 임시 고깔)
-const HAT_MODEL := "res://assets/models/outside/festival_hat.glb"
 const FONT := preload("res://assets/fonts/pretendard/Pretendard-Bold.otf")
 const KINDS: Array[String] = ["hurry", "normal", "relaxed", "forever"]
 const TRIM_NAMES := {"bear": "곰돌이컷", "lion": "사자컷", "summer": "여름컷"}
@@ -72,8 +70,6 @@ var patience_mult := 1.0
 var trim_shapes: Array = ["bear", "lion", "summer"]
 ## 지금 놓인 대기 의자 수 (3, 9일차부터 4). set_seats 로 바꿈
 var seat_count := 3
-## 축제 날: 모두 '끝까지', 금색 사진 없는 단골 먼저, 주인 축제 모자
-var festival := false
 
 var _rng := RandomNumberGenerator.new()
 var _opening: Array = []
@@ -153,11 +149,7 @@ func spawn(kind := "", walk_in := false) -> void:
 		if current != null and current.has_meta("regular"):
 			busy.append(current.get_meta("regular"))
 		var met: Array = album.keys() + guests.filter(func(g: Dictionary) -> bool: return g.get("new", false)).map(func(g: Dictionary) -> String: return g.regular)
-		# 축제 날: 사진첩에 금색 사진이 아직 없는 단골부터 (마지막 기회)
-		var prefer: Array = []
-		if festival:
-			prefer = album.keys().filter(func(key: String) -> bool: return int(album[key].get("best_mood", -1)) < 3)
-		var id := FpRegulars.pick(day, spawned_today, met, new_today, busy, _rng, prefer)
+		var id := FpRegulars.pick(day, spawned_today, met, new_today, busy, _rng)
 		var regular := FpRegulars.get_regular(id)
 		animal = {"animal": regular.animal, "trait": regular.trait, "regular": id}
 	var regular_id: String = animal.get("regular", "")
@@ -174,8 +166,6 @@ func spawn(kind := "", walk_in := false) -> void:
 		_add_name_tag(owner, regular_id, is_new)
 		_greet(held, int(album.get(regular_id, {}).get("trust", 0)))
 	owner.holding = true
-	if festival:
-		_add_hat(owner)
 	var icon := _make_icon(kind)
 	owner.add_child(icon)
 	# 참을성 표시 옆에 작은 성격 표시
@@ -195,8 +185,6 @@ func spawn(kind := "", walk_in := false) -> void:
 
 ## 성격 뽑기: v4_patience_mix (급함·보통·느긋·끝까지). 연 뒤 v4_hurry_after 초 동안은 급함 없음
 func roll_kind() -> String:
-	if festival:
-		return "forever"
 	var weights: PackedFloat32Array = Tuning.data.v4_patience_mix.duplicate()
 	# 급한 손님은 v4_hurry_from_day (2일차) 부터, 그날도 연 뒤 v4_hurry_after 초 뒤부터
 	if elapsed < Tuning.data.v4_hurry_after or not FpDays.hurry_open(day):
@@ -346,32 +334,6 @@ func _add_name_tag(owner: Node3D, regular_id: String, is_new: bool) -> void:
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.position = Vector3(0, owner.height + 0.68, 0)
 	owner.add_child(label)
-
-
-## 축제 모자: 머리(Head) 위 고깔 (assets/models/outside/festival_hat.glb 가 있으면 그것)
-func _add_hat(owner: Node3D) -> void:
-	var hat: Node3D = null
-	if ResourceLoader.exists(HAT_MODEL):
-		hat = (load(HAT_MODEL) as PackedScene).instantiate() as Node3D
-	else:
-		hat = Node3D.new()
-		var cone := CylinderMesh.new()
-		cone.top_radius = 0.0
-		cone.bottom_radius = 0.09
-		cone.height = 0.2
-		_part(hat, cone, Vector3(0, 0.1, 0), Color(1.0, 0.55, 0.7))
-		var pompom := SphereMesh.new()
-		pompom.radius = 0.03
-		pompom.height = 0.06
-		_part(hat, pompom, Vector3(0, 0.21, 0), Color(1.0, 0.92, 0.4))
-	hat.name = "FestivalHat"
-	var head := owner.find_child("Head", true, false) as Node3D
-	if head != null:
-		head.add_child(hat)
-		hat.position = Vector3(0, 0.2, 0)
-	else:
-		owner.add_child(hat)
-		hat.position = Vector3(0, owner.height, 0)
 
 
 ## 신뢰 단계별 인사 (임시 몸짓, 그림·애니메이션이 오면 바꿈): 낯가림 = 주인 쪽으로 돌아 고개만 빼꼼,

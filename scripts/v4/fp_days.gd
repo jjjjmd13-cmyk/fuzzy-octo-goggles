@@ -1,6 +1,6 @@
 extends RefCounted
 ## V4 18일 전체 흐름 (GDD_V4 '18일 전체 흐름', TUNING_V4 6장): 날마다 손님 간격 · 새로 열리는 것 · 아침 알림 한 줄 ·
-## 18일차 반짝 목욕 축제 · 엔딩 별 · 19일차부터 자유 영업. 규칙만 여기 (가게·손님이 물어봄), 장면은 fp_shop / fp_ending.
+## 18일차 정산 뒤 감사의 날 엔딩 (fp_thanks.gd) · 엔딩 별 · 19일차부터 자유 영업. 규칙만 여기 (가게·손님이 물어봄), 장면은 fp_shop / fp_ending.
 
 ## 아침 알림 (그날 새로 열리는 것 한 줄). 없는 날은 ""
 const NOTICES := {
@@ -13,11 +13,9 @@ const NOTICES := {
 	7: "멋쟁이 손님이 오기 시작해요",
 	9: "대기 의자가 하나 늘었어요 (4개)",
 }
-const INVITE := "우편함에 축제 초대장! \"%d일째에 동네 반짝 목욕 축제가 열려요!\""
-const FESTIVAL := "오늘은 반짝 목욕 축제! 팁 ×%s · 아무도 떠나지 않아요 · 금색 사진이 없는 단골이 먼저 와요"
 const FREE_PLAY := "자유 영업 · 남은 도구·꾸미기·금색 사진을 모아 보세요"
 ## 엔딩 별 3개 이름 (v4_ending_stars 순서)
-const STAR_NAMES := ["금색 사진 %d장", "5단계 도구 %d개", "아늑함 ★%d"]
+const STAR_NAMES := ["금색 사진 %d장", "5단계 도구 %d개", "단짝 단골 %d마리"]
 
 
 ## 그날 새 손님 간격 (s): 1~18일차 표, 그 뒤 자유 영업
@@ -28,7 +26,8 @@ static func guest_every(day: int) -> float:
 	return Tuning.data.v4_free_play_guest_every
 
 
-static func is_festival(day: int) -> bool:
+## 마지막 날 (정산 뒤 감사의 날 엔딩)
+static func is_last_day(day: int) -> bool:
 	return day == Tuning.data.v4_last_day
 
 
@@ -49,32 +48,15 @@ static func seat_count(day: int) -> int:
 	return 4 if day >= Tuning.data.v4_extra_seat_day else 3
 
 
-## 축제 초대장이 우편함에 있나 (12일차 ~ 축제 날)
-static func invite_open(day: int) -> bool:
-	return day >= Tuning.data.v4_festival_invite_day and day <= Tuning.data.v4_last_day
-
-
 ## 아침 알림 한 줄 ("" = 새 것 없음)
 static func notice(day: int) -> String:
-	var last: int = Tuning.data.v4_last_day
-	if day == last:
-		return FESTIVAL % str(Tuning.data.v4_festival_tip_mult)
-	if day > last:
+	if day > Tuning.data.v4_last_day:
 		return FREE_PLAY
-	if day == Tuning.data.v4_festival_invite_day:
-		return INVITE % last
-	if day > Tuning.data.v4_festival_invite_day:
-		return "축제까지 %d일" % (last - day)
 	return NOTICES.get(day, "")
 
 
-## 팁 배수 (축제 날 ×1.5)
-static func tip_mult(day: int) -> float:
-	return Tuning.data.v4_festival_tip_mult if is_festival(day) else 1.0
-
-
-## 엔딩 별: 금색 사진 수 · 5단계 도구 수 · 아늑함 ★ → [{name, value, need, got}]
-static func stars(album: Dictionary, tool_level: Dictionary, coziness: int) -> Array:
+## 엔딩 별: 금색 사진 수 · 5단계 도구 수 · 단짝 단골 수 → [{name, value, need, got}]
+static func stars(album: Dictionary, tool_level: Dictionary) -> Array:
 	var gold := 0
 	for id in album:
 		if int(album[id].get("best_mood", -1)) == 3:
@@ -83,7 +65,11 @@ static func stars(album: Dictionary, tool_level: Dictionary, coziness: int) -> A
 	for tool_id in tool_level:
 		if int(tool_level[tool_id]) >= Tuning.data.v4_tool_tiers - 1:
 			top += 1
-	var values := [gold, top, coziness]
+	var best := 0
+	for id in album:
+		if int(album[id].get("trust", 0)) >= 3:
+			best += 1
+	var values := [gold, top, best]
 	var need: PackedInt32Array = Tuning.data.v4_ending_stars
 	var out := []
 	for i in 3:
