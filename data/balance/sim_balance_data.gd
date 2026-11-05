@@ -265,8 +265,7 @@ extends Resource
 @export var v4_decor_points := PackedInt32Array([1, 2, 3])
 @export var v4_decor_patience_per_point := 0.01
 @export var v4_decor_patience_max := 0.3
-## 고양이·동물 성격 (TUNING_V4 4장): 싫어함 수 → 얼굴 [😐 부터, 😣 부터], 같은 규칙 사이 (s), 규칙마다 최대
-@export var v4_dislike_mood_at := PackedInt32Array([1, 3])
+## 고양이·동물 성격 (TUNING_V4 4장): 같은 규칙 사이 (s), 규칙마다 최대 (얼굴은 4-1 기분 점수)
 @export var v4_dislike_cooldown := 2.0
 @export var v4_dislike_max_per_rule := 2
 ## 고양이: 오는 날, 비율, 요금, 몸 크기(임시 고양이는 모형이 이미 작아 쓰지 않음), 빗질 뭉치, 젖어 있는 시간 한도 (s), 머리 물 싫어함 최대
@@ -288,6 +287,19 @@ extends Resource
 @export var v4_timid_face_radius := 0.12
 @export var v4_dandy_forgive := 1
 @export var v4_dandy_trim_mult := 1.5
+## 기분·반응 (TUNING_V4 4-1): 기분 점수 → 얼굴 [😐, 😊, 🤩 부터], 바닥, 얼굴별 팁 [😣, 😐, 😊, 🤩]
+@export var v4_mood_at := PackedInt32Array([-2, 0, 2])
+@export var v4_mood_floor := -4
+@export var v4_tip_mood4 := PackedInt32Array([0, 5, 15, 25])
+## 좋아하는 곳 후보 (한 마리에 하나), 머무는 시간 (s), 반경 (m), 꼬리가 빨라지기 시작하는 거리 (m)
+@export var v4_fav_spots: Array[String] = ["chin", "ear_back", "back", "rump"]
+@export var v4_fav_time := 0.5
+@export var v4_fav_radius := 0.15
+@export var v4_fav_hint_radius := 0.4
+## 목욕대에 올린 뒤 이 안에 다 씻으면 좋아함, 이보다 오래면 싫어함 (s), 성격 손님을 싫어함 0 으로 끝내면 +
+@export var v4_mood_fast := 30.0
+@export var v4_mood_slow := 120.0
+@export var v4_trait_clean_bonus := 1
 ## 가게 밖·택배 (TUNING_V4 3-4): 아침 시작 뒤 트럭이 와서 떠나기까지 (s), 상자를 들고 걷는 속도 [작은, 중간, 큰]
 @export var v4_truck_seconds := 4.0
 @export var v4_box_carry_speed := PackedFloat32Array([1.0, 0.9, 0.75])
