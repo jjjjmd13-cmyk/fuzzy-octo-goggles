@@ -1,6 +1,6 @@
 # 출시 준비 (초안) — 멍냥 목욕탕 / Paws & Bubbles
 
-작성: 기획팀 · 2026-11-04 · 판 0.3 (2026-11-05: 5장 엔딩 크레딧 확정) · 판 0.2 (2026-11-05: 상점 문구를 '정이 드는 단골' 중심으로 — [research/competitor-tiny-pet-salon.md](research/competitor-tiny-pet-salon.md), 신뢰·액세서리 번역 범위 추가) · 판 0.1 (초안, 대표·사람 대표 검토용) · 근거: [GDD_V4.md](GDD_V4.md)
+작성: 기획팀 · 2026-11-04 · 판 0.4 (2026-11-05: 크레딧 화면 없앰 → 끝 인사 한 줄 + 라이선스 표기, 5장) · 판 0.3 (2026-11-05: 5장 엔딩 크레딧 확정) · 판 0.2 (2026-11-05: 상점 문구를 '정이 드는 단골' 중심으로 — [research/competitor-tiny-pet-salon.md](research/competitor-tiny-pet-salon.md), 신뢰·액세서리 번역 범위 추가) · 판 0.1 (초안, 대표·사람 대표 검토용) · 근거: [GDD_V4.md](GDD_V4.md)
 
 세 가지를 다룹니다: ① 영어 번역 범위 ② 처음 하는 사람 안내 흐름 ③ 스팀 상점 페이지 문구 (한국어·영어).
 **돈이 드는 일** (스팀 등록비, 유료 번역·검수, 유료 트레일러 음악 등)은 이 문서에서 정하지 않습니다. 필요하면 대표에게 "무엇·얼마·왜·무료 대안" 으로 따로 올립니다.
@@ -27,7 +27,7 @@
 | 단골 이름 24 + 사진첩 카드 글자 | 약 35 | 이름은 **뜻을 살려 새로 지음** (아래) |
 | 단골 신뢰 (단계 이름 4·"더 친해졌어요"·'처음 ~한 날' 기록 약 10·대표 단골 3마리 주인 대사 단계마다 1~2줄) | 약 40 | 대사는 짧게 |
 | 도구 버릇 3 (이름·한 줄 설명) · 액세서리 12 + 범주 4 | 약 22 | |
-| 축제·엔딩·크레딧 | 약 20 | |
+| 엔딩·끝 인사·라이선스 메뉴 | 약 15 | 축제·크레딧은 뺌 |
 | 스팀 업적 이름·설명 | 약 20 | 업적이 정해지면 |
 | **합** | **약 410 줄** | 한 줄 평균 20자 안팎 → 짧음 |
 
@@ -195,22 +195,14 @@ Cozy · Simulation · Cute · First-Person · Animals · Relaxing · Management 
 
 ---
 
-## 5. 엔딩 크레딧 (확정, 2026-11-05)
+## 5. 엔딩 끝 인사 · 라이선스 표기 (2026-11-05 사람 대표 결정)
 
-18일차 엔딩의 '짧은 크레딧' (`scripts/v4/fp_ending.gd` `CREDITS`, 한 줄씩). **사실대로** 적음. 번역 키로 한/영.
-
-| 줄 | 한국어 | English |
-|---|---|---|
-| 1 | 멍냥 목욕탕 | Paws & Bubbles |
-| 2 | 만든 사람 — (이름 정하는 중) | Created by — (name to be decided) |
-| 3 | 기획 · 개발 · QA — Claude (Anthropic) | Design · Programming · QA — Claude (Anthropic) |
-| 4 | 그래픽 — ChatGPT (OpenAI) | Art — ChatGPT (OpenAI) |
-| 5 | 음악 · 효과음 — 코드로 직접 만듦 (CC0) | Music & Sound — made in code (CC0) |
-| 6 | 글꼴 — Pretendard (SIL Open Font License 1.1) | Font — Pretendard (SIL Open Font License 1.1) |
-| 7 | 엔진 — Godot Engine (MIT 라이선스) | Engine — Godot Engine (MIT License) |
-| 8 | 플레이해 주셔서 고마워요! | Thank you for playing! |
-
-- 근거: 음악 `assets/music/LICENSE.md` (코드 합성, CC0 1.0), 효과음 `tools/make_sfx.py` (코드 합성, 외부 소리 없음), 글꼴 `assets/fonts/pretendard/LICENSE.txt` (OFL 1.1), 3D·2D 그림 `docs/art/ASSET_PROVENANCE.md` (외부 에셋 없음, ChatGPT 제작).
-- 출시 빌드에 **GodotSteam** 을 넣으면 7번 다음 줄에 "스팀 연동 — GodotSteam (MIT 라이선스) / Steam integration — GodotSteam (MIT License)" 추가.
-- **라이선스 전문**: OFL·MIT 는 저작권·라이선스 문구를 함께 배포해야 함 → 크레딧 화면에는 위 한 줄만 두고, 전문은 메뉴 [설정 → 라이선스] 또는 게임 폴더의 `LICENSES.txt` 로 (개발팀이 빌드에 넣음: Godot `COPYRIGHT.txt`·MIT 전문, Pretendard `LICENSE.txt`, GodotSteam MIT 전문).
-- 새 외부 에셋이 생기면 이 표와 `ASSET_PROVENANCE.md` 에 같이 더함.
+- **크레딧 화면 (만든 사람 목록) 은 넣지 않음.** 엔딩 끝에 한 줄만:
+  - 한국어: **플레이해 주셔서 고마워요!**
+  - English: **Thanks for playing!**
+- **라이선스 표기**는 두 곳 (OFL·MIT 는 저작권·라이선스 문구를 함께 배포해야 함):
+  1. 게임 폴더의 `LICENSES.txt` — Godot Engine (MIT, `COPYRIGHT.txt`), Pretendard (SIL OFL 1.1, `LICENSE.txt`), 출시 빌드에 넣으면 GodotSteam (MIT) 전문.
+  2. 설정 메뉴 **[라이선스]** — 위 파일 내용을 그대로 보여 줌.
+- 우리가 만든 것의 출처 기록은 그대로: 음악 `assets/music/LICENSE.md` (코드 합성, CC0 1.0), 효과음 `tools/make_sfx.py` (코드 합성), 그림 `docs/art/ASSET_PROVENANCE.md` (외부 에셋 없음). 화면에는 따로 표시하지 않음.
+- 새 외부 에셋이 생기면 `LICENSES.txt` 와 `ASSET_PROVENANCE.md` 에 같이 더함.
+- 스팀 상점 페이지 문구 (3장) 의 '18일째 동네 목욕 축제' 표현은 새 엔딩이 정해지면 고침.
