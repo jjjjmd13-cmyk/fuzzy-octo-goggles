@@ -320,6 +320,17 @@ extends Resource
 @export var v4_cart_slots := 3
 @export var v4_cart_speed := 0.85
 @export var v4_box_sniff_chance := 0.3
+## 18일 전체 흐름 (TUNING_V4 6장): 날마다 손님 간격 (s, 1~18일차), 축제·엔딩 날, 자유 영업 간격, 열리는 날, 축제 팁 배수,
+## 엔딩 별 기준 [금색 사진 수, 5단계 도구 수, 아늑함 ★]
+@export var v4_guest_every_by_day := PackedFloat32Array([60, 55, 50, 45, 45, 45, 42, 42, 42, 40, 40, 40, 38, 38, 38, 36, 36, 36])
+@export var v4_last_day := 18
+@export var v4_free_play_guest_every := 36.0
+@export var v4_hurry_from_day := 2
+@export var v4_scissors_from_day := 4
+@export var v4_extra_seat_day := 9
+@export var v4_festival_tip_mult := 1.5
+@export var v4_festival_invite_day := 12
+@export var v4_ending_stars := PackedInt32Array([12, 3, 20])
 
 ## 기분 0~1 → 얼굴 단계 0(😣) / 1(😐) / 2(😊)
 func mood_face(mood: float) -> int:

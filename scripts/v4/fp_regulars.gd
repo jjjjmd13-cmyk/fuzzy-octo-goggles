@@ -54,9 +54,12 @@ static func new_quota(day: int) -> int:
 
 
 ## 그날 nth 번째 손님(1부터)으로 올 단골 id. met = 이미 만난 id, new_today = 오늘 이미 온 처음 보는 단골 수,
-## busy = 지금 줄·목욕통에 있는 id (같은 단골이 두 번 동시에 오지 않게)
-static func pick(day: int, nth: int, met: Array, new_today: int, busy: Array, rng: RandomNumberGenerator) -> String:
+## busy = 지금 줄·목욕통에 있는 id (같은 단골이 두 번 동시에 오지 않게), prefer = 먼저 올 단골 (축제 날: 금색 사진이 없는 단골)
+static func pick(day: int, nth: int, met: Array, new_today: int, busy: Array, rng: RandomNumberGenerator, prefer: Array = []) -> String:
 	var open := all().filter(func(r: Dictionary) -> bool: return is_open(r, day) and not busy.has(r.id))
+	var first := open.filter(func(r: Dictionary) -> bool: return prefer.has(r.id))
+	if not first.is_empty():
+		return first[rng.randi() % first.size()].id
 	var unmet := open.filter(func(r: Dictionary) -> bool: return not met.has(r.id))
 	var slot: int = Tuning.data.v4_new_guest_slot
 	# 1일차: 처음 4마리는 정해진 단골 (콩이·보리·두부·호떡)

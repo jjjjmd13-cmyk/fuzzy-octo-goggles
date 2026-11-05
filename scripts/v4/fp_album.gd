@@ -9,6 +9,7 @@ signal closed
 
 const FpRegulars := preload("res://scripts/v4/fp_regulars.gd")
 const FpAnimals := preload("res://scripts/v4/fp_animals.gd")
+const FpEnding := preload("res://scripts/v4/fp_ending.gd")
 const UI_DIR := "res://assets/ui/album/%s.png"
 const FRAMES := ["photo_frame_grey", "photo_frame_white", "photo_frame_pink", "photo_frame_gold"]
 const FRAME_COLORS := [Color(0.7, 0.7, 0.72), Color(1, 1, 1), Color(1.0, 0.7, 0.82), Color(0.95, 0.8, 0.4)]
@@ -16,6 +17,8 @@ const MOOD_NAMES := ["😣 시무룩", "😐 보통", "😊 기쁨", "🤩 신�
 const BROWN := Color(0.3, 0.22, 0.15)
 
 var album: Dictionary = {}
+## 엔딩 단체 사진에 선 단골 id (비면 마지막 쪽 없음). open 전에 정함
+var group_photo: Array = []
 var page := 0
 var _grid: GridContainer
 var _page_label: Label
@@ -87,6 +90,10 @@ func open(data: Dictionary) -> void:
 
 
 func pages() -> int:
+	return regular_pages() + (1 if not group_photo.is_empty() else 0)
+
+
+func regular_pages() -> int:
 	var per_page: int = Tuning.data.v4_album_page_slots
 	return ceili(float(FpRegulars.all().size()) / per_page)
 
@@ -95,6 +102,20 @@ func show_page(index: int) -> void:
 	page = clampi(index, 0, pages() - 1)
 	for child in _grid.get_children():
 		child.queue_free()
+	_grid.columns = 2
+	_page_label.text = "%d / %d 쪽" % [page + 1, pages()]
+	# 마지막 쪽: 엔딩 단체 사진
+	if page >= regular_pages():
+		_grid.columns = 1
+		var stage := FpEnding.make_group_stage(group_photo, Vector2(428, 380), false)
+		stage.name = "GroupPhoto"
+		_grid.add_child(stage)
+		var caption := Label.new()
+		caption.text = "반짝 목욕 축제 · 단체 사진 (%d마리)" % group_photo.size()
+		caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		caption.add_theme_color_override("font_color", BROWN)
+		_grid.add_child(caption)
+		return
 	var per_page: int = Tuning.data.v4_album_page_slots
 	var table := FpRegulars.all()
 	for i in range(page * per_page, mini((page + 1) * per_page, table.size())):

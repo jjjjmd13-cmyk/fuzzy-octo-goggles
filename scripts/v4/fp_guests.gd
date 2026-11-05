@@ -17,6 +17,9 @@ const CHAIR_SCENE := preload("res://scenes/art/sim/chair_model.tscn")
 const DOG_SCENE := preload("res://scenes/art/sim/dog_model.tscn")
 const FpAnimals := preload("res://scripts/v4/fp_animals.gd")
 const FpRegulars := preload("res://scripts/v4/fp_regulars.gd")
+const FpDays := preload("res://scripts/v4/fp_days.gd")
+## 축제 날 주인 모자 (없으면 임시 고깔)
+const HAT_MODEL := "res://assets/models/outside/festival_hat.glb"
 const FONT := preload("res://assets/fonts/pretendard/Pretendard-Bold.otf")
 const KINDS: Array[String] = ["hurry", "normal", "relaxed", "forever"]
 const TRIM_NAMES := {"bear": "곰돌이컷", "lion": "사자컷", "summer": "여름컷"}
@@ -27,7 +30,8 @@ const STREET := Vector3(9.6, 0, 2.6)
 const OUTSIDE_DOOR := Vector3(4.6, 0, 2.6)
 ## 이 x 보다 안쪽이면 가게 안 (참을성은 안에 들어와서부터)
 const INSIDE_X := 3.9
-const SEATS: Array[Vector3] = [Vector3(3.0, 0, -1.4), Vector3(3.0, 0, -0.5), Vector3(3.0, 0, 0.4)]
+## 대기 의자 (4번째는 v4_extra_seat_day 부터, 정문 쪽)
+const SEATS: Array[Vector3] = [Vector3(3.0, 0, -1.4), Vector3(3.0, 0, -0.5), Vector3(3.0, 0, 0.4), Vector3(3.0, 0, 1.3)]
 ## 목욕 중인 강아지 주인이 서서 지켜보는 곳
 const TUB_SIDE := Vector3(1.15, 0, -1.0)
 const LOOK_AT := Vector3(0, 0, -1.6)
@@ -65,6 +69,10 @@ var quick_animals: Array = []
 var patience_mult := 1.0
 ## 요청 모양 목록 (fp_trim.gd SHAPES 의 id)
 var trim_shapes: Array = ["bear", "lion", "summer"]
+## 지금 놓인 대기 의자 수 (3, 9일차부터 4). set_seats 로 바꿈
+var seat_count := 3
+## 축제 날: 모두 '끝까지', 금색 사진 없는 단골 먼저, 주인 축제 모자
+var festival := false
 
 var _rng := RandomNumberGenerator.new()
 var _opening: Array = []
@@ -88,6 +96,16 @@ func _ready() -> void:
 		add_child(chair)
 		chair.position = SEATS[i]
 		chair.rotation.y = atan2(LOOK_AT.x - SEATS[i].x, LOOK_AT.z - SEATS[i].z)
+	set_seats(seat_count)
+
+
+## 대기 의자 수 (3 또는 4). 남는 의자는 숨김
+func set_seats(count: int) -> void:
+	seat_count = clampi(count, 1, SEATS.size())
+	for i in SEATS.size():
+		var chair := get_node_or_null("Chair_%d" % (i + 1)) as Node3D
+		if chair != null:
+			chair.visible = i < seat_count
 	# 정문 문짝은 가게 밖(fp_outside.gd)이 만듦 (다가가면 열리는 진짜 문)
 
 
@@ -106,7 +124,7 @@ func start_day() -> void:
 ## 손님 한 명을 바로 들여보냄 (테스트·처음 줄). kind = "" 이면 비율대로 뽑음
 ## walk_in = true 면 찻길에서 마당을 지나 정문으로 걸어 들어옴 (영업 중 손님), false 면 정문 안쪽에서 바로 (테스트·빠른 확인)
 func spawn(kind := "", walk_in := false) -> void:
-	if guests.size() >= SEATS.size():
+	if guests.size() >= seat_count:
 		return
 	if kind.is_empty():
 		kind = roll_kind()
@@ -134,7 +152,11 @@ func spawn(kind := "", walk_in := false) -> void:
 		if current != null and current.has_meta("regular"):
 			busy.append(current.get_meta("regular"))
 		var met: Array = album.keys() + guests.filter(func(g: Dictionary) -> bool: return g.get("new", false)).map(func(g: Dictionary) -> String: return g.regular)
-		var id := FpRegulars.pick(day, spawned_today, met, new_today, busy, _rng)
+		# 축제 날: 사진첩에 금색 사진이 아직 없는 단골부터 (마지막 기회)
+		var prefer: Array = []
+		if festival:
+			prefer = album.keys().filter(func(key: String) -> bool: return int(album[key].get("best_mood", -1)) < 3)
+		var id := FpRegulars.pick(day, spawned_today, met, new_today, busy, _rng, prefer)
 		var regular := FpRegulars.get_regular(id)
 		animal = {"animal": regular.animal, "trait": regular.trait, "regular": id}
 	var regular_id: String = animal.get("regular", "")
@@ -150,6 +172,8 @@ func spawn(kind := "", walk_in := false) -> void:
 		FpRegulars.dress(held, FpRegulars.get_regular(regular_id))
 		_add_name_tag(owner, regular_id, is_new)
 	owner.holding = true
+	if festival:
+		_add_hat(owner)
 	var icon := _make_icon(kind)
 	owner.add_child(icon)
 	# 참을성 표시 옆에 작은 성격 표시
@@ -169,8 +193,11 @@ func spawn(kind := "", walk_in := false) -> void:
 
 ## 성격 뽑기: v4_patience_mix (급함·보통·느긋·끝까지). 연 뒤 v4_hurry_after 초 동안은 급함 없음
 func roll_kind() -> String:
+	if festival:
+		return "forever"
 	var weights: PackedFloat32Array = Tuning.data.v4_patience_mix.duplicate()
-	if elapsed < Tuning.data.v4_hurry_after:
+	# 급한 손님은 v4_hurry_from_day (2일차) 부터, 그날도 연 뒤 v4_hurry_after 초 뒤부터
+	if elapsed < Tuning.data.v4_hurry_after or not FpDays.hurry_open(day):
 		weights[KINDS.find("hurry")] = 0.0
 	var total := 0.0
 	for w in weights:
@@ -251,10 +278,10 @@ func _process(delta: float) -> void:
 	if _spawn_left <= 0.0 and open:
 		if not _opening.is_empty():
 			spawn(_opening.pop_front(), not quick)
-			_spawn_left = 2.5 if not _opening.is_empty() else Tuning.data.v4_guest_every
+			_spawn_left = 2.5 if not _opening.is_empty() else FpDays.guest_every(day)
 		elif not quick:
 			spawn("", true)
-			_spawn_left = Tuning.data.v4_guest_every
+			_spawn_left = FpDays.guest_every(day)
 	var camera := get_viewport().get_camera_3d()
 	var i := 0
 	while i < guests.size():
@@ -316,6 +343,32 @@ func _add_name_tag(owner: Node3D, regular_id: String, is_new: bool) -> void:
 	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	label.position = Vector3(0, owner.height + 0.68, 0)
 	owner.add_child(label)
+
+
+## 축제 모자: 머리(Head) 위 고깔 (assets/models/outside/festival_hat.glb 가 있으면 그것)
+func _add_hat(owner: Node3D) -> void:
+	var hat: Node3D = null
+	if ResourceLoader.exists(HAT_MODEL):
+		hat = (load(HAT_MODEL) as PackedScene).instantiate() as Node3D
+	else:
+		hat = Node3D.new()
+		var cone := CylinderMesh.new()
+		cone.top_radius = 0.0
+		cone.bottom_radius = 0.09
+		cone.height = 0.2
+		_part(hat, cone, Vector3(0, 0.1, 0), Color(1.0, 0.55, 0.7))
+		var pompom := SphereMesh.new()
+		pompom.radius = 0.03
+		pompom.height = 0.06
+		_part(hat, pompom, Vector3(0, 0.21, 0), Color(1.0, 0.92, 0.4))
+	hat.name = "FestivalHat"
+	var head := owner.find_child("Head", true, false) as Node3D
+	if head != null:
+		head.add_child(hat)
+		hat.position = Vector3(0, 0.2, 0)
+	else:
+		owner.add_child(hat)
+		hat.position = Vector3(0, owner.height, 0)
 
 
 ## 대기 손님 강아지가 안 연 택배 상자 쪽으로 고개를 돌리고 킁킁 (참을성에는 영향 없음, GDD_V4 재미 포인트)

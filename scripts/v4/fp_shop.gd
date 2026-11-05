@@ -25,6 +25,8 @@ const FpDecor := preload("res://scripts/v4/fp_decor.gd")
 const FpAnimals := preload("res://scripts/v4/fp_animals.gd")
 const FpRegulars := preload("res://scripts/v4/fp_regulars.gd")
 const FpAlbum := preload("res://scripts/v4/fp_album.gd")
+const FpDays := preload("res://scripts/v4/fp_days.gd")
+const FpEnding := preload("res://scripts/v4/fp_ending.gd")
 const ALBUM_BOOK := "res://assets/models/album/album_book.glb"
 ## 가게 물건: 이름, 상자 크기 (도구 단계 올리기는 "tool:<도구>")
 const SUPPLIES := {
@@ -35,6 +37,8 @@ const SUPPLIES := {
 
 ## 빠른 확인에서 강아지를 다 돌려줌 (개발용 scenes/dev/quick_check.tscn 이 끝 화면을 띄움)
 signal quick_finished
+## 하루를 닫음 (정산 판에서 [다음 날]·엔딩으로 넘어가기 직전, 산 것까지 끝난 뒤): 하루 결과 한 덩어리 (개발용 기록·테스트)
+signal day_closed(summary: Dictionary)
 
 const PICK_LAYER := 2
 const DOG_LAYER := 16
@@ -166,6 +170,14 @@ var album_rewards_taken: Array = []
 var regulars_met_order: Array = []
 ## 목욕통의 단골 id ("" = 단골 아님, 테스트·빠른 확인)
 var regular := ""
+## 18일 흐름 (GDD_V4 '18일 전체 흐름'): 엔딩을 봤나, 단체 사진에 선 단골 (저장됨)
+var ending_seen := false
+var group_photo: Array = []
+## 오늘 정산 가게에서 산 것 [{id, price}] (하루 결과 기록)
+var bought_today: Array = []
+var _day_closed := false
+var _ending: Control
+var _card_title := "새 손님!"
 var _album_view: Control
 var _album_book: StaticBody3D
 var hovered_book := false
@@ -315,6 +327,7 @@ func _ready() -> void:
 		# 빠른 확인 [도구 업그레이드]: 모든 도구를 가장 좋은 것으로 산 상태, 숫자 1~5 로 단계를 바꿔 봄
 		set_all_tiers(Tuning.data.v4_tool_tiers - 1)
 		_show_hint("최종 단계 도구예요. 숫자 1~5: 모든 도구 단계 바꾸기", 5.0)
+	_apply_day()
 	new_dog()
 	_clear_tub()
 	# 이미 매트에 도착한 상자 (이어하기)
@@ -350,6 +363,12 @@ func _start_morning() -> void:
 	guests.process_mode = Node.PROCESS_MODE_DISABLED
 	outside.set_sign(false, true)
 	_show_hint("%d일차 아침 · 문 옆 팻말을 뒤집으면 영업 시작 (정문으로 밖에 나가 볼 수 있어요)" % day, 6.0)
+	# 그날 새로 열리는 것 한 줄 (빠른 확인은 안 띄움)
+	var news := FpDays.notice(day)
+	if not news.is_empty() and quick_feature.is_empty() and quick_dogs == 0:
+		_card = news
+		_card_title = "%d일차 아침" % day
+		_card_left = 8.0
 	# 어제 주문한 상자: 트럭이 와서 매트에 내려놓음
 	var coming := parcels.filter(func(box: Dictionary) -> bool: return not box.get("arrived", true))
 	parcels_view.deliver(coming, Tuning.data.v4_truck_seconds)
@@ -606,6 +625,8 @@ func save_state(next_day: int) -> Dictionary:
 		"brush_used": brush_used,
 		"decor": decor.duplicate(true),
 		"parcels": parcels.duplicate(true),
+		"ending_seen": ending_seen,
+		"group_photo": group_photo.duplicate(),
 	}
 
 
@@ -629,6 +650,8 @@ func apply_state(data: Dictionary) -> void:
 		_place_cart(Vector3(2.7, 0, 1.4))
 	_set_pickup_available("scissors", owns_scissors)
 	guests.trim_chance = Tuning.data.v4_trim_request_ratio if owns_scissors else 0.0
+	ending_seen = data.get("ending_seen", false)
+	group_photo = data.get("group_photo", []).duplicate()
 	shampoo_left = data.shampoo_left
 	brush_used = data.brush_used
 	decor = data.decor.duplicate(true)
@@ -734,6 +757,7 @@ func _set_animal(kind: String, trait_id: String) -> void:
 		seen_animals.append(trait_id)
 	if not news.is_empty():
 		_card = "\n".join(news)
+		_card_title = "새 손님!"
 		_card_left = 8.0
 
 
@@ -827,6 +851,7 @@ func open_album() -> void:
 		return
 	_album_view = FpAlbum.new()
 	_album_view.name = "Album"
+	_album_view.group_photo = group_photo
 	_hud.get_parent().add_child(_album_view)
 	_album_view.open(album)
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
@@ -1081,6 +1106,8 @@ func give_back() -> void:
 		best_animal = animal
 	if face == 3:
 		_final_sparkle(dog.model.to_global(dog._body_center()), false)
+	# 축제 날 팁 ×1.5
+	tip = roundi(tip * FpDays.tip_mult(day))
 	if no_shampoo:
 		fee += Tuning.data.v4_no_shampoo_price - base
 		tip = 0
@@ -1276,6 +1303,7 @@ func order(store_id: String) -> bool:
 	if price < 0 or money < price:
 		return false
 	money -= price
+	bought_today.append({"id": store_id, "price": price})
 	var item := item_of(store_id)
 	var kind := "tool"
 	var size := "small"
@@ -1415,7 +1443,7 @@ func store_rows() -> Array:
 		rows.append({"id": tool_id, "name": TOOL_LEVEL_NAMES[tool_id][level], "next": TOOL_LEVEL_NAMES[tool_id][level + 1] if price >= 0 else "", "price": price, "can_buy": price >= 0 and money >= price})
 	if next_price("cart") >= 0:
 		rows.append({"id": "cart", "name": "수레 없음", "next": "택배 수레 (상자 3칸, 시험용)", "price": next_price("cart"), "can_buy": money >= next_price("cart")})
-	if next_price("scissors") >= 0:
+	if next_price("scissors") >= 0 and FpDays.scissors_open(day):
 		var scissors := next_price("scissors")
 		rows.append({"id": "scissors", "name": "가위 없음", "next": "가위 (미용 요청 손님)", "price": scissors, "can_buy": money >= scissors})
 	for id in ["shampoo_bottle", "shampoo_big"]:
@@ -1428,9 +1456,17 @@ func store_rows() -> Array:
 
 ## 정산 뒤 "다음 날": 가진 돈·도구는 그대로, 시계·손님·오늘 번 돈은 새로
 func start_next_day() -> void:
+	if not _day_closed:
+		_close_day()
+	# 18일차 정산 뒤 = 엔딩 (한 번만). [계속 영업하기] 로 19일차 자유 영업
+	if FpDays.is_festival(day) and not ending_seen:
+		play_ending()
+		return
 	if is_instance_valid(_settle):
 		_settle.queue_free()
 	_settle = null
+	_day_closed = false
+	bought_today = []
 	day += 1
 	day_time = 0.0
 	day_over = false
@@ -1440,11 +1476,65 @@ func start_next_day() -> void:
 	best_face = -1
 	best_animal = ""
 	guests.start_day()
+	_apply_day()
 	_clear_tub()
 	_start_morning()
 	save_game(day)
 	if input_enabled:
 		Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
+
+
+## 날마다 바뀌는 가게 (18일 흐름): 대기 의자 수, 축제 (손님·마당 장식), 우편함 초대장
+func _apply_day() -> void:
+	guests.set_seats(FpDays.seat_count(day))
+	var festival := FpDays.is_festival(day)
+	guests.festival = festival and quick_dogs == 0
+	outside.set_festival(festival)
+	outside.set_invite(FpDays.invite_open(day), festival)
+
+
+## 하루 결과 (정산 뒤, 산 것까지): 기록·테스트용 한 덩어리
+func day_summary() -> Dictionary:
+	var upkeep := 0
+	var bought := []
+	for row in bought_today:
+		bought.append(row.id)
+		if SUPPLIES.has(row.id):
+			upkeep += int(row.price)
+	var gold := 0
+	for id in album:
+		if int(album[id].get("best_mood", -1)) == 3:
+			gold += 1
+	return {"day": day, "served": guests.served, "left": guests.left_count, "price_sum": fees, "tip_sum": tips, "upkeep": upkeep, "bought": bought, "money_after": money, "regulars_met": album.size(), "gold_photos": gold}
+
+
+func _close_day() -> void:
+	_day_closed = true
+	day_closed.emit(day_summary())
+
+
+## 엔딩 (18일차 정산 뒤): 만난 단골 단체 사진 → 사진첩 마지막 쪽, 별 3개, 크레딧, [계속 영업하기] / [메뉴로]
+func play_ending() -> void:
+	if is_instance_valid(_ending):
+		return
+	ending_seen = true
+	group_photo = regulars_met_order.duplicate()
+	save_game(day + 1)
+	if is_instance_valid(_settle):
+		_settle.queue_free()
+	_settle = null
+	_ending = FpEnding.new()
+	_ending.name = "Ending"
+	_hud.get_parent().add_child(_ending)
+	_ending.play(group_photo, FpDays.stars(album, tool_level, FpDecor.coziness(decor.placed)), sfx)
+	_ending.continue_requested.connect(func() -> void:
+		_ending.queue_free()
+		_ending = null
+		start_next_day())
+	_ending.menu_requested.connect(func() -> void:
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		get_tree().change_scene_to_file(MENU_SCENE))
+	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 
 
 func _show_settle() -> void:
@@ -2285,7 +2375,8 @@ func _draw_hud() -> void:
 	if quick_dogs > 0:
 		_text(font, Vector2(size.x - 20, 40), "빠른 확인 · 강아지 %d / %d" % [guests.served, quick_dogs], 26, false, true)
 	else:
-		_text(font, Vector2(size.x - 20, 40), ("%d일차 · 아침 준비" % day) if morning else "%d일차 · %s%s" % [day, clock_text(), "" if guests.open else " · 영업 끝"], 26, false, true)
+		var day_name := "%d일차%s" % [day, " · 축제" if FpDays.is_festival(day) else (" · 자유 영업" if FpDays.is_free_play(day) else "")]
+		_text(font, Vector2(size.x - 20, 40), ("%s · 아침 준비" % day_name) if morning else "%s · %s%s" % [day_name, clock_text(), "" if guests.open else " · 영업 끝"], 26, false, true)
 	_text(font, Vector2(size.x - 20, 74), "돈 %d" % money, 26, false, true)
 	_text(font, Vector2(size.x - 20, 104), "기다리는 손님 %d · 씻긴 %d · 떠난 %d" % [guests.guests.size(), guests.served, guests.left_count], 18, false, true)
 	_text(font, Vector2(size.x - 20, size.y - 60), "손: %s" % (tool_name(held) if not held.is_empty() else "빈손"), 22, false, true)
@@ -2326,7 +2417,7 @@ func _draw_card(font: Font, size: Vector2) -> void:
 	var height := 40.0 + 34.0 * lines.size()
 	var rect := Rect2(Vector2(size.x / 2.0 - 380, size.y * 0.28), Vector2(760, height))
 	_hud.draw_rect(rect, Color(1.0, 0.97, 0.9, 0.95))
-	_text(font, Vector2(size.x / 2.0, rect.position.y + 26), "새 손님!", 22, true)
+	_text(font, Vector2(size.x / 2.0, rect.position.y + 26), _card_title, 22, true)
 	for i in lines.size():
 		_hud.draw_string(font, Vector2(rect.position.x + 24, rect.position.y + 58 + 34 * i), lines[i], HORIZONTAL_ALIGNMENT_LEFT, 712, 18, Color(0.3, 0.22, 0.15))
 
