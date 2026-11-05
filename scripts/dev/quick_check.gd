@@ -10,6 +10,8 @@ extends Node
 
 const SHOP_SCENE := preload("res://scenes/v4/fp_shop.tscn")
 const FpSettle := preload("res://scripts/v4/fp_settle.gd")
+const V4Save := preload("res://scripts/v4/v4_save.gd")
+const FpDayTools := preload("res://scripts/dev/fp_day_tools.gd")
 ## id, 메뉴 버튼, 강아지 수, 끝 화면의 "새로 들어간 것"
 const FEATURES: Array[Dictionary] = [
 	{"id": "day", "name": "하루 돌리기", "dogs": 2, "new": "손님 클릭으로 맡기기·돌려주기, 요금 + 팁"},
@@ -25,6 +27,7 @@ const FEATURES: Array[Dictionary] = [
 	{"id": "animals", "name": "고양이·성격", "dogs": 4, "new": "고양이 (머리에 물 → 냥!, 오래 젖어 있으면 싫어함, 요금 55) → 간지럼쟁이 강아지 (거품·수건 때 배·발에 오래 머물면 킥킥) → 겁쟁이 강아지 (얼굴에 물·바람이면 부르르) → 멋쟁이 고양이 (빗질을 끝까지 하면 싫어함 하나 지워 줌). 싫어함은 머리 위 💢 와 왼쪽 위 빨간 점, 돌려줄 때 얼굴·팁. 처음 나온 것은 가운데 안내 카드"},
 	{"id": "mood", "name": "기분·반응", "dogs": 2, "new": "기분 점수: 좋아하는 곳(턱 밑·귀 뒤·등·엉덩이 중 하나, 거품·빗질 때 0.5초 → ♥, 가까울수록 꼬리가 빨라짐) + 30초 안에 다 씻으면 🤩 (팁 25, 반짝 + 와, 반짝반짝해!). 120초 넘게 걸리면 시무룩. 빠른 확인에서만 좋아하는 곳 이름을 알려 줌"},
 	{"id": "album", "name": "사진첩", "dogs": 1, "new": "손님이 이름 있는 단골 24마리 (털 색·크기 다름, 주인 머리 위 이름표 \"콩이 ×3\"). 돌려줄 때 찰칵 + 사진 (기분 테두리). 단골 22마리를 만난 상태로 시작 → 23번째 단골을 씻겨 돌려주면 새 칸. 문 옆 작은 탁자(꾸미기 카운터가 있으면 그 위)의 사진첩 책을 클릭해서 보기 (6쪽, 칸을 누르면 단골 카드)"},
+	{"id": "days", "name": "18일 점검", "dogs": 0, "new": "진짜 하루 흐름 (저장·이어하기 그대로, 저장이 있으면 이어서) + 점검 도구: F5 날 건너뛰기 · F6 건너뛰기(모두 받음) · F7 돈 +1,000 · F8 하루 결과 기록 (user://v4_day_log.csv)"},
 	{"id": "save", "name": "저장·이어하기", "dogs": 1, "new": "예시 저장(4일차·돈 620·도구 단계 섞임·가위·샴푸 7.5마리분·빗 12마리·택배 상자 2개)을 파일에 쓰고 다시 읽어서 시작. 선반 도구 모양·오른쪽 위 날짜·돈이 그대로인지 봄 (진짜 저장 파일은 안 건드림)"},
 ]
 
@@ -35,6 +38,15 @@ var feature: Dictionary
 func _ready() -> void:
 	feature = find(Engine.get_meta("quick_check_feature", "day"))
 	shop = SHOP_SCENE.instantiate()
+	if feature.id == "days":
+		# 18일 점검: 보통 게임 그대로 (저장됨), 점검 도구만 위에
+		V4Save.continue_requested = V4Save.can_continue()
+		add_child(shop)
+		var tools := FpDayTools.new()
+		tools.name = "DayTools"
+		add_child(tools)
+		tools.attach(shop)
+		return
 	shop.quick_dogs = feature.dogs
 	shop.quick_feature = feature.id
 	add_child(shop)

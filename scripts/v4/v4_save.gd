@@ -41,6 +41,9 @@ static func fresh() -> Dictionary:
 		# 안 연 택배 상자. 하나 = {"item": 물건 id, "kind": tool|decor|shampoo|brush_refill, "size": small|medium|large,
 		# "arrived": 매트에 도착했나 (false = 어제 주문, 다음 아침 트럭으로 옴)}
 		"parcels": [],
+		# 18일 흐름: 엔딩을 봤나 (한 번만), 엔딩 단체 사진에 선 단골 id (사진첩 마지막 쪽)
+		"ending_seen": false,
+		"group_photo": [],
 	}
 
 
@@ -105,6 +108,11 @@ static func normalize(raw: Dictionary) -> Dictionary:
 		for box in parcels:
 			if box is Dictionary and box.has("item"):
 				data.parcels.append({"item": str(box.item), "kind": str(box.get("kind", "tool")), "size": str(box.get("size", "small")), "arrived": bool(box.get("arrived", true))})
+	data.ending_seen = bool(raw.get("ending_seen", false))
+	var group: Variant = raw.get("group_photo", [])
+	if group is Array:
+		for id in group:
+			data.group_photo.append(str(id))
 	return data
 
 

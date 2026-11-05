@@ -274,6 +274,66 @@ func set_mailbox_flag(up: bool) -> void:
 		mailbox_flag.rotation.x = _flag_up if up else _flag_down
 
 
+## 축제 날 마당 장식 (꾸미기와 따로, 그날만): festival_yard.glb 가 있으면 그것, 없으면 풍선 + 깃발 줄 임시 모형
+func set_festival(on: bool) -> void:
+	var old := get_node_or_null("Festival")
+	if old != null:
+		old.free()
+	if not on:
+		return
+	var deco := model("festival_yard")
+	if deco == null:
+		deco = Node3D.new()
+		var colors := [Color(1.0, 0.55, 0.7), Color(0.55, 0.78, 1.0), Color(1.0, 0.9, 0.4), Color(0.6, 0.9, 0.6)]
+		# 풍선: 정문 양옆·우편함 옆에 세 송이
+		var spots := [Vector3(WALL_X + 0.5, 0, DOOR_Z - 1.0), Vector3(WALL_X + 0.5, 0, ROOM_HALF_Z - 0.3), Vector3(MAILBOX_POS.x - 0.6, 0, MAILBOX_POS.z + 0.2)]
+		for i in spots.size():
+			for j in 3:
+				var balloon := _mesh_ball(0.18, colors[(i + j) % colors.size()])
+				balloon.position = spots[i] + Vector3((j - 1) * 0.2, 1.7 + 0.15 * (j % 2), 0)
+				deco.add_child(balloon)
+				var string := _mesh_box(Vector3(0.01, 1.5, 0.01), Color(0.95, 0.95, 0.95))
+				string.position = spots[i] + Vector3((j - 1) * 0.1, 0.8, 0)
+				deco.add_child(string)
+		# 깃발 줄: 가게 벽 위에서 울타리 끝까지 삼각 깃발
+		for k in 10:
+			var t := k / 9.0
+			var flag := _mesh_box(Vector3(0.02, 0.22, 0.2), colors[k % colors.size()])
+			flag.position = Vector3(lerpf(WALL_X + 0.2, YARD_END_X - 0.3, t), 2.6 - 0.35 * sin(t * PI), DOOR_Z - 1.4)
+			flag.rotation.x = PI / 4.0
+			deco.add_child(flag)
+	deco.name = "Festival"
+	add_child(deco)
+
+
+## 우편함 초대장 (12일차 ~ 축제 날): 우편함 입구에 꽂힌 분홍 봉투, today = 축제 날 ("오늘!")
+func set_invite(on: bool, today := false) -> void:
+	var old := get_node_or_null("Invite")
+	if old != null:
+		old.free()
+	if not on:
+		return
+	var letter := model("invite_letter")
+	if letter == null:
+		letter = Node3D.new()
+		var envelope := _mesh_box(Vector3(0.22, 0.14, 0.02), Color(1.0, 0.75, 0.82))
+		letter.add_child(envelope)
+	letter.name = "Invite"
+	letter.position = MAILBOX_POS + Vector3(0, 1.28, 0.1)
+	add_child(letter)
+	var label := Label3D.new()
+	label.name = "InviteLabel"
+	label.text = "축제 오늘!" if today else "축제 초대장"
+	label.font = load("res://assets/fonts/pretendard/Pretendard-Bold.otf")
+	label.font_size = 40
+	label.outline_size = 10
+	label.pixel_size = 0.004
+	label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
+	label.position.y = 0.25
+	letter.add_child(label)
+	set_mailbox_flag(true)
+
+
 func _build_sign() -> void:
 	sign_body = StaticBody3D.new()
 	sign_body.name = "OpenSign"
@@ -379,6 +439,18 @@ func _box(box_name: String, pos: Vector3, size: Vector3, color: Color, solid := 
 func _mesh_box(size: Vector3, color: Color) -> MeshInstance3D:
 	var mesh := BoxMesh.new()
 	mesh.size = size
+	var view := MeshInstance3D.new()
+	view.mesh = mesh
+	var material := StandardMaterial3D.new()
+	material.albedo_color = color
+	view.material_override = material
+	return view
+
+
+func _mesh_ball(radius: float, color: Color) -> MeshInstance3D:
+	var mesh := SphereMesh.new()
+	mesh.radius = radius
+	mesh.height = radius * 2.4
 	var view := MeshInstance3D.new()
 	view.mesh = mesh
 	var material := StandardMaterial3D.new()

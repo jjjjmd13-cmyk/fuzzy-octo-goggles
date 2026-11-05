@@ -22,6 +22,8 @@ func run_test() -> void:
 
 	# 가위: 사기 전엔 선반에 없고, 가게 줄에 있음
 	check(not shop._pickups.scissors.visible, "가위는 사기 전엔 선반에 없음")
+	# 가위는 v4_scissors_from_day (4일차) 부터 가게에 (18일 흐름)
+	shop.day = Tuning.data.v4_scissors_from_day
 	var rows: Array = shop.store_rows()
 	check(rows.any(func(r: Dictionary) -> bool: return r.id == "scissors" and r.price == Tuning.data.v4_price_scissors), "가게에 가위 (%d)" % Tuning.data.v4_price_scissors)
 	shop.money = Tuning.data.v4_price_scissors

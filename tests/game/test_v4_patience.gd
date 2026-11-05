@@ -23,7 +23,7 @@ func run_test() -> void:
 	guests.guest_left.connect(func(kind: String) -> void: left_kinds.append(kind))
 	await get_tree().process_frame
 
-	check_eq(guests.get_children().filter(func(n: Node) -> bool: return n.name.begins_with("Chair")).size(), 3, "대기 의자 3개")
+	check_eq(guests.get_children().filter(func(n: Node) -> bool: return n.name.begins_with("Chair") and n.visible).size(), 3, "대기 의자 3개 (9일차부터 4개)")
 	for kind in ["hurry", "normal", "forever", "relaxed"]:
 		guests.spawn(kind)
 	check_eq(guests.guests.size(), 3, "의자가 다 차면 더 안 들어옴")
@@ -73,6 +73,8 @@ func run_test() -> void:
 		early[kind] = early.get(kind, 0) + 1
 	check_eq(early.get("hurry", 0), 0, "처음 %.0f초 동안 급한 손님 없음" % Tuning.data.v4_hurry_after)
 	guests.elapsed = Tuning.data.v4_hurry_after + 1.0
+	# 급한 손님은 v4_hurry_from_day (2일차) 부터 (18일 흐름)
+	guests.day = Tuning.data.v4_hurry_from_day
 	var counts := {}
 	for i in 2000:
 		var kind: String = guests.roll_kind()
