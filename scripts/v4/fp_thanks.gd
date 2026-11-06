@@ -91,6 +91,11 @@ static func line_of(id: String, tier: int) -> String:
 	return COMMON_LINES[clampi(tier, 0, 3)]
 
 
+## '그때와 지금' 오른쪽 사진 글자: 그날 온 단골이면 "오늘", 아니면 "최근" (QA #137)
+static func recent_caption(recent_day: int, today: int) -> String:
+	return ("오늘 %d일차" if recent_day == today else "최근 %d일차") % recent_day
+
+
 static func _rank(album: Dictionary, id: String) -> int:
 	return int(album[id].get("trust", 0)) * 1000 + int(album[id].get("trust_pts", 0))
 
@@ -298,7 +303,7 @@ func _show_pair(id: String) -> void:
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 20)
 	box.add_child(row)
-	for item in [["첫 방문 %d일차" % int(entry.first.day), entry.first], ["오늘 %d일차" % int(entry.recent.day), entry.recent]]:
+	for item in [["첫 방문 %d일차" % int(entry.first.day), entry.first], [recent_caption(int(entry.recent.day), int(shop.day)), entry.recent]]:
 		var column := VBoxContainer.new()
 		row.add_child(column)
 		var photo := FpAlbum.make_photo(regular, {"best_mood": item[1].get("mood", 2), "wall": item[1].get("wall", ""), "acc": item[1].get("acc", "")}, Vector2(220, 220))
