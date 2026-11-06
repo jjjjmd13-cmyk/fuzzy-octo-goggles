@@ -23,7 +23,10 @@ const STAR_ORDER := ["jjanggu", "nabi", "mongsil"]
 ## 다른 단골 주인 공통 대사 (신뢰 단계별)
 const COMMON_LINES := ["오늘도 잘 씻겨 주셔서 고마워요.", "여기 오면 우리 애가 편해 보여요.", "이제 목욕 날을 기다려요. 고마워요!", "우리 애가 제일 좋아하는 사람이에요!"]
 ## 자리 (방 좌표): 플레이어 (정문 안쪽), 들어오는 곳, 한마디 하는 곳, 줄 서는 곳 (목욕대 앞 두 줄)
-const PLAYER_SPOT := Vector3(1.3, 0, 2.6)
+## 플레이어는 문에서 넉넉히 떨어져 (말하는 주인의 상체와 안긴 동물이 같이 보이게, QA #138)
+const PLAYER_SPOT := Vector3(0.2, 0, 2.6)
+## 카메라를 조금 내려다봄 (라디안)
+const LOOK_DOWN := -0.14
 const OUTSIDE := Vector3(4.6, 0, 2.6)
 const DOOR := Vector3(3.5, 0, 2.6)
 const SPEAK_SPOT := Vector3(2.55, 0, 2.6)
@@ -135,6 +138,8 @@ func _run() -> void:
 	shop.player.set_physics_process(false)
 	shop.player.global_position = shop.to_global(PLAYER_SPOT)
 	shop.player.rotation.y = -PI / 2.0
+	shop.player.camera.rotation.x = LOOK_DOWN
+	shop.player.set("_pitch", LOOK_DOWN)
 	shop.outside.set_sign(false)
 	# 낮 안내·시계는 숨김 (끝나면 다시)
 	shop._card_left = 0.0
@@ -248,7 +253,7 @@ func _visit(id: String, index: int) -> void:
 	bubble.font = FONT
 	bubble.font_size = 32
 	bubble.outline_size = 8
-	bubble.pixel_size = 0.0022
+	bubble.pixel_size = 0.0036
 	bubble.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 	bubble.no_depth_test = true
 	bubble.position.y = owner.height + 0.3
@@ -259,7 +264,7 @@ func _visit(id: String, index: int) -> void:
 		holder.remove_child(held)
 		add_child(held)
 		held.scale = Vector3.ONE * float(regular.scale)
-		held.position = SPEAK_SPOT.lerp(PLAYER_SPOT, 0.55)
+		held.position = SPEAK_SPOT.lerp(PLAYER_SPOT, 0.2)
 		held.rotation.y = -PI / 2.0
 		if not fast:
 			var hop := held.create_tween()
@@ -281,6 +286,8 @@ func _visit(id: String, index: int) -> void:
 	var spot := LINE_START + Vector3((index % LINE_PER_ROW) * LINE_STEP, 0, (index / LINE_PER_ROW) * 0.8)
 	var to_line := 0.05 if fast else SPEAK_SPOT.distance_to(spot) / WALK_SPEED
 	owner.go_wait(to_global(spot), to_global(PLAYER_SPOT), to_line, false)
+	# 앞 손님이 옆으로 비킨 뒤에 다음 손님 (가리지 않게, QA #138)
+	await _wait(minf(to_line, 1.5))
 
 
 ## '그때와 지금' 카드: 첫 방문 ↔ 최근 사진 + '처음 ~한 날' 하나
