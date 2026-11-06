@@ -45,6 +45,8 @@ static func fresh() -> Dictionary:
 		"parcels": [],
 		# 액세서리 (GDD_V4 '액세서리'): 가진 것 id
 		"acc_owned": Array(Tuning.data.v4_acc_start).duplicate(),
+		# 처음 하는 사람 안내 (fp_guide.gd): 본 안내 키
+		"guide_seen": [],
 		# 18일 흐름: 엔딩을 봤나 (한 번만), 엔딩 단체 사진에 선 단골 id (사진첩 마지막 쪽)
 		"ending_seen": false,
 		"group_photo": [],
@@ -142,6 +144,10 @@ static func normalize(raw: Dictionary) -> Dictionary:
 		data.acc_owned = []
 		for id in acc:
 			data.acc_owned.append(str(id))
+	var guide_seen: Variant = raw.get("guide_seen", [])
+	if guide_seen is Array:
+		for key in guide_seen:
+			data.guide_seen.append(str(key))
 	data.ending_seen = bool(raw.get("ending_seen", false))
 	var group: Variant = raw.get("group_photo", [])
 	if group is Array:

@@ -5,6 +5,8 @@ extends RefCounted
 static var path := "user://settings.cfg"
 static var sfx_volume := 0.8
 static var music_volume := 0.6
+## 처음 하는 사람 안내 (V4 fp_guide.gd) 켜짐
+static var guide_enabled := true
 static var _loaded := false
 
 
@@ -17,6 +19,7 @@ static func ensure_loaded() -> void:
 	if config.load(path) == OK:
 		sfx_volume = clampf(float(config.get_value("audio", "sfx", sfx_volume)), 0.0, 1.0)
 		music_volume = clampf(float(config.get_value("audio", "music", music_volume)), 0.0, 1.0)
+		guide_enabled = bool(config.get_value("guide", "enabled", true))
 	apply()
 
 
@@ -27,7 +30,15 @@ static func set_volumes(sfx: float, music: float) -> void:
 	var config := ConfigFile.new()
 	config.set_value("audio", "sfx", sfx_volume)
 	config.set_value("audio", "music", music_volume)
+	config.set_value("guide", "enabled", guide_enabled)
 	config.save(path)
+
+
+## 안내 켜기·끄기 (메뉴 [안내 끄기])
+static func set_guide_enabled(on: bool) -> void:
+	ensure_loaded()
+	guide_enabled = on
+	set_volumes(sfx_volume, music_volume)
 
 
 static func apply() -> void:

@@ -99,6 +99,15 @@ func _ready() -> void:
 	_autostart()
 
 
+## [안내 다시 보기]: V4 저장의 본 안내를 지우고 안내를 켬 (다음에 할 때 처음처럼)
+func replay_guide() -> void:
+	Settings.set_guide_enabled(true)
+	var saved := V4Save.read()
+	if not saved.is_empty():
+		saved.guide_seen = []
+		V4Save.write(saved)
+
+
 ## 출시용 첫 화면 (대표 결정, QA #139): V4 하나 — [이어하기] (저장이 있을 때) · [새로 시작] · [설정] · [라이선스] · [끝내기].
 ## V3 [혼자 하기]·개발용 버튼은 출시 빌드에서 안 보임 (코드는 그대로). dev 폴더가 있는 개발 빌드에서만
 ## 아래쪽 "개발용" 칸에 빠른 확인 줄과 V3 버튼을 둠 (출시 프리셋은 scripts/dev·scenes/dev 를 뺌).
@@ -221,6 +230,28 @@ func show_settings() -> void:
 	for key in sliders:
 		(sliders[key] as HSlider).value_changed.connect(func(_value: float) -> void:
 			Settings.set_volumes(sliders.Sfx.value, sliders.Music.value))
+	# 처음 하는 사람 안내 (V4, LAUNCH_PREP 2장): 켜기·끄기, 다시 보기 (V4 저장의 본 안내를 지움)
+	var guide_row := HBoxContainer.new()
+	guide_row.name = "GuideRow"
+	guide_row.alignment = BoxContainer.ALIGNMENT_CENTER
+	guide_row.add_theme_constant_override("separation", 8)
+	box.add_child(guide_row)
+	var guide_toggle := Button.new()
+	guide_toggle.name = "GuideToggle"
+	guide_toggle.custom_minimum_size = Vector2(0, 40)
+	guide_toggle.text = "안내 끄기" if Settings.guide_enabled else "안내 켜기"
+	guide_toggle.pressed.connect(func() -> void:
+		Settings.set_guide_enabled(not Settings.guide_enabled)
+		guide_toggle.text = "안내 끄기" if Settings.guide_enabled else "안내 켜기")
+	guide_row.add_child(guide_toggle)
+	var guide_replay := Button.new()
+	guide_replay.name = "GuideReplay"
+	guide_replay.custom_minimum_size = Vector2(0, 40)
+	guide_replay.text = "안내 다시 보기"
+	guide_replay.pressed.connect(func() -> void:
+		replay_guide()
+		guide_replay.text = "안내 다시 보기 ✔")
+	guide_row.add_child(guide_replay)
 	var close := Button.new()
 	close.name = "Close"
 	close.text = "닫기"

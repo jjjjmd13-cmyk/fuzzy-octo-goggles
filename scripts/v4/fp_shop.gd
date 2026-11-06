@@ -30,6 +30,8 @@ const FpEnding := preload("res://scripts/v4/fp_ending.gd")
 const FpThanks := preload("res://scripts/v4/fp_thanks.gd")
 const FpTrust := preload("res://scripts/v4/fp_trust.gd")
 const FpAccessory := preload("res://scripts/v4/fp_accessory.gd")
+const FpGuide := preload("res://scripts/v4/fp_guide.gd")
+const Settings := preload("res://scripts/core/settings.gd")
 ## 액세서리 바구니 자리 (목욕통 오른쪽 옆 바닥 위 작은 받침)
 const BASKET_POS := Vector3(0.95, 0.45, -2.3)
 const ALBUM_BOOK := "res://assets/models/album/album_book.glb"
@@ -201,6 +203,8 @@ var _acc_liked := false
 var _acc_basket: StaticBody3D
 var _acc_menu: Control
 var hovered_basket := false
+## 처음 하는 사람 안내 (LAUNCH_PREP 2장): 한 번씩만, 본 것은 저장
+var guide: FpGuide
 var _towel_flips := 0
 var _towel_dir := 0.0
 var _card_title := "새 손님!"
@@ -397,6 +401,9 @@ func _start_morning() -> void:
 	guests.process_mode = Node.PROCESS_MODE_DISABLED
 	outside.set_sign(false, true)
 	_show_hint("%d일차 아침 · 문 옆 팻말을 뒤집으면 영업 시작 (정문으로 밖에 나가 볼 수 있어요)" % day, 6.0)
+	# 처음 안내: 걷기 → 팻말 (팻말 위 ▼, 영업을 시작하면 사라짐)
+	if not guide.show_tip("walk"):
+		guide.show_tip("sign", outside.sign_body, func() -> bool: return not morning)
 	# 그날 새로 열리는 것 한 줄 (빠른 확인은 안 띄움)
 	var news := FpDays.notice(day)
 	if not news.is_empty() and quick_feature.is_empty() and quick_dogs == 0:
@@ -415,6 +422,9 @@ func _on_delivered(count: int) -> void:
 	outside.set_mailbox_flag(true)
 	sfx.play("coin")
 	_show_hint("빵빵! 택배 상자 %d개가 왔어요 (정문 밖 매트에서 들고 들어와 열어요)" % count, 5.0)
+	var first_box: Array = parcels_view.box_nodes()
+	if not first_box.is_empty():
+		guide.show_tip("parcel", first_box[0], func() -> bool: return not carried.is_empty() or parcels_view.box_nodes().is_empty())
 	if morning:
 		save_game(day)
 
@@ -674,6 +684,7 @@ func save_state(next_day: int) -> Dictionary:
 		"decor": decor.duplicate(true),
 		"parcels": parcels.duplicate(true),
 		"acc_owned": acc_owned.duplicate(),
+		"guide_seen": guide.seen.duplicate(),
 		"ending_seen": ending_seen,
 		"group_photo": group_photo.duplicate(),
 	}
@@ -700,6 +711,7 @@ func apply_state(data: Dictionary) -> void:
 	_set_pickup_available("scissors", owns_scissors)
 	guests.trim_chance = Tuning.data.v4_trim_request_ratio if owns_scissors else 0.0
 	acc_owned = data.get("acc_owned", Array(Tuning.data.v4_acc_start)).duplicate()
+	guide.seen = data.get("guide_seen", []).duplicate()
 	ending_seen = data.get("ending_seen", false)
 	group_photo = data.get("group_photo", []).duplicate()
 	shampoo_left = data.shampoo_left
@@ -924,6 +936,8 @@ func take_photo(mood: int) -> void:
 	sfx.play("press")
 	_flash = 0.35
 	var name: String = FpRegulars.get_regular(regular).get("name", "")
+	if is_new:
+		guide.show_tip("photo")
 	if int(entry.trust) > old_tier:
 		_banner = "♥ %s 가 더 친해졌어요! (%s)" % [name, FpTrust.NAMES[int(entry.trust)]]
 		_banner_left = 2.5
@@ -1291,6 +1305,9 @@ func interact_guest(owner: Node3D) -> void:
 			_show_hint("이번 손님이 좋아하는 곳: %s (거품·빗질 때 0.5초) · 30초 안에 다 씻으면 🤩" % FpAnimals.FAV_NAMES.get(fav_spot, ""), 8.0)
 		elif day == 1 and guests.served == 0 and _card_left <= 0.0 and quick_dogs == 0:
 			_show_hint("강아지가 좋아하는 곳을 찾아 보세요 ♥ (거품·빗질 때, 가까우면 꼬리가 빨라져요)", 5.0)
+		# 처음 안내: 선반의 샤워기 (집으면 사라짐) → 그다음 적시기 손동작
+		if not guide.show_tip("shelf", _pickups.get("shower"), func() -> bool: return held == "shower"):
+			guide.show_tip("stage_wet")
 		# 샴푸가 없으면 거품 단계를 건너뛰고 씻김 (막지 않음, 요금이 거의 없음 — 사람 대표 결정)
 		no_shampoo = shampoo_left < 0.01
 		if no_shampoo:
@@ -1403,6 +1420,12 @@ func end_day() -> void:
 	_settle.album_requested.connect(open_album)
 	_settle.next_day_requested.connect(start_next_day)
 	_show_settle()
+	if guide.show_tip("settle"):
+		var tab := _settle.find_child("Tab_tools", true, false) as Control
+		if tab != null:
+			var pulse := tab.create_tween().set_loops(6)
+			pulse.tween_property(tab, "modulate", Color(1.3, 1.1, 0.7), 0.4)
+			pulse.tween_property(tab, "modulate", Color.WHITE, 0.4)
 	sfx.play("clap")
 	save_game(day + 1)
 
@@ -1933,6 +1956,8 @@ func progress() -> Dictionary:
 func pick(tool_id: String) -> void:
 	if not TOOLS.has(tool_id) or held == tool_id:
 		return
+	if has_dog and not done and stage_index < STAGES.size() and STAGES[stage_index].tool == tool_id:
+		guide.show_tip("stage_" + STAGES[stage_index].id)
 	if not carried.is_empty():
 		_show_hint("상자를 먼저 열어요 (가게 안에서 클릭)", 1.5)
 		return
@@ -2178,6 +2203,9 @@ func _check_done() -> void:
 	if stage_index >= STAGES.size() and not done:
 		done = true
 		_stop_effects()
+		# 처음 안내: 목욕통 옆 주인 위 ▼ (돌려주면 사라짐)
+		if has_dog and guests.current != null:
+			guide.show_tip("give_back", guests.current, func() -> bool: return not has_dog)
 		if has_dog:
 			if _t - _tub_start <= Tuning.data.v4_mood_fast:
 				like("fast")
@@ -2239,6 +2267,9 @@ func _finish_stage(stage: Dictionary) -> void:
 		_quirk_overcome = true
 	if quirk == "dryer" and stage.id == "dry" and _rule_count.get("dryer_noise", 0) == 0:
 		_quirk_overcome = true
+	# 처음 안내: 다음 단계 손동작 (도구가 손에 있으면 바로, 없으면 집을 때)
+	if stage_index + 1 < STAGES.size() and STAGES[stage_index + 1].tool == held:
+		guide.show_tip("stage_" + STAGES[stage_index + 1].id)
 	if stage.id == "dry":
 		_spawn_tangles()
 	elif stage.id == "brush" and not trim_request.is_empty():
@@ -2413,6 +2444,8 @@ func _unhandled_input(event: InputEvent) -> void:
 					set_all_tiers(event.physical_keycode - KEY_1)
 				elif quick_feature == "decor":
 					_quick_decor(event.physical_keycode - KEY_1)
+			KEY_F1:
+				guide.toggle_help()
 			KEY_ESCAPE:
 				Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
 				get_tree().change_scene_to_file(MENU_SCENE)
@@ -2543,6 +2576,9 @@ func _build_stage_effects() -> void:
 
 func _on_guest_arrived() -> void:
 	sfx.play("bell")
+	if not guide.seen.has("guest") and not guests.guests.is_empty():
+		var owner: Node3D = guests.guests[-1].owner
+		guide.show_tip("guest", owner, func() -> bool: return has_dog or not is_instance_valid(owner))
 	if _hint_left <= 0.0:
 		_show_hint("손님이 왔어요 (오른쪽 대기 의자)", 2.0)
 
@@ -2700,6 +2736,11 @@ func _build_hud() -> void:
 	_hud.theme = get_tree().root.theme
 	_hud.draw.connect(_draw_hud)
 	layer.add_child(_hud)
+	Settings.ensure_loaded()
+	guide = FpGuide.new()
+	guide.name = "Guide"
+	guide.enabled = Settings.guide_enabled and quick_dogs == 0 and quick_feature.is_empty()
+	layer.add_child(guide)
 
 
 func _draw_hud() -> void:
