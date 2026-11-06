@@ -25,6 +25,13 @@ const COLORS := {
 	"scarf_mint": Color(0.6, 0.92, 0.8), "scarf_bandana": Color(0.95, 0.4, 0.4), "scarf_cape": Color(0.5, 0.55, 0.95),
 	"pin_daisy": Color(1.0, 1.0, 0.95), "pin_star": Color(1.0, 0.9, 0.35), "pin_rainbow": Color(0.75, 0.6, 1.0),
 }
+## 머리 장식 붙는 점 (모형 기준, +Z 정면): 머리 메시 상자 꼭대기는 털 겉면보다 낮거나(강아지) 높아서(고양이) 잰 값을 씀
+const HEAD_POINT := {"dog": Vector3(0, 0.584, 0.097), "cat": Vector3(0, 0.456, 0.0806)}
+## 목 장식은 털이 두꺼운 목둘레에 얹히게 조금 크게 (실제 모형에서 1.0 배는 고리·망토가 털 속에 묻힘)
+const NECK_FUR_SCALE := 1.25
+const CAPE_NUDGE := Vector3(0, 0.03, -0.05)
+## 꽃핀은 귀 옆에서 작아 보여 크게 (개발 보정표, 대표 결정 — 귀를 가리면 1.3)
+const PIN_SCALE := 1.4
 ## 고양이는 크기만 줄임 (ART_SLOTS 4-5)
 const CAT_SCALE := 0.85
 
@@ -76,22 +83,28 @@ static func wear(model: Node3D, id: String, is_cat: bool) -> Node3D:
 	var category := category_of(id)
 	if category.is_empty():
 		return null
-	var anchor := anchor_of(model, CATEGORIES[category].slot)
+	var anchor := anchor_of(model, CATEGORIES[category].slot, is_cat)
 	var view := make_view(id)
 	view.name = "Accessory"
 	view.set_meta("acc", id)
-	view.scale = Vector3.ONE * (CAT_SCALE if is_cat else 1.0)
+	view.scale = Vector3.ONE * (CAT_SCALE if is_cat else 1.0) * (NECK_FUR_SCALE if category == "scarf" else 1.0) * (PIN_SCALE if category == "pin" else 1.0)
+	# 망토 천은 등 위 털 밖으로 (조금 뒤·위로)
+	if id == "scarf_cape":
+		view.position = CAPE_NUDGE * view.scale.x
 	anchor.add_child(view)
 	return view
 
 
 ## 붙는 자리 노드: 모형에 있으면 그것, 없으면 얼굴 점(face_center, 모형 정면 +Z) 기준으로 만들어
 ## 머리(Head)·몸(Chest) 노드에 붙임 (고개를 돌리면 같이 돎). 방향은 모형 기준
-static func anchor_of(model: Node3D, slot: String) -> Node3D:
+static func anchor_of(model: Node3D, slot: String, is_cat := false) -> Node3D:
 	var found := model.find_child(slot, true, false) as Node3D
 	if found != null:
 		return found
 	var target := _slot_point(model, slot)
+	# 머리 꼭대기는 실제 모형 표면에서 잰 값 (그래픽 전달 ACCESSORY_DELIVERY.md '게임 부착점 확인', 털 겉면 + 2~3 mm)
+	if slot == "Acc_Head":
+		target = HEAD_POINT["cat" if is_cat else "dog"]
 	var parent: Node3D = model.find_child("Chest" if slot == "Acc_Neck" else "Head", true, false) as Node3D
 	if parent == null:
 		parent = model
