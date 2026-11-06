@@ -58,6 +58,7 @@ func run_test() -> void:
 	check(pairs.size() == 5 and pairs.slice(0, 3) == ["jjanggu", "nabi", "mongsil"], "그때와 지금 5쌍: 대표 단골 3 + 신뢰 높은 2")
 	check_eq(FpThanks.group_order(["kongi", "jjanggu", "bori", "mongsil"]), ["mongsil", "jjanggu", "kongi", "bori"], "단체 사진 앞줄은 대표 단골")
 	check_eq(FpThanks.line_of("kongi", 2), FpThanks.COMMON_LINES[2], "다른 단골은 공통 대사")
+	check(FpThanks.recent_caption(18, 18) == "오늘 18일차" and FpThanks.recent_caption(15, 18) == "최근 15일차", "그날 안 온 단골 사진은 '최근' (QA #137)")
 	check_eq(FpThanks.line_of("mongsil", 3), FpRegulars.get_regular("mongsil").lines[3], "대표 단골은 자기 대사")
 
 	var real_path := V4Save.path
