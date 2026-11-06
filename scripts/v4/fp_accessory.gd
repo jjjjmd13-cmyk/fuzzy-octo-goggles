@@ -30,6 +30,8 @@ const HEAD_POINT := {"dog": Vector3(0, 0.584, 0.097), "cat": Vector3(0, 0.456, 0
 ## 목 장식은 털이 두꺼운 목둘레에 얹히게 조금 크게 (실제 모형에서 1.0 배는 고리·망토가 털 속에 묻힘)
 const NECK_FUR_SCALE := 1.25
 const CAPE_NUDGE := Vector3(0, 0.03, -0.05)
+## 꽃핀은 귀 옆에서 작아 보여 크게 (개발 보정표, 대표 결정 — 귀를 가리면 1.3)
+const PIN_SCALE := 1.4
 ## 고양이는 크기만 줄임 (ART_SLOTS 4-5)
 const CAT_SCALE := 0.85
 
@@ -85,7 +87,7 @@ static func wear(model: Node3D, id: String, is_cat: bool) -> Node3D:
 	var view := make_view(id)
 	view.name = "Accessory"
 	view.set_meta("acc", id)
-	view.scale = Vector3.ONE * (CAT_SCALE if is_cat else 1.0) * (NECK_FUR_SCALE if category == "scarf" else 1.0)
+	view.scale = Vector3.ONE * (CAT_SCALE if is_cat else 1.0) * (NECK_FUR_SCALE if category == "scarf" else 1.0) * (PIN_SCALE if category == "pin" else 1.0)
 	# 망토 천은 등 위 털 밖으로 (조금 뒤·위로)
 	if id == "scarf_cape":
 		view.position = CAPE_NUDGE * view.scale.x
