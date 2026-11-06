@@ -21,7 +21,7 @@ MILESTONE_V3_SLICE 8장. 그래픽(ChatGPT 납품)은 **아래 파일 이름 그
 | 목욕대 뒤 배경 그림 | `bath_backdrop` | 목욕대 뒤 벽 전체 | `wash_station.gd` | 타일 벽·창문 | ✅ |
 | 성격 그림 2 | `trait_ticklish` `trait_timid` | 요청 카드 오른쪽 위 모서리 | `hud_overlay.gd` | 깃털·물방울 도형 | ⬜ |
 | 벽시계 판 | `clock` | 위 가운데 돈 옆 (바늘은 게임이 그림) | `hud_overlay.gd` | 도형 시계 | ⬜ |
-| 손동작 그림 6 | `hint_wet` `hint_squeeze` `hint_scrub` `hint_rinse` `hint_towel` `hint_dry` | 1일차 첫 손님 단계 안내 | `guide_overlay.gd` | 움직이는 도형 | ⬜ |
+| 손동작 그림 6 | `hint_wet` `hint_squeeze` `hint_scrub` `hint_rinse` `hint_towel` `hint_dry` | 1일차 첫 손님 단계 안내 (4.5초), PNG + 움직이는 도구 시범 | `guide_overlay.gd` | 중앙의 움직이는 시범 유지 | ✅ |
 | 조작 그림 | `help_controls` | F1 | `guide_overlay.gd` | 도형 마우스 + 글자 | ⬜ |
 | 주인 판자 그림 6 | `owner_0` ~ `owner_5` | 주인 (3D 대신 판자처럼) | `sim_owner_model.gd` | 3D 주인 모형 (GLB 가 있으면 GLB 가 먼저) | ⬜ (3D 로 대신함) |
 

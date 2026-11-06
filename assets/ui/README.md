@@ -26,6 +26,7 @@ ChatGPT 로 받은 그림(`docs/art/ORDER_V3.md` 5장)을 **아래 이름의 PNG
 | `bubble.png` | 말풍선 바탕 | 주인 머리 위 |
 | `sign.png` | 가게 간판 (가운데 이름 칸이 빈 것) | 목욕대 뒤 벽 (이름은 게임이 글자로 올림) |
 | `bath_backdrop.png` | 목욕대 뒤 배경 그림 (가로 4:3, 노란 타일 벽·창문) | 목욕대 뒤 벽 전체 (없으면 타일 셰이더 벽) |
+| `hint_wet.png`, `hint_squeeze.png`, `hint_scrub.png`, `hint_rinse.png`, `hint_towel.png`, `hint_dry.png` | 투명 512×512 손동작 그림: 쓸기·누른 뒤 떼기·원 그리기·아래로 끌기·꾹꾹 누르기·휠 위아래 | 1일차 첫 손님, 각 단계 시작 뒤 4.5초 |
 | `tool_shower_wide.png` | 넓은 샤워기 (업그레이드) 아이콘 — 샤워기 머리가 크고 넓음 — **아직 없음** (없으면 보통 샤워기 그림을 크게 + 넓이 원) | 샤워기 커서 (넓은 샤워기를 산 뒤) |
 | `trait_ticklish.png` | 간지럼쟁이 성격 그림 (깃털) — **아직 없음** | 요청 카드 오른쪽 위 구석 |
 | `trait_timid.png` | 겁쟁이 성격 그림 (물방울·떨림) — **아직 없음** | 〃 |
@@ -33,3 +34,5 @@ ChatGPT 로 받은 그림(`docs/art/ORDER_V3.md` 5장)을 **아래 이름의 PNG
 | `owner_0.png` ~ `owner_5.png` | 주인 판자 그림 6명 (서 있는 전신, 정면) (3D GLB 가 오면 그쪽이 먼저) | 주인 (도형 대신 판자처럼 세움) |
 
 2026-10-27: `tool_hand`, `tool_bucket`, `card_vertical`(6줄), `bubble`, `bath_backdrop`를 제작·연결했다. 제작 프롬프트·출처·검수는 `docs/art/CHEEKS_UI_DELIVERY.md` 참고.
+
+2026-10-29: 손동작 PNG 6장을 추가했다. `guide_overlay.gd`는 PNG 옆에서 **항상** 움직이는 시범을 그린다. 기존 `tool_*`를 그대로 불러와 경로를 따라 이동·누름·뗌을 표현하며, PNG가 누락되면 중앙의 움직이는 시범이 남는다. 단계가 바뀔 때 시범을 처음부터 시작한다. 드라이어 휠은 실제 조작과 같이 위로=가까이, 아래로=멀리다. 제작·실행 검수: `docs/art/BATH_HINT_DELIVERY.md`.
