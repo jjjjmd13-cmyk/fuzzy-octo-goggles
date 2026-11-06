@@ -105,8 +105,10 @@ func run_test() -> void:
 	var menu := MENU_SCENE.instantiate()
 	add_child(menu)
 	await get_tree().process_frame
+	(menu.find_child("SettingsButton", true, false) as Button).pressed.emit()
+	await get_tree().process_frame
 	var toggle := menu.find_child("GuideToggle", true, false) as Button
-	check(toggle != null and toggle.text == "안내 끄기", "메뉴 [안내 끄기]")
+	check(toggle != null and toggle.text == "안내 끄기", "메뉴 [설정] 의 [안내 끄기]")
 	toggle.pressed.emit()
 	check(not Settings.guide_enabled and toggle.text == "안내 켜기", "안내 꺼짐")
 	V4Save.continue_requested = false
