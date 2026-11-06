@@ -4,6 +4,7 @@ extends Node3D
 ## - 정문: 오른쪽 벽(x = +4) 가운데에서 +2.6 m, 폭 1.2 × 높이 2.1 m 구멍. 문짝은 플레이어가 다가가면 저절로 열림 (딸랑).
 ##   문짝엔 충돌이 없음 (밀려나지 않게), 벽 구멍 둘레만 막힘.
 ## - 마당: x = 4 ~ 9, z = −3.5 ~ 3.5. 보도블록·택배 매트·우편함·가로등·울타리·화단, 울타리 너머 찻길 (못 나감).
+## - 찻길 건너편: 이웃 건물 6개 (빵집·꽃집·카페·집 둘·거리 소품, 배경, 충돌 없음). `town_*.glb` 가 오면 그것.
 ## - 영업 팻말: 문 안쪽 벽에 걸림. 아침엔 달(닫힘), 클릭해서 뒤집으면 해(영업 중).
 ##
 ## 그래픽 교체: `assets/models/outside/<이름>.glb` 가 있으면 그 모형을 쓰고 없으면 임시 상자.
@@ -29,6 +30,17 @@ const FENCE_GAP_WIDTH := 1.5
 ## 문이 열리기 시작하는 거리 (m)
 const DOOR_OPEN_NEAR := 1.6
 const DOOR_SPEED := 4.0
+## 찻길 건너편 이웃 건물 (배경, 들어갈 수 없음): 파일 이름 → 임시 상자 [가운데 (방 좌표, 바닥), 크기, 벽 색, 지붕 색].
+## GLB 는 마당과 같은 방 좌표로 만들어져 원점에 그대로 놓음 (건물 앞면이 가게 쪽 −X). 충돌 없음, 트럭 길 (x ≈ 9.7~11.5) 은 비움.
+const TOWN := {
+	"town_bakery": [Vector3(14.6, 0, -4.6), Vector3(3.0, 3.4, 3.4), Color(1.0, 0.86, 0.7), Color(0.85, 0.45, 0.4)],
+	"town_flower": [Vector3(14.3, 0, -1.4), Vector3(2.4, 2.8, 2.6), Color(0.86, 0.95, 0.82), Color(0.95, 0.6, 0.7)],
+	"town_cafe": [Vector3(14.6, 0, 1.8), Vector3(3.0, 3.2, 3.2), Color(0.95, 0.9, 0.98), Color(0.55, 0.7, 0.9)],
+	"town_house_a": [Vector3(15.0, 0, 5.6), Vector3(3.6, 4.2, 3.8), Color(1.0, 0.95, 0.75), Color(0.6, 0.75, 0.55)],
+	"town_house_b": [Vector3(15.0, 0, -8.4), Vector3(3.6, 4.0, 3.8), Color(0.85, 0.9, 1.0), Color(0.9, 0.55, 0.45)],
+}
+## 이웃 쪽 보도 (임시, town_street_props 가 오면 그것)
+const TOWN_WALK := [Vector3(13.25, -0.08, 0), Vector3(0.9, 0.16, 22.0)]
 ## 놓는 자리 (ART_SLOTS 4-3 제안)
 const MAT_POS := Vector3(5.0, 0, 0.5)
 const MAILBOX_POS := Vector3(8.4, 0, -2.6)
@@ -66,6 +78,7 @@ func _ready() -> void:
 	_build_door()
 	_build_yard()
 	_build_sign()
+	_build_town()
 
 
 func _process(delta: float) -> void:
@@ -266,6 +279,59 @@ func _build_yard() -> void:
 	sky.omni_range = 7.0
 	sky.light_energy = 0.15
 	add_child(sky)
+
+
+## 찻길 건너편 이웃 건물 6개 (배경, 들어갈 수 없음 · 충돌 없음). 파일이 오면 그것, 없으면 임시 상자 건물
+func _build_town() -> void:
+	var town := Node3D.new()
+	town.name = "Town"
+	add_child(town)
+	for name in TOWN:
+		var art := model(name)
+		if art == null:
+			art = _town_box(TOWN[name])
+		art.name = name
+		town.add_child(art)
+	var props := model("town_street_props")
+	if props == null:
+		props = Node3D.new()
+		var walk := _mesh_box(TOWN_WALK[1], Color(0.78, 0.74, 0.7))
+		walk.position = TOWN_WALK[0]
+		props.add_child(walk)
+		var ground := _mesh_box(Vector3(6.0, 0.2, 22.0), Color(0.62, 0.78, 0.55))
+		ground.position = Vector3(16.7, -0.1, 0)
+		props.add_child(ground)
+		for z in [-6.5, -3.0, 3.6, 7.2]:
+			var lamp := _mesh_box(Vector3(0.1, 2.6, 0.1), Color(0.45, 0.5, 0.6))
+			lamp.position = Vector3(13.4, 1.3, z)
+			props.add_child(lamp)
+			var head := _mesh_box(Vector3(0.28, 0.2, 0.28), Color(1.0, 0.95, 0.7))
+			head.position = Vector3(13.4, 2.65, z)
+			props.add_child(head)
+	props.name = "town_street_props"
+	town.add_child(props)
+
+
+## 임시 건물: 벽 상자 + 지붕 + 가게 쪽(−X) 문·창
+func _town_box(info: Array) -> Node3D:
+	var center: Vector3 = info[0]
+	var size: Vector3 = info[1]
+	var root := Node3D.new()
+	var body := _mesh_box(size, info[2])
+	body.position = center + Vector3(0, size.y / 2.0, 0)
+	root.add_child(body)
+	var roof := _mesh_box(Vector3(size.x + 0.3, 0.35, size.z + 0.3), info[3])
+	roof.position = center + Vector3(0, size.y + 0.17, 0)
+	root.add_child(roof)
+	var front := center.x - size.x / 2.0 - 0.02
+	var door := _mesh_box(Vector3(0.05, 1.9, 0.9), Color(0.6, 0.42, 0.3))
+	door.position = Vector3(front, 0.95, center.z)
+	root.add_child(door)
+	for side in [-1.0, 1.0]:
+		var window := _mesh_box(Vector3(0.05, 0.8, 0.7), Color(0.7, 0.85, 0.95))
+		window.position = Vector3(front, 1.6, center.z + side * size.z * 0.3)
+		root.add_child(window)
+	return root
 
 
 ## 우편함 깃발 (택배가 오면 올라감)
