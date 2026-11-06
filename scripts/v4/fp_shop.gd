@@ -1829,7 +1829,7 @@ func store_rows() -> Array:
 		var amount: int = Tuning.data.v4_shampoo_bottle if id == "shampoo_bottle" else Tuning.data.v4_shampoo_big
 		rows.append({"id": id, "name": SUPPLIES[id].name, "next": "%d마리분 채움" % amount, "price": next_price(id), "can_buy": money >= next_price(id)})
 	if next_price("brush_refill") >= 0:
-		rows.append({"id": "brush_refill", "name": "빗 닳음 %d/%d" % [brush_used, brush_life()], "next": "새 빗살", "price": next_price("brush_refill"), "can_buy": money >= next_price("brush_refill")})
+		rows.append({"id": "brush_refill", "name": "빗 닳음 %d/%d" % [mini(brush_used, brush_life()), brush_life()], "next": "새 빗살", "price": next_price("brush_refill"), "can_buy": money >= next_price("brush_refill")})
 	return rows
 
 
@@ -1932,7 +1932,9 @@ func _supply_lines() -> Array:
 		mark = "⚠ "
 	lines.append("%s남은 샴푸  %s마리분" % [mark, _amount(shampoo_left)])
 	if brush_life() > 0:
-		lines.append("빗 닳음  %d / %d마리%s" % [brush_used, brush_life(), " (느려졌어요)" if brush_wear_mult() < 1.0 else ""])
+		# 수명을 넘어도 글자는 상한에서 멈춤 (QA #137)
+		var worn_out := brush_used >= brush_life()
+		lines.append("빗 닳음  %d / %d마리%s" % [mini(brush_used, brush_life()), brush_life(), " (다 닳았어요)" if worn_out else (" (느려졌어요)" if brush_wear_mult() < 1.0 else "")])
 	if best_face >= 0:
 		lines.append("오늘 가장 기뻐한 손님  %s %s" % [FpAnimals.FACE_ICON[best_face], "고양이" if best_animal == "cat" else "강아지"])
 	var coming := parcels.filter(func(box: Dictionary) -> bool: return not box.get("arrived", true)).size()
@@ -2285,8 +2287,9 @@ func _use_shampoo() -> void:
 		_show_hint("샴푸가 %s마리분 남았어요 (하루 끝 가게에서 사요)" % _amount(shampoo_left), 4.0)
 
 
+## 남은 샴푸 글자: 마리분은 정수로 (반 마리는 내림, QA #137)
 static func _amount(value: float) -> String:
-	return str(int(value)) if is_equal_approx(value, roundf(value)) else "%.1f" % value
+	return str(floori(value + 0.001))
 
 
 ## 드라이가 끝나면 엉킨 털 뭉치가 보임

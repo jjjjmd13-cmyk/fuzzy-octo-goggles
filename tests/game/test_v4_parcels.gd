@@ -34,7 +34,13 @@ func run_test() -> void:
 	shop.dog.mask.fill("wet", 1.0)
 	shop.dog.mask.fill("scrub", 1.0)
 	shop._check_done()
-	check(shop._hint.contains("샴푸가 2.5마리분"), "3마리분 아래로 내려가는 순간 알림 (%s)" % shop._hint)
+	check(shop._hint.contains("샴푸가 2마리분"), "3마리분 아래로 내려가는 순간 알림, 반 마리는 내려서 정수로 (QA #137, %s)" % shop._hint)
+	check(shop._supply_lines()[0].contains("2마리분") and not shop._supply_lines()[0].contains("."), "정산 남은 샴푸도 정수 (QA #137)")
+	# 빗 닳음: 수명을 넘어도 글자는 상한에서 멈춤 (QA #137)
+	var used: int = shop.brush_used
+	shop.brush_used = shop.brush_life() + 58
+	check(shop._supply_lines().any(func(line: String) -> bool: return line.contains("%d / %d마리 (다 닳았어요)" % [shop.brush_life(), shop.brush_life()])), "빗 닳음 30 / 30 (다 닳았어요)")
+	shop.brush_used = used
 	shop.done = true
 	shop.next_guest()
 	# 샴푸 없음: 거품을 건너뛰고 씻김, 요금 10·팁 0
