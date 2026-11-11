@@ -1,0 +1,116 @@
+{
+  "date": "2026-10-29",
+  "method": "built-in image_gen, six independent transparent PNG generations",
+  "prompts": [
+    {
+      "name": "wet",
+      "prompt": "Use case: infographic-diagram. Asset type: transparent 512x512 standalone hand gesture illustration for a cozy pet grooming game's first-customer tutorial. Style: same family as existing UI icons: bold smooth dark charcoal outline #30303e, chunky rounded shapes, restrained soft pastel shading, bright yellow rubber glove #ffda39 with pale highlights, cream fur, sky-blue water #72cbed, coral motion arrows #f28b60. Clear at 100 pixels, centered generous transparent margin. No text, lettering, digits, logos, border, background, or whole UI. Only one unified instructional pictogram. Existing grooming tool icons will be reused separately by the game: do not draw a shower, bottle, bucket, folded towel icon, or dryer. Show a yellow rubber-gloved pointing hand sweeping left-to-right across a short cream-colored curved patch of dog fur, three large blue droplets above, a broad CORAL horizontal zigzag arrow across the fur. Meaning: hold and sweep to wet the body. Glove in lower-right, wide sweep path clearly visible."
+    },
+    {
+      "name": "squeeze",
+      "prompt": "Use case: infographic-diagram. Asset type: transparent 512x512 standalone hand gesture illustration for a cozy pet grooming game's first-customer tutorial. Style: same family as existing UI icons: bold smooth dark charcoal outline #30303e, chunky rounded shapes, restrained soft pastel shading, bright yellow rubber glove #ffda39 with pale highlights, cream fur, sky-blue water #72cbed, coral motion arrows #f28b60. Clear at 100 pixels, centered generous transparent margin. No text, lettering, digits, logos, border, background, or whole UI. Only one unified instructional pictogram. Existing grooming tool icons will be reused separately by the game: do not draw a shower, bottle, bucket, folded towel icon, or dryer. Show one yellow rubber-gloved index finger pressing and holding the LEFT BUTTON of a simple cream computer mouse. Left button coral, other button cream. A horizontal charge bar beneath fills from coral at left to empty right, and a small upward arrow next to the lifted fingertip at far right suggests RELEASE after holding. Meaning: hold left mouse then release. No bottle."
+    },
+    {
+      "name": "scrub",
+      "prompt": "Use case: infographic-diagram. Asset type: transparent 512x512 standalone hand gesture illustration for a cozy pet grooming game's first-customer tutorial. Style: same family as existing UI icons: bold smooth dark charcoal outline #30303e, chunky rounded shapes, restrained soft pastel shading, bright yellow rubber glove #ffda39 with pale highlights, cream fur, sky-blue water #72cbed, coral motion arrows #f28b60. Clear at 100 pixels, centered generous transparent margin. No text, lettering, digits, logos, border, background, or whole UI. Only one unified instructional pictogram. Existing grooming tool icons will be reused separately by the game: do not draw a shower, bottle, bucket, folded towel icon, or dryer. Show a yellow rubber glove rubbing a short cream-colored curved patch of dog fur with a few large white soap bubbles. A prominent broad coral CIRCULAR arrow wraps clockwise around the hand. Meaning: circular scrubbing. No tools."
+    },
+    {
+      "name": "rinse",
+      "prompt": "Use case: infographic-diagram. Asset type: transparent 512x512 standalone hand gesture illustration for a cozy pet grooming game's first-customer tutorial. Style: same family as existing UI icons: bold smooth dark charcoal outline #30303e, chunky rounded shapes, restrained soft pastel shading, bright yellow rubber glove #ffda39 with pale highlights, cream fur, sky-blue water #72cbed, coral motion arrows #f28b60. Clear at 100 pixels, centered generous transparent margin. No text, lettering, digits, logos, border, background, or whole UI. Only one unified instructional pictogram. Existing grooming tool icons will be reused separately by the game: do not draw a shower, bottle, bucket, folded towel icon, or dryer. Show a yellow rubber-gloved pointing hand beside a short cream-colored VERTICAL curved patch of dog fur, blue droplets flowing downward, a single broad coral arrow running straight from TOP to BOTTOM. Meaning: drag downward to rinse. No zigzag or circular arrow, no shower or bucket."
+    },
+    {
+      "name": "towel",
+      "prompt": "Use case: infographic-diagram. Asset type: transparent 512x512 standalone hand gesture illustration for a cozy pet grooming game's first-customer tutorial. Style: same family as existing UI icons: bold smooth dark charcoal outline #30303e, chunky rounded shapes, restrained soft pastel shading, bright yellow rubber glove #ffda39 with pale highlights, cream fur, sky-blue water #72cbed, coral motion arrows #f28b60. Clear at 100 pixels, centered generous transparent margin. No text, lettering, digits, logos, border, background, or whole UI. Only one unified instructional pictogram. Existing grooming tool icons will be reused separately by the game: do not draw a shower, bottle, bucket, folded towel icon, or dryer. Show a yellow rubber-gloved palm firmly patting a small soft PINK CLOTH FLAT AGAINST a cream fur patch, two large blue droplets below and three coral contact rays above hand. Two faint offset hand silhouettes show repeated UP/DOWN presses. Meaning: repeated separate presses with cloth. Do not show a folded towel or any other tools."
+    },
+    {
+      "name": "dry",
+      "prompt": "Use case: infographic-diagram. Asset type: transparent 512x512 standalone hand gesture illustration for a cozy pet grooming game's first-customer tutorial. Style: same family as existing UI icons: bold smooth dark charcoal outline #30303e, chunky rounded shapes, restrained soft pastel shading, bright yellow rubber glove #ffda39 with pale highlights, cream fur, sky-blue water #72cbed, coral motion arrows #f28b60. Clear at 100 pixels, centered generous transparent margin. No text, lettering, digits, logos, border, background, or whole UI. Only one unified instructional pictogram. Existing grooming tool icons will be reused separately by the game: do not draw a shower, bottle, bucket, folded towel icon, or dryer. Show a cream computer mouse tilted slightly, with a yellow rubber-gloved index fingertip on the CORAL SCROLL WHEEL in the middle, and prominent coral UP and DOWN arrows flanking the wheel. Two small horizontal dashed distance marks beside mouse. Meaning: scroll wheel to adjust dryer distance. Neither mouse button highlighted. No dryer or air blower."
+    }
+  ],
+  "outputs": [
+    {
+      "path": "assets/ui/hint_dry.png",
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_min_max": [
+        0,
+        255
+      ],
+      "transparent_pixels": 167345,
+      "sha256": "667d3cd8d16423d5a48dacfd0b86773c8eeaa756406647e55cfb691047f72150"
+    },
+    {
+      "path": "assets/ui/hint_rinse.png",
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_min_max": [
+        0,
+        255
+      ],
+      "transparent_pixels": 180449,
+      "sha256": "952dce5988d128b4c02157ab24d7f69e294093158364cea99515c1d0e838c647"
+    },
+    {
+      "path": "assets/ui/hint_scrub.png",
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_min_max": [
+        0,
+        255
+      ],
+      "transparent_pixels": 136819,
+      "sha256": "11f2c8a1d947ff695520adfc694e2f3c8dbd25db545d8a3f918e8d387e7c4d6a"
+    },
+    {
+      "path": "assets/ui/hint_squeeze.png",
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_min_max": [
+        0,
+        255
+      ],
+      "transparent_pixels": 160369,
+      "sha256": "5cf3d14f5b9ed03b80bbbd6b343174f05332453fd3299095a6f05c30423f7d25"
+    },
+    {
+      "path": "assets/ui/hint_towel.png",
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_min_max": [
+        0,
+        255
+      ],
+      "transparent_pixels": 119821,
+      "sha256": "a0aa8e0bbb5803f19f9f39386de3a1d95647ff78cbe5f2b6479046e2e56384d7"
+    },
+    {
+      "path": "assets/ui/hint_wet.png",
+      "size": [
+        512,
+        512
+      ],
+      "mode": "RGBA",
+      "alpha_min_max": [
+        0,
+        255
+      ],
+      "transparent_pixels": 146656,
+      "sha256": "28bb0eda72bb2540e1276fa918b06043e470eb9db707a15d638550c280052966"
+    }
+  ]
+}

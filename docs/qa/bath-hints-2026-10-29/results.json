@@ -1,0 +1,48 @@
+{
+  "date": "2026-10-29",
+  "base_commit": "7ffc56873b07df38f5bf0049b12e621631d0863b",
+  "engine": "4.4.1.stable.official.49a5bc7b6",
+  "renderer": "OpenGL Compatibility / Mesa 25.2.8 llvmpipe, Xvfb",
+  "single_player_tests_passed": [
+    "test_audio",
+    "test_balance",
+    "test_day_loop",
+    "test_first_guide",
+    "test_guest_kinds",
+    "test_no_shampoo_days",
+    "test_offline_session",
+    "test_paint_mask",
+    "test_retail_art",
+    "test_save_continue",
+    "test_seeded_rng",
+    "test_settle_shop",
+    "test_wash_flow",
+    "test_wash_pace"
+  ],
+  "render_motion_changed_pixels": {
+    "wet": 973,
+    "squeeze": 1997,
+    "scrub": 1259,
+    "rinse": 1200,
+    "towel": 1420,
+    "dry": 180
+  },
+  "missing_png_fallback_changed_pixels": {
+    "wet": 992,
+    "squeeze": 1200,
+    "scrub": 1270,
+    "rinse": 1152,
+    "towel": 1037,
+    "dry": 80
+  },
+  "existing_ui_png_unchanged": 18,
+  "not_run": [
+    "Windows/Steam hands-on",
+    "network test scenes",
+    "complete GitHub CI workflow at report time"
+  ],
+  "capture_warnings": [
+    "Xvfb V-Sync unsupported",
+    "ObjectDB instances leaked at capture process exit (not observed in the 14 headless game test logs; origin not investigated)"
+  ]
+}
