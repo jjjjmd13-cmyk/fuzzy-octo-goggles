@@ -43,6 +43,11 @@
 - 피부·머리카락·눈·바지 등 나머지는 각자 재질, 그대로 둠
 
 [네 사람이 한 가게에 같이 서 있어도 같은 그림체로 보이게: 같은 눈 모양, 같은 손 모양, 같은 선 굵기]
+
+[다 만든 뒤 — 올리는 곳 · PR · 병합 규칙]
+- 올리는 곳: assets/models/owner/owner_grandma.glb · owner_kid.glb · owner_youth.glb · owner_worker.glb, 미리보기 PNG 는 art/incoming/owner/. 지금 있는 assets/models/owner/owner.glb 는 지우거나 고치지 않음
+- PR 제목: [그래픽] 주인 손님 4종 (할머니·아이·청년·회사원, 파스텔)
+- 병합 규칙: CI 가 초록불일 때만 병합 요청. main 과 충돌이 나면 고치지 말고 그대로 두고 PR 에 적기. main 에 직접 푸시 금지. 코드 폴더(scripts/ · scenes/ · tests/ · project.godot · addons/)는 건드리지 않음. 병합은 대표가 함
 ```
 
 ## 받은 뒤 확인할 것

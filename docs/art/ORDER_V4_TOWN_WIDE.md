@@ -42,6 +42,11 @@
 - 목욕통 위 (x = 0, z = −1.6) 천장에 작은 둥근 조명 고리 하나 (꾸미기 조명이 여기 매달림)
 - 위면 = 마당에서 보이는 지붕: 낮은 맞배지붕 (용마루 높이 y ≈ 3.8 m), 분홍 기와 느낌, 정면 쪽 처마가 x 4.3 까지 살짝 나옴
 - 벽 위에 딱 얹히게 (천장 판 바깥 테두리가 벽 두께 0.2 m 를 덮도록 x −4.1 ~ 4.1, z −3.6 ~ 3.6)
+
+[다 만든 뒤 — 올리는 곳 · PR · 병합 규칙]
+- 올리는 곳: assets/models/outside/town_side_a.glb · town_side_b.glb · town_far.glb, assets/models/shop/ceiling.glb, 미리보기 PNG 는 art/incoming/outside/. 이미 있는 파일(town_*, shop_front 등)은 고치지 않음
+- PR 제목: [그래픽] 동네 넓히기 (양옆 이웃 2·먼 배경) + 가게 천장 (파스텔)
+- 병합 규칙: CI 가 초록불일 때만 병합 요청. main 과 충돌이 나면 고치지 말고 그대로 두고 PR 에 적기. main 에 직접 푸시 금지. 코드 폴더(scripts/ · scenes/ · tests/ · project.godot · addons/)는 건드리지 않음. 병합은 대표가 함
 ```
 
 ## 받은 뒤 확인할 것
