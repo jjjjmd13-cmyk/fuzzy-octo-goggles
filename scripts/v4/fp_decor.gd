@@ -7,6 +7,7 @@ extends Node3D
 
 const MODEL_DIR := "res://assets/models/decor/%s.glb"
 const TEXTURE_DIR := "res://assets/textures/decor/%s.png"
+const FpTubFix := preload("res://scripts/v4/fp_tub_fix.gd")
 ## 범주: 이름, 큰 것인가 (값·상자 크기), ★1·★2·★3 물건 [id, 이름]
 const CATEGORIES := {
 	"wall": {"name": "벽지", "big": true, "items": [["wall_stripe", "하늘 줄무늬"], ["wall_bubble", "비눗방울 무늬"], ["wall_paw", "발바닥 무늬"]]},
@@ -157,6 +158,8 @@ func show_item(category: String, id: String) -> void:
 			node.visible = model == null
 	if model == null:
 		return
+	if category == "tub":
+		FpTubFix.apply(model, id)
 	var holder := StaticBody3D.new()
 	holder.name = "Decor_" + category
 	holder.set_meta("decor", id)
