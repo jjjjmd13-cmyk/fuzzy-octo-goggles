@@ -16,7 +16,7 @@ const FpTrust := preload("res://scripts/v4/fp_trust.gd")
 const FpAlbum := preload("res://scripts/v4/fp_album.gd")
 const FpEnding := preload("res://scripts/v4/fp_ending.gd")
 const FpDays := preload("res://scripts/v4/fp_days.gd")
-const OWNER_SCENE := preload("res://scenes/art/sim/owner_model.tscn")
+const FpOwners := preload("res://scripts/v4/fp_owners.gd")
 const FONT := preload("res://assets/fonts/pretendard/Pretendard-Bold.otf")
 ## 대표 단골이 들어오는 차례 (마지막 셋)
 const STAR_ORDER := ["jjanggu", "nabi", "mongsil"]
@@ -227,7 +227,7 @@ func _visit(id: String, index: int) -> void:
 	var regular := FpRegulars.get_regular(id)
 	var tier := int(shop.album.get(id, {}).get("trust", 0))
 	shop.sfx.play("bell")
-	var owner := OWNER_SCENE.instantiate() as Node3D
+	var owner := FpOwners.scene(index).instantiate() as Node3D
 	owner.name = "Visitor_" + id
 	add_child(owner)
 	owner.add_to_group("door_users")
@@ -235,7 +235,7 @@ func _visit(id: String, index: int) -> void:
 	var holder := Node3D.new()
 	holder.name = "HeldDog"
 	holder.scale = Vector3.ONE * 0.6
-	holder.position = HELD_STANDING
+	holder.position = FpOwners.held_point(owner, false)
 	owner.add_child(holder)
 	var held := FpAnimals.scene_of(regular.animal).instantiate() as Node3D
 	held.set("auto_hit_shapes", false)
