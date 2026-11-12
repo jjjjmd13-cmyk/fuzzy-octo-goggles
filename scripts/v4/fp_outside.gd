@@ -5,6 +5,7 @@ extends Node3D
 ##   문짝엔 충돌이 없음 (밀려나지 않게), 벽 구멍 둘레만 막힘.
 ## - 마당: x = 4 ~ 9, z = −3.5 ~ 3.5. 보도블록·택배 매트·우편함·가로등·울타리·화단, 울타리 너머 찻길 (못 나감).
 ## - 찻길 건너편: 이웃 건물 6개 (빵집·꽃집·카페·집 둘·거리 소품, 배경, 충돌 없음). `town_*.glb` 가 오면 그것.
+## - 양옆 이웃 2채 · 먼 배경 · 하늘 (FpTownWide, ART_SLOTS 4-8): `town_side_a/b.glb` · `town_far.glb` 가 오면 그것.
 ## - 영업 팻말: 문 안쪽 벽에 걸림. 아침엔 달(닫힘), 클릭해서 뒤집으면 해(영업 중).
 ##
 ## 그래픽 교체: `assets/models/outside/<이름>.glb` 가 있으면 그 모형을 쓰고 없으면 임시 상자.
@@ -13,6 +14,7 @@ extends Node3D
 signal door_opened
 
 const MODEL_DIR := "res://assets/models/outside/%s.glb"
+const FpTownWide := preload("res://scripts/v4/fp_town_wide.gd")
 const TEXTURE_DIR := "res://assets/textures/outside/%s.png"
 const PICK_LAYER := 2
 ## 정문 (방 좌표)
@@ -310,6 +312,8 @@ func _build_town() -> void:
 			props.add_child(head)
 	props.name = "town_street_props"
 	town.add_child(props)
+	# 양옆 이웃·먼 배경·하늘 (ART_SLOTS 4-8)
+	FpTownWide.build(self)
 
 
 ## 임시 건물: 벽 상자 + 지붕 + 가게 쪽(−X) 문·창
