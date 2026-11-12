@@ -212,6 +212,21 @@ extends Resource
 ## 모양 비슷함 기준 [비슷함, 똑같음] (0~1, 자를 곳을 자른 비율 − 잘못 자른 수×0.5/자를 곳 수), 다발 자르는 속도 (/s)
 @export var v4_trim_match_at := PackedFloat32Array([0.7, 0.95])
 @export var v4_rate_trim := 3.0
+## 미용 = 실제로 자르기 (TUNING_V4 3-1-1, 제안 — 시제품 값). 털 길이 1.0 = 미용 전, 0.3 = 가장 짧게
+@export var v4_trim_len_min := 0.3
+## 모양별 목표 털 길이 [머리, 몸, 다리, 꼬리]
+@export var v4_trim_targets := {"bear": [0.55, 0.8, 0.8, 1.0], "lion": [1.0, 0.35, 0.35, 1.0], "summer": [0.45, 0.35, 1.0, 0.45]}
+## 가위가 한 번에 닿는 반경 (m), 지나갈 때 한 자리에서 한 번에 줄어드는 최대 양, 클릭 한 번에 줄어드는 양
+@export var v4_trim_radius := 0.06
+@export var v4_trim_pass_step := 0.25
+@export var v4_trim_click_step := 0.1
+## 안내선에 닿은 뒤 같은 곳을 이만큼 (s) 더 누르고 있으면 안내선 아래로 잘림, 그 뒤 0.5초마다 줄어드는 양
+@export var v4_trim_overcut_after := 0.5
+@export var v4_trim_overcut_step := 0.1
+## 안내선 ±이만큼 = 맞음, 이만큼 넘게 짧으면 지나치게 자름, 지나치게 자른 면적이 이 비율 넘으면 기분 −1 (한 번)
+@export var v4_trim_ok_band := 0.08
+@export var v4_trim_overcut_band := 0.15
+@export var v4_trim_overcut_mood_at := 0.2
 
 ## 대기 손님 참을성 (s, TUNING_V4 2장): 대기 의자에서 이만큼 기다리면 "다음에 올게요" 하고 떠남
 @export var v4_patience_hurry := 60.0
