@@ -32,6 +32,7 @@ const FpTrust := preload("res://scripts/v4/fp_trust.gd")
 const FpAccessory := preload("res://scripts/v4/fp_accessory.gd")
 const FpGuide := preload("res://scripts/v4/fp_guide.gd")
 const Settings := preload("res://scripts/core/settings.gd")
+const FpCeiling := preload("res://scripts/v4/fp_ceiling.gd")
 ## 액세서리 바구니 자리 (목욕통 오른쪽 옆 바닥 위 작은 받침)
 const BASKET_POS := Vector3(0.95, 0.45, -2.3)
 const ALBUM_BOOK := "res://assets/models/album/album_book.glb"
@@ -121,6 +122,8 @@ const TOOLS := {
 var input_enabled := true
 ## 지금 도구를 쓰는 중 (왼쪽 버튼을 누르고 있음)
 var using := false
+## 천장 (FpCeiling)
+var ceiling: Node3D
 ## 손에 든 도구 ("" = 빈손)
 var held := ""
 ## 바라보는 집을 수 있는 도구 ("" = 없음)
@@ -2625,6 +2628,8 @@ func _build_room() -> void:
 	_box("WallBack", Vector3(0, 1.5, -3.5), Vector3(8, 3, 0.2), Color(0.85, 0.78, 0.66))
 	_box("WallFront", Vector3(0, 1.5, 3.5), Vector3(8, 3, 0.2), Color(0.85, 0.78, 0.66))
 	_box("WallLeft", Vector3(-4, 1.5, 0), Vector3(0.2, 3, 7), Color(0.8, 0.72, 0.6))
+	# 천장 + 조명 기구 (assets/models/shop/ceiling.glb 가 오면 그것)
+	ceiling = FpCeiling.build(self)
 	# 오른쪽 벽(정문)과 가게 앞 마당은 FpOutside
 	var tub := TUB_SCENE.instantiate() as Node3D
 	_tub_view = tub
