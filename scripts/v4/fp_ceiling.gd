@@ -3,7 +3,8 @@ extends RefCounted
 ## 그래픽 교체: `assets/models/shop/ceiling.glb` 가 있으면 그것 하나로 (천장 아래면 + 지붕 위면, 조명 기구 포함).
 ##   방 좌표 그대로 (원점 = 가게 방 바닥 가운데, 돌리지 않고 놓음). 천장 아래면 y = 3.0, x −4.1 ~ 4.1, z −3.6 ~ 3.6,
 ##   조명 고리 (0, 3.0, −1.6) = 꾸미기 조명이 매달리는 곳, 맞배지붕 용마루 y ≈ 3.8.
-##   빛 자리: 모형 안에 `Bulb` (빈 오브젝트 가능) 가 있으면 거기, 없으면 FIXTURE_POS.
+##   빛 자리: 모형 안에 `Bulb` 또는 `LightHook` (빈 오브젝트 가능) 이 있으면 거기, 없으면 FIXTURE_POS.
+##   `LightMount` (0, 3.0, −1.6) = 조명 고리 = HOOK_POS (꾸미기 조명이 매달리는 곳).
 ## 천장·지붕은 그림자를 드리우지 않음 (해가 비스듬히 들던 방 밝기 그대로). 손이 안 닿는 높이라 충돌 없음.
 
 const MODEL_PATH := "res://assets/models/shop/ceiling.glb"
@@ -43,7 +44,10 @@ static func build(parent: Node3D) -> Node3D:
 		var art := (load(MODEL_PATH) as PackedScene).instantiate() as Node3D
 		art.name = "Art"
 		root.add_child(art)
+		# 빛 자리: Bulb, 없으면 LightHook (받은 ceiling.glb 의 조명 고리 아래, #159)
 		var bulb := art.find_child("Bulb", true, false) as Node3D
+		if bulb == null:
+			bulb = art.find_child("LightHook", true, false) as Node3D
 		if bulb != null:
 			light_at = art.transform * _local_to(art, bulb)
 		_brighten(art)

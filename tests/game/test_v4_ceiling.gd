@@ -28,6 +28,12 @@ func run_test() -> void:
 	var light := ceiling.get_node("CeilingLight") as OmniLight3D
 	check(light != null and light.light_energy > 0.0, "천장 빛")
 	check(light.global_position.y < 3.0 and absf(light.global_position.x) < 4.0 and absf(light.global_position.z) < 3.5, "빛은 방 안 천장 바로 아래")
+	if delivered:
+		# 받은 천장: 조명 고리 기준점 LightMount = 꾸미기 조명 자리, 빛은 LightHook 아래
+		var mount := ceiling.find_child("LightMount", true, false) as Node3D
+		var hook := ceiling.find_child("LightHook", true, false) as Node3D
+		check(mount == null or mount.global_position.is_equal_approx(FpCeiling.HOOK_POS), "LightMount = 조명 고리 (0, 3, −1.6)")
+		check(hook == null or light.global_position.distance_to(hook.global_position) < 0.2, "빛은 LightHook 아래")
 	var decor_lamp: Vector3 = FpDecor.PLACES["lamp"].pos
 	check(decor_lamp.is_equal_approx(FpCeiling.HOOK_POS) and FpCeiling.HOOK_POS.is_equal_approx(Vector3(0, 3.0, -1.6)), "꾸미기 조명은 천장 조명 고리 (0, 3, −1.6) 에 매달림")
 
