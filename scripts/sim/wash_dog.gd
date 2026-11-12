@@ -20,6 +20,13 @@ const FOAM_WATER := Color(0.75, 0.88, 1.0)
 
 @export var model_scene: PackedScene = preload("res://scenes/art/sim/dog_model.tscn")
 
+## 샤워기 물방울: 날아가는 시간 (초), 중력, 노즐 구멍 수·반지름 (m), 퍼짐 (도) — 개발 보정값
+const STREAM_FLIGHT := 0.22
+const STREAM_GRAVITY := Vector3(0, -6.0, 0)
+const STREAM_HOLES := 7
+const STREAM_HOLE_RADIUS := 0.012
+const STREAM_SPREAD := 2.5
+
 var mask: PaintMask
 var model: Node3D
 var material: ShaderMaterial
@@ -47,7 +54,14 @@ var _pour: CPUParticles3D
 var _press: CPUParticles3D
 ## 드라이어 바람에 털이 날림 (크림색 작은 털 뭉치, 위로 흩어짐)
 var _fur: CPUParticles3D
-var _stream: MeshInstance3D
+## 샤워기 물줄기: 노즐 구멍 여러 개에서 물방울 입자가 포물선으로 날아가 맞는 곳에서 사라짐 (긴 막대 대신)
+var _stream: CPUParticles3D
+## 맞는 곳에서 털을 타고 흘러내리는 물 (젖는 자국)
+var _runoff: CPUParticles3D
+## 드라이기 바람: 옅은 줄무늬 입자 (막대 없음)
+var _wind: CPUParticles3D
+## 겨눔 표시: 맞는 곳에 작은 원 하나
+var _aim: Node3D
 var _glob: MeshInstance3D
 
 
@@ -79,23 +93,19 @@ func _ready() -> void:
 	_fur.initial_velocity_min = 0.3
 	_fur.initial_velocity_max = 0.9
 	_fur.gravity = Vector3(0, -0.6, 0)
-	# 샤워기 물줄기 (노즐 → 맞는 곳)
-	_stream = MeshInstance3D.new()
-	var tube := CylinderMesh.new()
-	tube.top_radius = 0.006
-	tube.bottom_radius = 0.014
-	tube.height = 1.0
-	tube.radial_segments = 8
-	_stream.mesh = tube
-	var water := StandardMaterial3D.new()
-	water.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
-	water.albedo_color = Color(0.5, 0.8, 1.0, 0.55)
-	water.emission_enabled = true
-	water.emission = Color(0.3, 0.6, 0.9)
-	water.emission_energy_multiplier = 0.4
-	_stream.material_override = water
-	_stream.visible = false
-	add_child(_stream)
+	_stream = _make_stream()
+	_runoff = _make_particles(Color(0.42, 0.72, 0.95), 0.007, false)
+	_runoff.amount = 20
+	_runoff.lifetime = 0.5
+	_runoff.direction = Vector3.DOWN
+	_runoff.spread = 25.0
+	_runoff.initial_velocity_min = 0.05
+	_runoff.initial_velocity_max = 0.25
+	_runoff.gravity = Vector3(0, -2.0, 0)
+	_runoff.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	_runoff.emission_sphere_radius = 0.03
+	_wind = _make_wind()
+	_aim = _make_aim()
 	# 짜는 중인 샴푸 덩이
 	_glob = MeshInstance3D.new()
 	var blob := SphereMesh.new()
@@ -326,21 +336,162 @@ func set_foam_color(color: Color) -> void:
 	_update_foam_mesh()
 
 
-## 샤워기 물줄기를 from → to 로 보인다 (색 = 물 온도)
-func show_stream(from: Vector3, to: Vector3, color: Color) -> void:
+## 샤워기 물줄기를 from(노즐) → to(맞는 곳) 로 보인다 (색 = 물 온도). width = 도구 단계 굵기 배수 (넓은 물줄기),
+## rainbow = 마지막 단계: 방울마다 무지개 색
+## 물방울은 중력을 받아 포물선으로 날아가 STREAM_FLIGHT 초 뒤 맞는 곳에 닿음 (거기서 사라지고 물보라·흘러내림)
+func show_stream(from: Vector3, to: Vector3, color: Color, width := 1.0, rainbow := false) -> void:
+	if from.distance_to(to) < 0.01:
+		return
+	var velocity := stream_velocity(from, to)
+	_stream.global_position = from
+	_stream.direction = velocity.normalized()
+	_stream.initial_velocity_min = velocity.length() * 0.97
+	_stream.initial_velocity_max = velocity.length() * 1.03
+	_stream.emission_points = _nozzle_holes(velocity.normalized(), STREAM_HOLE_RADIUS * width)
+	_stream.spread = STREAM_SPREAD * width
+	_stream.color = Color(color, 0.7)
+	_stream.hue_variation_min = -0.5 if rainbow else 0.0
+	_stream.hue_variation_max = 0.5 if rainbow else 0.0
+	_stream.emitting = true
+	_runoff.global_position = to
+	_runoff.emitting = true
+	_show_aim(to, from)
+
+
+## 드라이기 바람: from → to 로 옅은 줄무늬가 흘러감. strength 0~1 (가까울수록 진하고 빠름)
+func show_wind(from: Vector3, to: Vector3, strength: float) -> void:
 	var length := from.distance_to(to)
 	if length < 0.01:
 		return
-	_stream.visible = true
-	var up := (from - to).normalized()
-	var side := up.cross(Vector3.FORWARD if absf(up.dot(Vector3.FORWARD)) < 0.9 else Vector3.RIGHT).normalized()
-	_stream.global_transform = Transform3D(Basis(side, up, side.cross(up)).scaled(Vector3(1, length, 1)), (from + to) / 2.0)
-	(_stream.material_override as StandardMaterial3D).albedo_color = Color(color, 0.55)
+	var speed := lerpf(1.6, 3.0, strength)
+	_wind.global_position = from
+	_wind.direction = (to - from) / length
+	_wind.initial_velocity_min = speed * 0.9
+	_wind.initial_velocity_max = speed * 1.1
+	_wind.lifetime = length / speed
+	_wind.color = Color(0.8, 0.9, 1.0, lerpf(0.2, 0.4, strength))
+	_wind.emitting = true
+	_show_aim(to, from)
 
 
 func hide_stream() -> void:
-	if _stream != null:
-		_stream.visible = false
+	for particles in [_stream, _runoff, _wind]:
+		if particles != null:
+			(particles as CPUParticles3D).emitting = false
+	if _aim != null:
+		_aim.visible = false
+
+
+## 물방울 첫 속도: STREAM_FLIGHT 초 뒤 중력을 받으며 to 에 닿게 (포물선)
+static func stream_velocity(from: Vector3, to: Vector3) -> Vector3:
+	return (to - from) / STREAM_FLIGHT - 0.5 * STREAM_GRAVITY * STREAM_FLIGHT
+
+
+## 노즐 구멍 (물줄기 방향에 수직인 작은 원 위 여러 점) → 여러 가닥
+func _nozzle_holes(forward: Vector3, radius: float) -> PackedVector3Array:
+	var side := forward.cross(Vector3.UP if absf(forward.dot(Vector3.UP)) < 0.95 else Vector3.RIGHT).normalized()
+	var up := side.cross(forward).normalized()
+	var holes := PackedVector3Array([Vector3.ZERO])
+	for i in STREAM_HOLES - 1:
+		var angle := TAU * i / float(STREAM_HOLES - 1)
+		holes.append((side * cos(angle) + up * sin(angle)) * radius)
+	return holes
+
+
+func _show_aim(at: Vector3, toward: Vector3) -> void:
+	_aim.visible = true
+	_aim.global_position = at
+	if not at.is_equal_approx(toward):
+		var look := (toward - at).normalized()
+		_aim.look_at(toward, Vector3.UP if absf(look.dot(Vector3.UP)) < 0.95 else Vector3.FORWARD)
+		_aim.global_position = at + look * 0.01
+
+
+func _make_stream() -> CPUParticles3D:
+	var particles := CPUParticles3D.new()
+	particles.name = "ShowerStream"
+	# 강아지·회전판이 돌아도 물줄기 방향은 세상 기준
+	particles.top_level = true
+	particles.emitting = false
+	particles.local_coords = false
+	particles.amount = 140
+	particles.lifetime = STREAM_FLIGHT
+	particles.emission_shape = CPUParticles3D.EMISSION_SHAPE_POINTS
+	particles.gravity = STREAM_GRAVITY
+	particles.particle_flag_align_y = true
+	particles.scale_amount_min = 0.7
+	particles.scale_amount_max = 1.2
+	var drop := CapsuleMesh.new()
+	drop.radius = 0.0045
+	drop.height = 0.028
+	drop.radial_segments = 6
+	drop.rings = 1
+	var water := StandardMaterial3D.new()
+	water.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	water.vertex_color_use_as_albedo = true
+	water.albedo_color = Color(1, 1, 1, 1)
+	water.emission_enabled = true
+	water.emission = Color(0.25, 0.5, 0.75)
+	water.emission_energy_multiplier = 0.35
+	water.roughness = 0.1
+	drop.material = water
+	particles.mesh = drop
+	add_child(particles)
+	return particles
+
+
+func _make_wind() -> CPUParticles3D:
+	var particles := CPUParticles3D.new()
+	particles.name = "DryerWind"
+	particles.top_level = true
+	particles.emitting = false
+	particles.local_coords = false
+	particles.amount = 40
+	particles.lifetime = 0.4
+	particles.emission_shape = CPUParticles3D.EMISSION_SHAPE_SPHERE
+	particles.emission_sphere_radius = 0.03
+	particles.spread = 9.0
+	particles.gravity = Vector3.ZERO
+	particles.particle_flag_align_y = true
+	particles.scale_amount_min = 0.6
+	particles.scale_amount_max = 1.3
+	var streak := CapsuleMesh.new()
+	streak.radius = 0.0035
+	streak.height = 0.12
+	streak.radial_segments = 4
+	streak.rings = 1
+	var air := StandardMaterial3D.new()
+	air.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	air.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	air.vertex_color_use_as_albedo = true
+	streak.material = air
+	particles.mesh = streak
+	add_child(particles)
+	return particles
+
+
+func _make_aim() -> Node3D:
+	var root := Node3D.new()
+	root.name = "AimRing"
+	var ring := MeshInstance3D.new()
+	var torus := TorusMesh.new()
+	torus.inner_radius = 0.018
+	torus.outer_radius = 0.024
+	torus.rings = 16
+	torus.ring_segments = 4
+	ring.mesh = torus
+	# 고리 면이 노즐 쪽(−Z)을 보게
+	ring.rotation.x = PI / 2.0
+	var material := StandardMaterial3D.new()
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.albedo_color = Color(1, 1, 1, 0.55)
+	ring.material_override = material
+	ring.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	root.add_child(ring)
+	root.visible = false
+	add_child(root)
+	return root
 
 
 ## 짜는 중인 샴푸 덩이 (amount = 0~1, 클수록 큼)
