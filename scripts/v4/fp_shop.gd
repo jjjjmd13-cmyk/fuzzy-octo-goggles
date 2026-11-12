@@ -65,7 +65,7 @@ const STAGES: Array[Dictionary] = [
 	{"id": "dry", "tool": "dryer", "sound": "poof", "text": "뽕! 드라이 끝! 빗으로 엉킨 털을 풀어요"},
 	{"id": "brush", "tool": "brush", "sound": "squeak", "text": "빗질 끝! 반짝반짝 깨끗해졌어요"},
 	# 미용은 요청 손님만 (요청이 없으면 이 단계를 건너뜀)
-	{"id": "trim", "tool": "scissors", "sound": "clap", "text": "미용 끝! 모양이 남았어요"},
+	{"id": "trim", "tool": "scissors", "sound": "clap", "text": "미용 다 됐어요! 모양이 남았어요"},
 ]
 ## 거품 공 크기 배수 (크고 하얗게), 스스로 빛나는 정도
 const FOAM_SIZE := 2.4
@@ -85,6 +85,9 @@ const BRUSH_REACH := 0.8
 const TOWEL_DRY_SHARE := 0.3
 ## 가위·빗을 들면 가운데 점에서 이 거리(m) 안의 다발·뭉치를 겨눔
 const TARGET_PICK := 0.12
+## 미용 싹둑 소리: 이만큼 잘릴 때마다, 적어도 이 간격 (s)
+const SNIP_SOUND_EVERY := 0.06
+const SNIP_SOUND_GAP := 0.11
 ## 임시 털색 (엉킨 뭉치는 이보다 진하게)
 const FUR_COLOR := Color(0.96, 0.87, 0.7)
 ## 도구 5단계 이름 (GDD_V4 업그레이드 — 도구마다 5단계, TUNING_V4 3-2). 단계마다 속도 v4_tool_speed_mult5, 값 v4_tool_price5
@@ -269,6 +272,8 @@ var parcels: Array = []
 var trim_request := ""
 ## 미용 다발 (강아지 모형의 자식, 새 강아지마다 새로)
 var trim: FpTrim
+var _snip_carry := 0.0
+var _snip_left := 0.0
 var _settle: Control
 ## 지금 단계 (STAGES 번호, 4 = 다 끝남)
 var stage_index := 0
@@ -1222,6 +1227,8 @@ func new_dog() -> void:
 	trim.name = "Trim"
 	dog.model.add_child(trim)
 	trim.snipped.connect(_on_snipped)
+	trim.matched.connect(_on_trim_matched)
+	trim.overcut.connect(_on_trim_overcut)
 	trim_request = _taken.get("trim", "") if quick_feature != "trim" else "bear"
 	acc_on = ""
 	_acc_liked = false
@@ -1325,6 +1332,7 @@ func give_back() -> void:
 	if not trim_request.is_empty():
 		fee += Tuning.data.v4_price_trim
 		tip += trim_tip(trim.match_score())
+		trim.sweep_clippings()
 	var say: String = "+%d · " + FpAnimals.FACE_SAY[face]
 	# 대표 단골: 주인 한마디가 신뢰 단계마다 (기분이 나쁘면 보통 한마디)
 	var star_lines: Array = FpRegulars.get_regular(regular).get("lines", []) if not regular.is_empty() else []
@@ -2083,7 +2091,8 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 				_show_hint("빗질까지 끝난 뒤에 잘라요", 1.5)
 				return
 			stage = "trim"
-			trim.snip(point, radius * BRUSH_REACH, Tuning.data.v4_rate_trim * speed * delta)
+			# 실제로 자르기: 누른 채 지나가면 닿는 털이 안내선까지 쓱, 클릭 한 번은 조금만
+			trim.cut(point, delta, speed)
 		"dryer":
 			# 따뜻한 바람: 젖은 곳일수록 빨리 마르고, 마를수록 털이 뽕 부풀고 귀가 펄럭
 			stage = "dry"
@@ -2304,14 +2313,26 @@ func _spawn_trim() -> void:
 	trim.spawn(trim_request, dog.model, dog._body_center(), _rng, FUR_COLOR)
 
 
-## 다발 하나가 사각 잘림: 털 조각이 떨어짐 (작은 반짝), 잘못 자른 곳이면 한숨
-func _on_snipped(world_point: Vector3, wanted: bool) -> void:
+## 털이 잘림: 싹둑 (자르는 양만큼 자주, 너무 겹치지 않게). 털 조각은 FpTrim 이 떨어뜨림
+func _on_snipped(_world_point: Vector3, amount: float) -> void:
+	_snip_carry += amount
+	if _snip_left <= 0.0 and _snip_carry >= SNIP_SOUND_EVERY:
+		_snip_carry = 0.0
+		_snip_left = SNIP_SOUND_GAP
+		sfx.play("snip")
+
+
+## 다발이 안내선에 딱 맞음: 작은 반짝
+func _on_trim_matched(world_point: Vector3) -> void:
 	_sparkle.global_position = world_point
 	_sparkle.restart()
 	_sparkle.emitting = true
-	sfx.play("press")
-	if not wanted:
-		_show_hint("앗, 남길 곳을 잘랐어요 (모양이 덜 비슷해져요)", 1.5)
+
+
+## 지나치게 잘라 짧은 곳이 많음: 살짝 시무룩 (기분 −1, 한 번만). 그 밖의 벌은 없음
+func _on_trim_overcut() -> void:
+	dislike("trim_overcut", 1)
+	_show_hint("앗, 너무 짧아졌어요 (하늘색 선에서 멈춰요)", 2.0)
 
 
 ## 미용 팁: 요청 모양과 비슷한 정도 (v4_trim_match_at 넘으면 비슷함 / 똑같음)
@@ -2379,6 +2400,7 @@ func _process(delta: float) -> void:
 	var active := has_dog and using and aim_point != null and not held.is_empty() and not done
 	_update_tool_views(delta, active)
 	_huff_left = maxf(_huff_left - delta, 0.0)
+	_snip_left = maxf(_snip_left - delta, 0.0)
 	_final_left = maxf(_final_left - delta, 0.0)
 	if active:
 		# 손 자리 = 가운데 점 광선 위, 겨눈 점까지의 거리 (다발에 겨눔이 붙어도 손을 흔든 만큼 움직임)
@@ -2785,7 +2807,7 @@ func _draw_hud() -> void:
 	elif ready_to_use and held == "towel":
 		under = "클릭할 때마다 톡톡 닦아요"
 	elif ready_to_use and not using:
-		under = "누르고 있으면 %s" % {"shower": "물이 나와요 (헹굴 땐 위→아래로)", "shampoo": "거품 (좌우로 비비면 몽글몽글)", "towel": "", "dryer": "바람 (가까이 가면 빨라요)", "brush": "빗어요 (뭉치에 위→아래로 쓱쓱)", "scissors": "사각사각 잘라요"}[held]
+		under = "누르고 있으면 %s" % {"shower": "물이 나와요 (헹굴 땐 위→아래로)", "shampoo": "거품 (좌우로 비비면 몽글몽글)", "towel": "", "dryer": "바람 (가까이 가면 빨라요)", "brush": "빗어요 (뭉치에 위→아래로 쓱쓱)", "scissors": "털 위를 쓱 — 하늘색 선까지 잘려요"}[held]
 	_text(font, center + Vector2(0, 40), under, 22, true)
 	# 진행 (목욕통에 강아지가 있을 때만)
 	var p := progress()
@@ -2874,7 +2896,7 @@ func _draw_trim_card(font: Font, at: Vector2) -> void:
 	_hud.draw_rect(Rect2(at, Vector2(250, 150)), Color(0, 0, 0, 0.5))
 	_text(font, at + Vector2(12, 26), "미용 요청: %s" % shape.name, 20, false)
 	_text(font, at + Vector2(12, 50), shape.about, 15, false)
-	var cut: Array = shape.cut
+	var cut: Array = FpTrim.cut_zones(trim_request)
 	var base := at + Vector2(70, 105)
 	var paint := func(zone: String) -> Color: return Color(1.0, 0.55, 0.7) if zone in cut else Color(0.96, 0.87, 0.7)
 	_hud.draw_circle(base + Vector2(-38, -6), 9, paint.call("tail"))
