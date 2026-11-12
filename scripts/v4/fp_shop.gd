@@ -2047,7 +2047,7 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 				dog.rinse_foam(point, radius * RINSE_REACH * (1.0 + 0.3 * down), delta * RINSE_SPEED * speed * rinse_mult)
 				dog.paint("rinse", point, radius, Tuning.data.v4_rate_shower * speed * delta)
 			dog.spray(point)
-			dog.show_stream(_tool_tip(), point, Color.from_hsv(fmod(_t * 0.6, 1.0), 0.45, 1.0) if is_final("shower") else Color(0.55, 0.85, 1.0))
+			dog.show_stream(_tool_tip(), point, Color.from_hsv(fmod(_t * 0.6, 1.0), 0.65, 1.0) if is_final("shower") else Color(0.55, 0.85, 1.0), size_mult("shower") * (FINAL_RADIUS if is_final("shower") else 1.0), is_final("shower"))
 			sfx.set_loop("shower", 0.8)
 		"shampoo":
 			if wet_here < 0.3:
@@ -2109,7 +2109,9 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 					_huff_left = 1.5
 					sfx.play("huff")
 					_show_hint("너무 가까워요! 조금 물러서요", 1.2)
-			dog.show_stream(_tool_tip(), point, Color(1.0, 0.93, 0.8))
+			# 바람: 막대 없이 옅은 줄무늬 + 닿는 곳 털이 날리고 흔들림
+			dog.show_wind(_tool_tip(), point, 1.0 if is_final("dryer") else closeness)
+			dog.blow_fur(point, closeness)
 			sfx.set_loop("dryer", 0.8)
 	# 반응: 씻는 동안 꼬리 흔들기 + 도구를 바라봄, 단계마다 처음 한 번 몸짓 (칠하기는 멈추지 않음)
 	dog.react("set_mood", mood)
