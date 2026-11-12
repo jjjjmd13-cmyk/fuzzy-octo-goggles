@@ -3,7 +3,8 @@ extends RefCounted
 ## 그래픽 교체: `assets/models/shop/ceiling.glb` 가 있으면 그것 하나로 (천장 아래면 + 지붕 위면, 조명 기구 포함).
 ##   방 좌표 그대로 (원점 = 가게 방 바닥 가운데, 돌리지 않고 놓음). 천장 아래면 y = 3.0, x −4.1 ~ 4.1, z −3.6 ~ 3.6,
 ##   조명 고리 (0, 3.0, −1.6) = 꾸미기 조명이 매달리는 곳, 맞배지붕 용마루 y ≈ 3.8.
-##   빛 자리: 모형 안에 `Bulb` (빈 오브젝트 가능) 가 있으면 거기, 없으면 FIXTURE_POS.
+##   빛 자리: 모형 안에 `Bulb` 또는 `LightHook` (빈 오브젝트 가능) 이 있으면 거기, 없으면 FIXTURE_POS.
+##   `LightMount` (0, 3.0, −1.6) = 조명 고리 = HOOK_POS (꾸미기 조명이 매달리는 곳).
 ## 천장·지붕은 그림자를 드리우지 않음 (해가 비스듬히 들던 방 밝기 그대로). 손이 안 닿는 높이라 충돌 없음.
 
 const MODEL_PATH := "res://assets/models/shop/ceiling.glb"
@@ -13,6 +14,8 @@ const THICKNESS := 0.12
 ## 벽지 (기본 베이지 0.85, 0.78, 0.66) 보다 밝은 크림색 + 나무 들보·띠
 const CEILING_COLOR := Color(0.98, 0.95, 0.89)
 const PANEL_GLOW := 0.9
+## 받은 ceiling.glb 재질의 스스로 빛남 (아랫면이 회색으로 안 보이게)
+const GLB_GLOW := 0.2
 const WOOD_COLOR := Color(0.78, 0.62, 0.45)
 const ROOF_COLOR := Color(0.85, 0.5, 0.42)
 ## 들보 3줄 (X 방향으로 길게, 이 z 자리). 가운데 줄이 조명 고리를 지남
@@ -41,9 +44,13 @@ static func build(parent: Node3D) -> Node3D:
 		var art := (load(MODEL_PATH) as PackedScene).instantiate() as Node3D
 		art.name = "Art"
 		root.add_child(art)
+		# 빛 자리: Bulb, 없으면 LightHook (받은 ceiling.glb 의 조명 고리 아래, #159)
 		var bulb := art.find_child("Bulb", true, false) as Node3D
+		if bulb == null:
+			bulb = art.find_child("LightHook", true, false) as Node3D
 		if bulb != null:
 			light_at = art.transform * _local_to(art, bulb)
+		_brighten(art)
 	else:
 		_build_placeholder(root)
 	for node in root.find_children("*", "GeometryInstance3D", true, false):
@@ -56,6 +63,24 @@ static func build(parent: Node3D) -> Node3D:
 	light.omni_range = LIGHT_RANGE
 	root.add_child(light)
 	return root
+
+
+## 받은 천장도 아랫면이 해를 못 받아 어둡게 보여서, 재질마다 자기 색으로 살짝 스스로 빛나게 (개발 보정, 파일은 그대로)
+static func _brighten(art: Node3D) -> void:
+	for node in art.find_children("*", "MeshInstance3D", true, false):
+		var mesh := node as MeshInstance3D
+		if mesh.mesh == null:
+			continue
+		for i in mesh.mesh.get_surface_count():
+			var original := mesh.get_active_material(i) as StandardMaterial3D
+			if original == null:
+				continue
+			var material := original.duplicate() as StandardMaterial3D
+			material.emission_enabled = true
+			material.emission = original.albedo_color
+			material.emission_texture = original.albedo_texture
+			material.emission_energy_multiplier = GLB_GLOW
+			mesh.set_surface_override_material(i, material)
 
 
 ## node 의 자리 (ancestor 기준)
