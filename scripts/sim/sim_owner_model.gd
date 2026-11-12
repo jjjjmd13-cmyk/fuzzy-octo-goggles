@@ -29,9 +29,9 @@ const HATS: Array[Color] = [
 const ARM_SWING := 0.35
 const ARM_OUT := 0.08
 const ELBOW_EASY := 0.12
-const CRADLE := [0.55, 0.3]
-const CRADLE_IN := 0.22
-const CRADLE_ELBOW := 1.1
+const CRADLE := [0.55, 0.45]
+const CRADLE_IN := [0.22, 0.34]
+const CRADLE_ELBOW := 0.6
 
 ## 기본 키와 앉는 자리 높이. height는 현재 머리 위 말풍선 위치에 쓰는 높이.
 @export var standing_height := 1.12
@@ -48,6 +48,10 @@ var _head: Node3D
 var _arms: Array[Node3D] = []
 ## 팔꿈치 (모형에 있을 때만, _arms 와 같은 순서. 없으면 null)
 var _forearms: Array = []
+var _forearm_lengths: Array[float] = []
+## 어깨 높이·팔 길이 (모형에서 잼, held_point)
+var shoulder_y := 1.187
+var arm_length := 0.524
 var _legs: Array[Node3D] = []
 var _knees: Array[Node3D] = []
 var _knee_scales: Array[float] = []
@@ -93,6 +97,7 @@ func _ready() -> void:
 			_rest_axes[node] = global_basis.inverse() * node.global_basis
 			_rest_positions[node] = to_local(node.global_position)
 	height = standing_height
+	_measure_arms()
 	_fit_seated_pose()
 	_find_recolor(self)
 	_add_effects()
@@ -226,7 +231,7 @@ func _process(delta: float) -> void:
 			var lift: float = CRADLE[1 if forearm != null else 0] * (0.8 if wait_level == 3 else 1.0)
 			if sitting:
 				lift *= 0.8
-			swing = Vector3(-lift + sin(_t * 10.0) * 0.04 * float(moving), 0, -side * CRADLE_IN)
+			swing = Vector3(-lift + sin(_t * 10.0) * 0.04 * float(moving), 0, -side * float(CRADLE_IN[1 if forearm != null else 0]))
 			elbow = Vector3(-CRADLE_ELBOW, 0, 0)
 		elif _react == 0 or wait_level == 3:
 			swing = Vector3(0, 0, side * 0.05)
@@ -245,6 +250,57 @@ func _process(delta: float) -> void:
 		elif wait_level == 1 and _watch_glance():
 			nod = 0.3
 		_set_pose(_head, Vector3(nod, 0, 0))
+
+
+## 안은 동물 자리 (주인 기준): 서면 가슴 앞 (어깨에서 팔 길이 0.7 만큼 아래, 0.5 만큼 앞), 앉으면 무릎 위.
+## 모형마다 어깨 높이·팔 길이가 달라서 (주인 4종, 아이는 키 1.16 m) 모형에서 잰 값으로. 지금 owner.glb 는 (0, 0.82, 0.26)
+func held_point(sitting: bool) -> Vector3:
+	if sitting:
+		return Vector3(0, seat_height + 0.16, 0.1)
+	# 팔꿈치가 있으면 아래팔이 앞으로 들려 손이 조금 높고 앞에 옴
+	var jointed := not _forearms.is_empty() and _forearms[0] != null
+	return Vector3(0, shoulder_y - arm_length * (0.5 if jointed else 0.7), arm_length * (0.6 if jointed else 0.5))
+
+
+## i 번째 팔의 손 끝 (세상 좌표): 팔꿈치가 있으면 아래팔 끝
+func hand_point(i: int) -> Vector3:
+	var forearm: Node3D = _forearms[i] if i < _forearms.size() else null
+	if forearm != null:
+		return forearm.to_global(Vector3(0, -_forearm_lengths[i], 0))
+	return _arms[i].to_global(Vector3(0, -arm_length, 0))
+
+
+## 어깨 높이·팔 길이 (어깨 → 손 끝), 아래팔 길이: 모형 메시에서 잼 (차렷 자세)
+func _measure_arms() -> void:
+	if _arms.is_empty():
+		return
+	var arm := _arms[0]
+	shoulder_y = (_rest_positions[arm] as Vector3).y
+	var lowest := shoulder_y - arm_length
+	var found := false
+	for node in arm.find_children("*", "MeshInstance3D", true, false) + ([arm] if arm is MeshInstance3D else []):
+		var mesh := node as MeshInstance3D
+		if mesh.mesh == null:
+			continue
+		var to_owner := global_transform.affine_inverse() * mesh.global_transform if mesh.is_inside_tree() else _to_self(mesh)
+		var box: AABB = to_owner * mesh.get_aabb()
+		lowest = box.position.y if not found else minf(lowest, box.position.y)
+		found = true
+	if found:
+		arm_length = shoulder_y - lowest
+	for i in _arms.size():
+		var forearm: Node3D = _forearms[i] if i < _forearms.size() else null
+		_forearm_lengths.append(((_rest_positions[forearm] as Vector3).y - lowest) if forearm != null else 0.0)
+
+
+func _to_self(node: Node3D) -> Transform3D:
+	var at := Transform3D()
+	var walk: Node = node
+	while walk != null and walk != self:
+		if walk is Node3D:
+			at = (walk as Node3D).transform * at
+		walk = walk.get_parent()
+	return at
 
 
 ## 의자에 앉아 있음 (걷는 중이 아님)

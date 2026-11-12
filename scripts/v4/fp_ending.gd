@@ -10,7 +10,7 @@ signal menu_requested
 
 const FpRegulars := preload("res://scripts/v4/fp_regulars.gd")
 const FpAnimals := preload("res://scripts/v4/fp_animals.gd")
-const OWNER_SCENE := preload("res://scenes/art/sim/owner_model.tscn")
+const FpOwners := preload("res://scripts/v4/fp_owners.gd")
 const BROWN := Color(0.3, 0.22, 0.15)
 ## 엔딩 끝 한 줄 (사람 대표 결정: 만든 사람 목록 크레딧은 없음). 라이선스 전문은 메뉴 [라이선스] (LICENSES.txt)
 const CREDITS := ["플레이해 주셔서 고마워요! / Thanks for playing!"]
@@ -194,7 +194,7 @@ static func make_group_stage(ids: Array, size_px: Vector2, live: bool) -> SubVie
 	# 주인들: 맨 뒷줄 뒤에 (단골 수만큼, 최대 한 줄)
 	var owners := mini(ids.size(), ROW)
 	for i in owners:
-		var owner := OWNER_SCENE.instantiate() as Node3D
+		var owner := FpOwners.scene(i).instantiate() as Node3D
 		owner.position = Vector3((i - (owners - 1) / 2.0) * 0.6, rows * 0.3 - 0.3, -rows * 0.55 - 0.2)
 		var variant := i % 6
 		owner.ready.connect(func() -> void: owner.set_variant(variant), CONNECT_ONE_SHOT)
