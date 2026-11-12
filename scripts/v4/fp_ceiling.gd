@@ -13,6 +13,8 @@ const THICKNESS := 0.12
 ## 벽지 (기본 베이지 0.85, 0.78, 0.66) 보다 밝은 크림색 + 나무 들보·띠
 const CEILING_COLOR := Color(0.98, 0.95, 0.89)
 const PANEL_GLOW := 0.9
+## 받은 ceiling.glb 재질의 스스로 빛남 (아랫면이 회색으로 안 보이게)
+const GLB_GLOW := 0.2
 const WOOD_COLOR := Color(0.78, 0.62, 0.45)
 const ROOF_COLOR := Color(0.85, 0.5, 0.42)
 ## 들보 3줄 (X 방향으로 길게, 이 z 자리). 가운데 줄이 조명 고리를 지남
@@ -44,6 +46,7 @@ static func build(parent: Node3D) -> Node3D:
 		var bulb := art.find_child("Bulb", true, false) as Node3D
 		if bulb != null:
 			light_at = art.transform * _local_to(art, bulb)
+		_brighten(art)
 	else:
 		_build_placeholder(root)
 	for node in root.find_children("*", "GeometryInstance3D", true, false):
@@ -56,6 +59,24 @@ static func build(parent: Node3D) -> Node3D:
 	light.omni_range = LIGHT_RANGE
 	root.add_child(light)
 	return root
+
+
+## 받은 천장도 아랫면이 해를 못 받아 어둡게 보여서, 재질마다 자기 색으로 살짝 스스로 빛나게 (개발 보정, 파일은 그대로)
+static func _brighten(art: Node3D) -> void:
+	for node in art.find_children("*", "MeshInstance3D", true, false):
+		var mesh := node as MeshInstance3D
+		if mesh.mesh == null:
+			continue
+		for i in mesh.mesh.get_surface_count():
+			var original := mesh.get_active_material(i) as StandardMaterial3D
+			if original == null:
+				continue
+			var material := original.duplicate() as StandardMaterial3D
+			material.emission_enabled = true
+			material.emission = original.albedo_color
+			material.emission_texture = original.albedo_texture
+			material.emission_energy_multiplier = GLB_GLOW
+			mesh.set_surface_override_material(i, material)
 
 
 ## node 의 자리 (ancestor 기준)
