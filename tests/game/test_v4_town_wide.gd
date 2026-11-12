@@ -27,11 +27,24 @@ func run_test() -> void:
 	check(a.position.x >= -4.05 and a.end.x <= 9.05 and a.position.z >= -8.55 and a.end.z <= -3.65, "세탁소 (−Z) 자리 %s" % a)
 	check(b.position.x >= -4.05 and b.end.x <= 9.05 and b.position.z >= 3.65 and b.end.z <= 8.55, "문구점 (+Z) 자리 %s" % b)
 	check(b.position.z > FpGuests.STREET.z + 0.6, "손님 길 (z %.1f) 을 안 막음" % FpGuests.STREET.z)
-	var building_a := _box(wide.get_node("town_side_a/Building"))
-	check(is_equal_approx(building_a.size.y, 3.5) and is_equal_approx(building_a.end.x, 4.2), "세탁소 높이 3.5 · 정면 x 4.2")
+	# 받은 그래픽이 있으면 그것을 씀 (#159), 먼 배경도 기획 범위 안 (x 4 ~ 45, z ±40)
+	for name in ["town_side_a", "town_side_b", "town_far"]:
+		check(outside.used_models.has(name) == ResourceLoader.exists(FpOutside.MODEL_DIR % name), "%s: 파일이 있으면 그 그래픽" % name)
+	var far_box := _box(wide.get_node("town_far"))
+	check(far_box.position.x >= -10.1 and far_box.end.x <= 45.5 and far_box.position.z >= -40.5 and far_box.end.z <= 40.5, "먼 배경 범위 %s" % far_box)
 
-	# 먼 배경: 나무 띠 x 20~23, 먼 집 x 25~32, 언덕 x 35~45 (가운데), 폭 z ±40, 잔디 y −0.25
-	var far: Node3D = wide.get_node("town_far")
+	# 임시 모형 (그래픽이 빠지면 쓰는 것) 을 따로 만들어 확인
+	var rng := RandomNumberGenerator.new()
+	var side := FpTownWide._side_placeholder(FpTownWide.SIDES["town_side_a"])
+	add_child(side)
+	var building_a := _box(side.get_node("Building"))
+	check(is_equal_approx(building_a.size.y, 3.5) and is_equal_approx(building_a.end.x, 4.2), "임시 세탁소 높이 3.5 · 정면 x 4.2")
+	var placeholder_a := _box(side)
+	check(placeholder_a.position.x >= -4.05 and placeholder_a.end.x <= 9.05 and placeholder_a.position.z >= -8.55 and placeholder_a.end.z <= -3.65, "임시 세탁소 자리 %s" % placeholder_a)
+	side.free()
+	# 먼 배경 임시: 나무 띠 x 20~23, 먼 집 x 25~32, 언덕 x 35~45 (가운데), 폭 z ±40, 잔디 y −0.25
+	var far: Node3D = FpTownWide._far_placeholder(rng)
+	add_child(far)
 	for child in far.get_children():
 		var node := child as Node3D
 		var at := node.position
@@ -48,12 +61,13 @@ func run_test() -> void:
 	check(far.find_children("Tree*", "", false, false).size() >= 20, "나무 띠 (%d 그루)" % far.find_children("Tree*", "", false, false).size())
 	var grass := _box(far.get_node("Grass"))
 	check(is_equal_approx(grass.end.y, FpTownWide.GRASS_Y) and grass.end.x >= 45.0 and grass.position.z <= -40.0 and grass.end.z >= 40.0, "잔디 판 y −0.25 (%s)" % grass)
+	far.free()
 
 	# 하늘: 먼 산·구름 띠는 먼 배경보다 멀리, 그림자 안 드리움
 	var sky := _box(wide.get_node("SkyBand"))
 	check(sky.position.x > 45.0, "먼 산·구름은 언덕 너머 (x %.1f ~)" % sky.position.x)
 	check(wide.get_node("SkyBand").find_children("Cloud*", "", false, false).size() >= 6, "구름 띠")
-	for mesh in far.find_children("*", "GeometryInstance3D", true, false):
+	for mesh in wide.get_node("town_far").find_children("*", "GeometryInstance3D", true, false):
 		check_eq((mesh as GeometryInstance3D).cast_shadow, GeometryInstance3D.SHADOW_CASTING_SETTING_OFF, "먼 배경은 그림자 없음")
 		break
 	outside.free()
