@@ -6,6 +6,7 @@ extends Node3D
 ##   Body            몸 전체 (걸을 때 통통, 앉으면 높이 맞춤, 한숨에 살짝 움츠림)
 ##   Head            목이 피벗 (끄덕, 고개 숙임)
 ##   Arm_L, Arm_R    어깨가 피벗 (안고 오기·박수·걸을 때 흔들기)
+##   Forearm_L, Forearm_R (선택) 팔꿈치가 피벗, Arm_* 의 자식 (안을 때 팔꿈치를 굽혀 감쌈). 없으면 팔 전체만 돎
 ##   Leg_L, Leg_R    엉덩이가 피벗 (걷기·앉기)
 ## L/R 은 주인 자신의 왼쪽(+X)·오른쪽. 바닥이 원점, 정면 +Z (GLB 는 정면 −Z 로 받아 씬에서 180°).
 ## 6명 색: 재질 이름이 "Shirt"·"Hat" 인 표면을 set_variant 가 SHIRTS·HATS 색으로 바꾼다.
@@ -23,6 +24,15 @@ const HATS: Array[Color] = [
 	Color(0.55, 0.4, 0.3), Color(0.4, 0.75, 0.5), Color(0.98, 0.84, 0.5),
 ]
 
+## 팔 자세 (rad, 개발 보정값): 걸을 때 앞뒤 흔들기, 몸에서 살짝 벌림, 빈손일 때 팔꿈치 살짝,
+## 안을 때 위팔 앞으로 [팔꿈치 없는 모형, 있는 모형], 안쪽으로 모음, 팔꿈치 굽힘
+const ARM_SWING := 0.35
+const ARM_OUT := 0.08
+const ELBOW_EASY := 0.12
+const CRADLE := [0.55, 0.3]
+const CRADLE_IN := 0.22
+const CRADLE_ELBOW := 1.1
+
 ## 기본 키와 앉는 자리 높이. height는 현재 머리 위 말풍선 위치에 쓰는 높이.
 @export var standing_height := 1.12
 @export var seat_height := 0.4
@@ -36,6 +46,8 @@ var holding := false
 var _body: Node3D
 var _head: Node3D
 var _arms: Array[Node3D] = []
+## 팔꿈치 (모형에 있을 때만, _arms 와 같은 순서. 없으면 null)
+var _forearms: Array = []
 var _legs: Array[Node3D] = []
 var _knees: Array[Node3D] = []
 var _knee_scales: Array[float] = []
@@ -68,13 +80,14 @@ func _ready() -> void:
 		var arm := find_child("Arm_" + tag, true, false) as Node3D
 		if arm != null:
 			_arms.append(arm)
+			_forearms.append(arm.find_child("Forearm_" + tag, true, false) as Node3D)
 		var leg := find_child("Leg_" + tag, true, false) as Node3D
 		if leg != null:
 			_legs.append(leg)
 		var knee := find_child("Knee_" + tag, true, false) as Node3D
 		if knee != null:
 			_knees.append(knee)
-	for node in [_body, _head] + _arms + _legs + _knees:
+	for node in [_body, _head] + _arms + _forearms + _legs + _knees:
 		if node != null:
 			_rest[node] = node.transform
 			_rest_axes[node] = global_basis.inverse() * node.global_basis
@@ -191,24 +204,35 @@ func _process(delta: float) -> void:
 		_set_pose(_legs[i], Vector3((bend if sitting else sin(_t * 10.0 + i * PI) * 0.5 * float(moving)) + tap, 0, 0))
 		if jointed:
 			_set_pose(_knees[i], Vector3(PI / 2.0 if sitting else 0.0, 0, 0), Vector3.ZERO, Vector3(1, _knee_scales[i] if sitting else 1.0, 1))
-	# 팔: 안고 올 때 앞으로, 반응 때 박수
+	# 팔: 안고 있을 때만 앞으로 굽혀 감쌈 (손이 안은 동물 아래에서 모임), 빈손이면 내려서 걸을 때 앞뒤로 흔듦,
+	# 반응 때 박수. (전엔 안고 오는 동안 팔을 곧게 앞으로 뻗어 좀비처럼 보였음, 사람 대표 의견)
 	_react_time += delta
 	for i in _arms.size():
 		var side := signf((_rest_positions[_arms[i]] as Vector3).x + 0.0001)
-		var swing := Vector3(sin(_t * 10.0 + i * PI) * 0.4 * float(moving), 0, side * 0.15)
-		if _pose == "carry":
-			swing = Vector3(-1.2, 0, 0)
-		elif _react == 2:
+		var forearm: Node3D = _forearms[i] if i < _forearms.size() else null
+		var walk_swing := sin(_t * 10.0 + i * PI) * ARM_SWING * float(moving)
+		var swing := Vector3(walk_swing, 0, side * ARM_OUT)
+		var elbow := Vector3(-ELBOW_EASY - maxf(-walk_swing, 0.0) * 0.5, 0, 0)
+		if _react == 2:
 			swing = Vector3(-1.3, 0, side * (0.25 + absf(sin(_react_time * 12.0)) * 0.35))
+			elbow = Vector3(-0.4, 0, 0)
 		elif wait_level == 1 and i == 0 and _watch_glance():
 			# 시계 보기: 손목을 눈앞으로 (강아지는 다른 팔로 안음)
 			swing = Vector3(-1.5, 0, -side * 0.5)
+			elbow = Vector3(-0.6, 0, 0)
 		elif holding and _react < 0:
-			# 안은 강아지를 받침 (시무룩하면 팔이 처짐)
-			swing = Vector3((-0.6 if wait_level == 3 else -0.9) if sitting else -1.2, 0, side * 0.1)
+			# 안은 동물을 받침: 팔을 앞으로 비스듬히 + 안쪽으로 (팔꿈치가 있으면 위팔은 덜, 아래팔을 굽혀 감쌈).
+			# 걸으면 살짝 출렁, 시무룩하면 조금 처짐
+			var lift: float = CRADLE[1 if forearm != null else 0] * (0.8 if wait_level == 3 else 1.0)
+			if sitting:
+				lift *= 0.8
+			swing = Vector3(-lift + sin(_t * 10.0) * 0.04 * float(moving), 0, -side * CRADLE_IN)
+			elbow = Vector3(-CRADLE_ELBOW, 0, 0)
 		elif _react == 0 or wait_level == 3:
 			swing = Vector3(0, 0, side * 0.05)
 		_set_pose(_arms[i], swing)
+		if forearm != null:
+			_set_pose(forearm, elbow)
 	# 머리: 끄덕 / 한숨(고개 숙임) / 가만히 숨쉬기
 	if _head != null:
 		var nod := sin(_t * 1.5) * 0.03
