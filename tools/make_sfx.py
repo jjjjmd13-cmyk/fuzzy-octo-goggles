@@ -44,7 +44,13 @@ def mix(*parts):
     return [sum(p[i] for p in parts if i < len(p)) for i in range(n)]
 
 
+# 도구 소리는 tools/make_tool_sfx.py 가 만듦 (잡음을 거른 소리, 대표 요청 2026-11-11 ⑦) → 여기서는 덮어쓰지 않음
+TOOL_SOUNDS = {"shower", "scrub", "foam", "dryer", "brush", "towel", "press", "snip", "squirt", "bubble_pop", "pour"}
+
+
 def save(name, samples):
+    if name in TOOL_SOUNDS:
+        return
     os.makedirs(OUT, exist_ok=True)
     with wave.open(os.path.join(OUT, name + ".wav"), "w") as w:
         w.setnchannels(1)

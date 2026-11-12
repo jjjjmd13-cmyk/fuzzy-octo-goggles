@@ -1,7 +1,9 @@
 extends Node
 ## 효과음. 파일은 assets/sfx/<이름>.wav — 같은 이름으로 바꿔 넣으면 교체된다.
 ## 지금 소리는 tools/make_sfx.py 로 만든 임시 소리 (외부 파일 없음).
-## 계속 나는 소리(샤워기·문지르기·드라이어)는 set_loop(이름, 크기) 로 켜고 끈다. 크기 0 = 끔.
+## 계속 나는 소리(샤워기·거품·드라이어·빗)는 set_loop(이름, 크기, 높이) 로 켜고 끈다. 크기 0 = 끔. 켜고 끌 때 부드럽게 (FADE_IN·FADE_OUT).
+## 도구 소리 (물 쏴아·거품 뽀글·수건·드라이기 웅·빗 슥슥·가위 싹둑·샴푸·바가지) 는 tools/make_tool_sfx.py 로 잡음을 걸러 만든 것
+## (삑 소리 없음, 안내음보다 작게 — tests/game/test_tool_sfx.gd). 외부·유료 음원 없음.
 
 const SOUNDS := {
 	"ding": preload("res://assets/sfx/ding.wav"),  # 단계 끝
@@ -25,10 +27,13 @@ const SOUNDS := {
 	"bell": preload("res://assets/sfx/bell.wav"),  # 딸랑 (손님이 들어옴)
 	"rattle": preload("res://assets/sfx/rattle.wav"),  # 달그락 (택배 상자 흔들기)
 	"tada": preload("res://assets/sfx/tada.wav"),  # 짜잔 (상자 열기)
+	"snip": preload("res://assets/sfx/snip.wav"),  # 싹둑 (가위로 털 자르기)
 }
 const LOOPS := {
 	"shower": preload("res://assets/sfx/shower.wav"),  # 쏴아
-	"scrub": preload("res://assets/sfx/scrub.wav"),  # 뽀글뽀글 (손 빠르기에 따라 크게)
+	"scrub": preload("res://assets/sfx/scrub.wav"),  # 거품 문지르기 (V3, 손 빠르기에 따라 크게)
+	"foam": preload("res://assets/sfx/foam.wav"),  # 뽀글뽀글 (V4 거품)
+	"brush": preload("res://assets/sfx/brush.wav"),  # 슥슥 (빗)
 	"dryer": preload("res://assets/sfx/dryer.wav"),  # 위잉
 }
 
@@ -39,6 +44,10 @@ var loop_volume := {}
 
 var _players: Array[AudioStreamPlayer] = []
 var _loops := {}
+## 이어지는 소리 지금 크기 (목표 loop_volume 쪽으로 부드럽게 움직임)
+var _loop_now := {}
+const FADE_IN := 0.12
+const FADE_OUT := 0.3
 ## 헤드리스(테스트·CI)에서는 소리를 실제로 틀지 않고 기록만 한다. 소리 장치가 없는 더미 드라이버에서
 ## 재생 중에 끝내면 재생 객체가 남았다는 오류가 찍혀 테스트가 실패로 보이기 때문이다.
 var _silent := DisplayServer.get_name() == "headless"
@@ -79,18 +88,40 @@ func play(sound: String) -> void:
 	_players[0].play()
 
 
-func set_loop(sound: String, volume: float) -> void:
+func set_loop(sound: String, volume: float, pitch := 1.0) -> void:
 	var player: AudioStreamPlayer = _loops[sound]
 	loop_volume[sound] = volume
 	if _silent:
 		return
-	if volume <= 0.01:
-		if player.playing:
-			player.stop()
-		return
-	player.volume_db = linear_to_db(clampf(volume, 0.05, 1.0))
-	if not player.playing:
+	player.pitch_scale = pitch
+	if volume > 0.01 and not player.playing:
+		_loop_now[sound] = 0.0
+		player.volume_db = -60.0
 		player.play()
+
+
+## 이어지는 소리의 지금 크기 (0~1, 켜고 끌 때 서서히 바뀌는 값)
+func loop_level(sound: String) -> float:
+	return _loop_now.get(sound, 0.0)
+
+
+## 이어지는 소리 크기를 목표 쪽으로 부드럽게 (켤 때 FADE_IN, 끌 때 FADE_OUT 초), 다 작아지면 멈춤.
+## 크기 계산은 헤드리스에서도 함 (소리만 안 남)
+func _process(delta: float) -> void:
+	for sound in _loops:
+		var target: float = clampf(loop_volume.get(sound, 0.0), 0.0, 1.0)
+		var now: float = _loop_now.get(sound, 0.0)
+		now = move_toward(now, target, delta / (FADE_IN if target > now else FADE_OUT))
+		_loop_now[sound] = now
+		if _silent:
+			continue
+		var player: AudioStreamPlayer = _loops[sound]
+		if not player.playing:
+			continue
+		if now <= 0.001 and target <= 0.01:
+			player.stop()
+			continue
+		player.volume_db = linear_to_db(maxf(now, 0.001))
 
 
 ## 씬을 나갈 때 울리던 소리를 멈춘다 (안 멈추면 종료 때 재생 객체가 남았다는 오류가 찍힘).

@@ -1430,6 +1430,14 @@ func end_day() -> void:
 	save_game(day + 1)
 
 
+## 도구 소리 높이: 단계마다 살짝 다르게 (샤워기·거품·빗은 조금 밝게, 드라이기는 조금 낮고 힘차게)
+const TOOL_PITCH_STEP := {"shower": 0.035, "shampoo": 0.04, "dryer": -0.03, "brush": 0.035}
+
+
+static func tool_pitch(tool_id: String, level: int) -> float:
+	return 1.0 + TOOL_PITCH_STEP.get(tool_id, 0.0) * level
+
+
 ## 도구 단계별 칠하는 속도 배수
 func speed_mult(tool_id: String) -> float:
 	var mults: PackedFloat32Array = Tuning.data.v4_tool_speed_mult5
@@ -2045,7 +2053,7 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 				dog.paint("rinse", point, radius, Tuning.data.v4_rate_shower * speed * delta)
 			dog.spray(point)
 			dog.show_stream(_tool_tip(), point, Color.from_hsv(fmod(_t * 0.6, 1.0), 0.65, 1.0) if is_final("shower") else Color(0.55, 0.85, 1.0), size_mult("shower") * (FINAL_RADIUS if is_final("shower") else 1.0), is_final("shower"))
-			sfx.set_loop("shower", 0.8)
+			sfx.set_loop("shower", 0.8, tool_pitch("shower", tool_level.shower))
 		"shampoo":
 			if wet_here < 0.3:
 				_show_hint("먼저 샤워기로 물을 뿌려요", 1.5)
@@ -2059,7 +2067,7 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 			while _foam_carry >= 1.0:
 				_foam_carry -= 1.0
 				dog.add_foam(point, 1, _rng, FOAM_SIZE * size_mult("shampoo") * (1.0 + 0.4 * rub) * (1.4 if is_final("shampoo") else 1.0))
-			sfx.set_loop("scrub", 0.8)
+			sfx.set_loop("foam", 0.8, tool_pitch("shampoo", tool_level.shampoo))
 		"brush":
 			if stage_index < STAGES.size() and STAGES[stage_index].id != "brush":
 				_show_hint("드라이기로 다 말린 뒤에 빗어요", 1.5)
@@ -2074,7 +2082,7 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 			tangles.brush(point, radius * BRUSH_REACH, amount * speed * brush_wear_mult())
 			if is_final("brush"):
 				_final_sparkle(point)
-			sfx.set_loop("scrub", 0.4)
+			sfx.set_loop("brush", 0.6, tool_pitch("brush", tool_level.brush))
 		"scissors":
 			if trim_request.is_empty():
 				_show_hint("미용을 요청한 손님 강아지만 잘라요", 1.5)
@@ -2109,7 +2117,7 @@ func use_tool_at(point: Vector3, delta: float) -> void:
 			# 바람: 막대 없이 옅은 줄무늬 + 닿는 곳 털이 날리고 흔들림
 			dog.show_wind(_tool_tip(), point, 1.0 if is_final("dryer") else closeness)
 			dog.blow_fur(point, closeness)
-			sfx.set_loop("dryer", 0.8)
+			sfx.set_loop("dryer", 0.8, tool_pitch("dryer", tool_level.dryer))
 	# 반응: 씻는 동안 꼬리 흔들기 + 도구를 바라봄, 단계마다 처음 한 번 몸짓 (칠하기는 멈추지 않음)
 	dog.react("set_mood", mood)
 	if dog.model.has_method("watch"): dog.model.watch(point, true)
@@ -2532,7 +2540,8 @@ func _stop_effects() -> void:
 	if sfx == null or dog == null or dog.model == null:
 		return
 	sfx.set_loop("shower", 0.0)
-	sfx.set_loop("scrub", 0.0)
+	sfx.set_loop("foam", 0.0)
+	sfx.set_loop("brush", 0.0)
 	sfx.set_loop("dryer", 0.0)
 	dog.stop_spray()
 	dog.hide_stream()
