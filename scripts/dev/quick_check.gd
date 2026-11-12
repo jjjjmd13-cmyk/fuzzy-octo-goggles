@@ -12,6 +12,7 @@ const SHOP_SCENE := preload("res://scenes/v4/fp_shop.tscn")
 const FpSettle := preload("res://scripts/v4/fp_settle.gd")
 const V4Save := preload("res://scripts/v4/v4_save.gd")
 const FpDayTools := preload("res://scripts/dev/fp_day_tools.gd")
+const StyleCompare := preload("res://scripts/dev/style_compare.gd")
 ## id, 메뉴 버튼, 강아지 수, 끝 화면의 "새로 들어간 것"
 const FEATURES: Array[Dictionary] = [
 	{"id": "day", "name": "하루 돌리기", "dogs": 2, "new": "손님 클릭으로 맡기기·돌려주기, 요금 + 팁"},
@@ -30,6 +31,7 @@ const FEATURES: Array[Dictionary] = [
 	{"id": "trust", "name": "단골 신뢰", "dogs": 3, "new": "단골마다 신뢰 4단계 (낯가림·익숙함·친함·단짝, 이름표 하트). 몽실 (낯가림, 겁쟁이 + 샤워 무서움: 발부터 적시기) → 나비 (친함 고양이 + 드라이 예민: 멀리서 켜고 천천히, 머리에 물·젖은 시간이 쉬워짐) → 짱구 (단짝: 품에서 깡충, 수건 줄다리기·배 문지르기 = 좋아함). 돌려주면 신뢰 점수가 오르고 단계가 오르면 하트가 터짐. 사진첩 카드에 첫 방문 ↔ 최근 사진, '처음 ~한 날'"},
 	{"id": "accessory", "name": "액세서리", "dogs": 2, "new": "12개를 다 가진 상태. 다 씻은 동물로 바로 시작 → 목욕통 오른쪽 옆 바구니를 클릭하면 가진 것이 둥글게 펼쳐짐 → 하나 고르면 머리(리본·모자)·목(스카프)·귀 옆(꽃핀)에 씌워짐. 콩이는 리본, 나비는 꽃핀을 좋아함 (맞으면 뽐내며 좋아함 +1, \"어머, 귀여워!\"). 돌려주면 사진에 찍히고 사진첩 카드에 '좋아하는 액세서리'. 정산 판 [액세서리] 탭에서 사기 (내일 아침 작은 상자)"},
 	{"id": "days", "name": "18일 점검", "dogs": 0, "new": "진짜 하루 흐름 (저장·이어하기 그대로, 저장이 있으면 이어서) + 점검 도구: F5 날 건너뛰기 · F6 건너뛰기(모두 받음) · F7 돈 +1,000 · F8 하루 결과 기록 (user://v4_day_log.csv)"},
+	{"id": "style", "name": "그림체 비교", "dogs": 0, "new": "파스텔 모형 (지금) 과 실사풍 시험 모형 (art/incoming/style_real_test/real_dog·real_tub·real_bakery.glb) 을 같은 빛에 나란히. 파일이 없으면 \"아직 없음\". 1·2·3 강아지·목욕통·빵집, ←→ 돌기, ↑↓ 가까이, Esc 메뉴"},
 	{"id": "save", "name": "저장·이어하기", "dogs": 1, "new": "예시 저장(4일차·돈 620·도구 단계 섞임·가위·샴푸 7.5마리분·빗 12마리·택배 상자 2개)을 파일에 쓰고 다시 읽어서 시작. 선반 도구 모양·오른쪽 위 날짜·돈이 그대로인지 봄 (진짜 저장 파일은 안 건드림)"},
 ]
 
@@ -39,6 +41,13 @@ var feature: Dictionary
 
 func _ready() -> void:
 	feature = find(Engine.get_meta("quick_check_feature", "day"))
+	if feature.id == "style":
+		# 그림체 비교: 가게 대신 비교 화면
+		var compare := StyleCompare.new()
+		compare.name = "StyleCompare"
+		add_child(compare)
+		Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+		return
 	shop = SHOP_SCENE.instantiate()
 	if feature.id == "days":
 		# 18일 점검: 보통 게임 그대로 (저장됨), 점검 도구만 위에
