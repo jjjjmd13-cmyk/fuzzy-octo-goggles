@@ -25,8 +25,8 @@ const CATEGORIES := {
 const PLACES := {
 	# 뒷벽 목욕통 위 (원점 = 뒷면 가운데)
 	"sign": {"pos": Vector3(0, 2.35, -3.39), "turn": PI},
-	# 목욕통 위 천장 (원점 = 맨 위 걸이)
-	"lamp": {"pos": Vector3(0, 3.0, -1.2), "turn": 0.0},
+	# 목욕통 위 천장 조명 고리 (원점 = 맨 위 걸이, FpCeiling.HOOK_POS · ART_SLOTS 4-8)
+	"lamp": {"pos": Vector3(0, 3.0, -1.6), "turn": 0.0},
 	# 문 안쪽 옆 앞벽 앞 (손님 쪽 −Z 가 방 안)
 	"counter": {"pos": Vector3(2.0, 0, 3.05), "turn": 0.0},
 	# 대기 의자 옆 (뒤쪽 끝)
