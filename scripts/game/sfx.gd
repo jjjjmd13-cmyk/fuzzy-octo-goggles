@@ -25,6 +25,7 @@ const SOUNDS := {
 	"bell": preload("res://assets/sfx/bell.wav"),  # 딸랑 (손님이 들어옴)
 	"rattle": preload("res://assets/sfx/rattle.wav"),  # 달그락 (택배 상자 흔들기)
 	"tada": preload("res://assets/sfx/tada.wav"),  # 짜잔 (상자 열기)
+	"snip": preload("res://assets/sfx/snip.wav"),  # 싹둑 (가위로 털 자르기)
 }
 const LOOPS := {
 	"shower": preload("res://assets/sfx/shower.wav"),  # 쏴아

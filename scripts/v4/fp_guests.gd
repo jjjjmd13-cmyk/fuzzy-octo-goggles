@@ -12,7 +12,7 @@ signal guest_arrived
 ## 대기 강아지가 택배 상자 냄새를 맡음 (테스트·확인용)
 signal sniffed(owner: Node3D)
 
-const OWNER_SCENE := preload("res://scenes/art/sim/owner_model.tscn")
+const FpOwners := preload("res://scripts/v4/fp_owners.gd")
 const CHAIR_SCENE := preload("res://scenes/art/sim/chair_model.tscn")
 const DOG_SCENE := preload("res://scenes/art/sim/dog_model.tscn")
 const FpAnimals := preload("res://scripts/v4/fp_animals.gd")
@@ -125,7 +125,7 @@ func spawn(kind := "", walk_in := false) -> void:
 		return
 	if kind.is_empty():
 		kind = roll_kind()
-	var owner := OWNER_SCENE.instantiate() as Node3D
+	var owner := FpOwners.scene(_variant).instantiate() as Node3D
 	add_child(owner)
 	owner.add_to_group("door_users")
 	owner.position = STREET if walk_in else DOOR
@@ -134,6 +134,7 @@ func spawn(kind := "", walk_in := false) -> void:
 	var holder := Node3D.new()
 	holder.name = "HeldDog"
 	holder.scale = Vector3.ONE * HELD_DOG_SCALE
+	holder.position = FpOwners.held_point(owner, false)
 	owner.add_child(holder)
 	# 동물·동물 성격 (고양이는 3일차부터, 성격은 2·5·7일차부터)
 	spawned_today += 1
@@ -296,7 +297,7 @@ func _process(delta: float) -> void:
 		owner.wait_level = 0 if left > 0.5 else (1 if left > BLINK_BELOW else 2)
 		var held := owner.get_node_or_null("HeldDog") as Node3D
 		if held != null:
-			held.position = HELD_ON_LAP if owner.is_sitting() else HELD_STANDING
+			held.position = FpOwners.held_point(owner, owner.is_sitting())
 		var icon: Node3D = guest.icon
 		icon.position.y = owner.height + 0.38
 		icon.visible = left > BLINK_BELOW or fmod(guest.waited, 0.5) < 0.3
