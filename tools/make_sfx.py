@@ -141,3 +141,17 @@ save("rattle", clicks)
 # 짜잔: 상자를 열 때 (올라가는 세 음 + 반짝)
 tada = tone(0.09, 784, vol=0.3, release=0.05) + tone(0.09, 988, vol=0.3, release=0.05) + mix(tone(0.45, 1319, vol=0.32, release=0.35), tone(0.45, 2637, vol=0.1, release=0.3))
 save("tada", tada)
+
+# 싹둑: 가위 날 두 개가 스치며 닫힘 (높은 잡음 '싹' + 짧은 쇳소리 '둑'). 다른 소리와 따로 섞어 앞 소리가 안 바뀜
+snip_rng = random.Random(11)
+def blade(dur, vol):
+    n = int(dur * RATE)
+    out, last = [], 0.0
+    for i in range(n):
+        s = snip_rng.uniform(-1, 1)
+        hp = s - last  # 높은 소리만 (차이)
+        last = s
+        out.append(hp * 0.5 * vol * env(i, n, 0.002, dur * 0.8))
+    return out
+snip = blade(0.05, 0.35) + mix(blade(0.035, 0.3), tone(0.12, 3400, 3000, vol=0.08, attack=0.001, release=0.1))
+save("snip", snip)
